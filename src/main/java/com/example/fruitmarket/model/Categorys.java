@@ -24,6 +24,6 @@ public class Categorys {
     private boolean status;
 
     // 1 Category -> n Product
-//    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = false)
-//    private List<Product> products = new ArrayList<>();
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = false)
+    private List<Product> products = new ArrayList<>();
 }

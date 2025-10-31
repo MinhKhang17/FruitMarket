@@ -22,7 +22,15 @@ public class Product {
     @Column
     private double product_price;
 
-    @Column
+    @OneToMany(cascade = CascadeType.ALL)
     private List<Image> images;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "category_id", nullable = false)
+    private Categorys category;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "brand_id", nullable = false)
+    private Brands brand;
 
 }

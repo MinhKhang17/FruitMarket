@@ -24,16 +24,6 @@ public class BrandsServiceImpl implements BrandsService {
     }
 
     @Override
-    public Brands updateBrand(Brands brand) {
-        return brandsRepository.save(brand);
-    }
-
-    @Override
-    public void deleteBrand(Brands brand) {
-        brandsRepository.delete(brand);
-    }
-
-    @Override
     public Brands findById(Long id) {
         return brandsRepository.findById(id).orElse(null);
     }

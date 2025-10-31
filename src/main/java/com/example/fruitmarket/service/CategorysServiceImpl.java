@@ -24,16 +24,6 @@ public class CategorysServiceImpl implements  CategorysService {
     }
 
     @Override
-    public void updateCategorys(Long id, Categorys categorys) {
-        categorysRepository.updateCategorys(id, categorys);
-    }
-
-    @Override
-    public void deleteCategorys(Long id) {
-        categorysRepository.deleteCategorys(id);
-    }
-
-    @Override
     public List<Categorys> findAll() {
         return categorysRepository.findAll();
     }

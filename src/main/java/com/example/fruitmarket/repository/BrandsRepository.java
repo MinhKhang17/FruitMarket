@@ -10,6 +10,4 @@ import org.springframework.stereotype.Repository;
 public interface BrandsRepository extends JpaRepository<Brands, Long> {
     Brands findByName(String name);
     Brands findById(long id);
-
-    Brands findById(Long id, Sort sort, Limit limit);
 }
