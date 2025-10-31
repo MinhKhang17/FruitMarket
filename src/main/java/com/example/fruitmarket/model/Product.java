@@ -19,11 +19,10 @@ public class Product {
     @Column
     private String product_description;
 
-    @Column
-    private double product_price;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<Image> images;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private Image images;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "category_id", nullable = false)

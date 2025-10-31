@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create Product</title>
+</head>
+<body>
+<h1>Create Product</h1>
+
+<form th:action="@{/admin/products/save}" th:object="${product}" method="post" enctype="multipart/form-data">
+
+    <label for="id">Product Id (leave blank for new)</label>
+    <input type="text" id="id" th:field="*{id}" readonly/>
+
+    <div>
+        <label for="product_name">Product Name</label>
+        <input type="text" id="product_name" th:field="*{product_name}" required/>
+    </div>
+
+    <div>
+        <label for="product_description">Product Description</label>
+        <input type="text" id="product_description" th:field="*{product_description}"/>
+    </div>
+
+    <div>
+        <label for="category">Category</label>
+        <select id="category" name="categoryId" required>
+            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+        </select>
+    </div>
+
+    <div>
+        <label for="brand">Brand</label>
+        <select id="brand" name="brandId" required>
+            <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
+        </select>
+    </div>
+
+    <div>
+        <label for="images">Images (you can select multiple)</label>
+        <input type="file" id="images" name="images" accept="image/*" multiple/>
+    </div>
+
+    <div>
+        <button type="submit">Save Product</button>
+    </div>
+</form>
+
+</body>
+</html>

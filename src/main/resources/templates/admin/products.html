@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin - Products</title>
+    <style>
+        :root {
+            --bg: #0b1222;
+            --card: #0f172a;
+            --muted: #94a3b8;
+            --accent: #2563eb;
+            --text: #e2e8f0;
+        }
+        body {
+            margin: 0;
+            padding: 18px;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+            background: var(--bg);
+            color: var(--text);
+        }
+        .card {
+            background: var(--card);
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+        }
+        .top-row {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            gap:12px;
+            margin-bottom:12px;
+        }
+        .btn {
+            background: var(--accent);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        table {
+            width:100%;
+            border-collapse: collapse;
+            margin-top:8px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #0f172a;
+            font-size: 14px;
+            color: var(--text);
+        }
+        th { color: var(--muted); font-weight: 600; font-size:13px;}
+        .thumb {
+            width:64px;
+            height:64px;
+            object-fit:cover;
+            border-radius:6px;
+            border:1px solid #111827;
+        }
+        .actions a {
+            margin-right:8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .no-data { color: var(--muted); padding: 20px; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="top-row">
+        <div>
+            <h2 style="margin:0 0 4px 0">Danh sách Products</h2>
+            <div style="color:var(--muted); font-size:13px">Quản lý sản phẩm — xem, sửa, xóa hoặc tạo mới.</div>
+        </div>
+        <div>
+            <a class="btn" th:href="@{/createProduct}">➕ Tạo Product mới</a>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(products)}" class="no-data">Không có product nào.</div>
+
+    <div th:if="${!#lists.isEmpty(products)}">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Ảnh</th>
+                <th>Tên</th>
+                <th>Mô tả</th>
+                <th>Category</th>
+                <th>Brand</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p,iter : ${products}">
+                <td th:text="${iter.index + 1}">1</td>
+                <td>
+                    <!-- hiển thị ảnh đầu tiên nếu có, giả sử Image.filename lưu tên file -->
+                    <img th:if="${p.images != null and #lists.size(p.images) > 0}"
+                         th:src="@{${'/uploads/' + p.images.get(0).filename}}"
+                         alt="thumb" class="thumb"/>
+                    <div th:if="${p.images == null || #lists.isEmpty(p.images)}" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:#071023;color:var(--muted);border-radius:6px;border:1px solid #0f172a;font-size:12px">
+                        No image
+                    </div>
+                </td>
+                <td th:text="${p.product_name}">Product name</td>
+                <td th:text="${p.product_description}">Description...</td>
+                <td th:text="${p.category != null ? p.category.provinceName ?: p.category.name : '—'}">Category</td>
+                <td th:text="${p.brand != null ? p.brand.name : '—'}">Brand</td>
+                <td class="actions">
+                    <!-- giả sử bạn có mapping edit và delete (bổ sung controller nếu cần) -->
+                    <a th:href="@{'/admin/products/edit/' + ${p.id}}">Edit</a>
+                    <a th:href="@{'/admin/products/delete/' + ${p.id}}"
+                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">Delete</a>
+                    <a th:href="@{'/admin/products/view/' + ${p.id}}">View</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

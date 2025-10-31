@@ -1,4 +1,7 @@
 package com.example.fruitmarket.repository;
 
-public interface ProductRepository {
+import com.example.fruitmarket.model.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ProductRepository extends JpaRepository<Product,Integer> {
 }

@@ -12,16 +12,18 @@
             --active: #2563eb;
             --text: #e2e8f0;
             --muted: #94a3b8;
+            --card: #0b1222;
         }
         * { box-sizing: border-box; }
+        html,body { height: 100%; margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial; }
         body {
-            margin: 0;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
             background: var(--bg);
             color: var(--text);
             display: flex;
             height: 100vh;
+            overflow: hidden;
         }
+
         /* Sidebar */
         .sidebar {
             width: 240px;
@@ -29,6 +31,7 @@
             display: flex;
             flex-direction: column;
             border-right: 1px solid #1f2937;
+            min-width: 200px;
         }
         .sidebar header {
             padding: 24px 16px;
@@ -40,6 +43,7 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            overflow: auto;
         }
         .nav-link {
             padding: 14px 20px;
@@ -47,6 +51,7 @@
             color: var(--text);
             transition: background 0.2s;
             border-left: 4px solid transparent;
+            cursor: pointer;
         }
         .nav-link:hover {
             background: var(--hover);
@@ -69,83 +74,205 @@
             flex: 1;
             display: flex;
             flex-direction: column;
+            min-width: 0; /* allow children to shrink */
         }
         header.main-header {
             padding: 20px;
             border-bottom: 1px solid #1f2937;
-            background: #0b1222;
+            background: var(--card);
         }
         header.main-header h1 {
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
         }
+        header.main-header p {
+            margin: 6px 0 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
         .content {
             flex: 1;
-            background: #111827;
-            padding: 0;
+            background: #0b1222;
+            padding: 16px;
+            overflow: auto;
         }
-        iframe {
-            width: 100%;
-            height: 100%;
+
+        /* Primary iframe area */
+        .frame-wrap {
+            height: calc(100% - 0px);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .primary-frame {
+            flex: 1;
             border: none;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
             background: white;
+            min-height: 300px;
+        }
+
+        /* welcome mini frames grid */
+        .mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .mini-frame {
+            height: 260px;
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+            background: white;
+            width: 100%;
+        }
+
+        /* responsive */
+        @media (max-width: 900px) {
+            .sidebar { width: 200px; }
+            .mini-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            body { flex-direction: column; height: 100vh; }
+            .sidebar { width: 100%; display: flex; flex-direction: row; gap: 8px; align-items: center; padding: 8px; min-width: 0; }
+            nav { flex-direction: row; overflow: auto; }
+            .nav-link { padding: 8px 12px; white-space: nowrap; }
+            main { flex: 1; }
+            .mini-frame { height: 200px; }
         }
     </style>
 </head>
 <body>
 <aside class="sidebar">
     <header>Admin Panel</header>
+    <!-- trong <aside class="sidebar"> -->
     <nav>
-        <a href="#" class="nav-link active" onclick="showPage('welcome', this)">🏠 Trang chào mừng</a>
-        <a href="#" class="nav-link" onclick="showPage('brands', this)">🏷️ Brands</a>
-        <a href="#" class="nav-link" onclick="showPage('categories', this)">📂 Categories</a>
+        <a href="#" class="nav-link active" data-page="welcome">🏠 Trang chào mừng</a>
+        <a href="#" class="nav-link" data-page="brands">🏷️ Brands</a>
+        <a href="#" class="nav-link" data-page="categories">📂 Categories</a>
+        <a href="#" class="nav-link" data-page="products">🧾 Products</a>   <!-- <-- thêm đây -->
+        <a href="#" class="nav-link" data-page="create">➕ Tạo Product</a>
     </nav>
+
     <footer>© 2025 Admin System</footer>
 </aside>
 
 <main>
     <header class="main-header">
         <h1 id="pageTitle">Chào mừng đến Admin Panel 👋</h1>
-        <p id="pageDesc" style="margin-top:8px;color:#94a3b8;">Hệ thống quản lý gồm Brands và Categories.</p>
+        <p id="pageDesc">Hệ thống quản lý gồm Brands và Categories.</p>
     </header>
 
     <div class="content" id="contentArea">
-        <iframe src="brands.html"></iframe>
-        <iframe src="categories.html"></iframe>
+        <div class="frame-wrap" id="frameWrap">
+            <!-- primary iframe (we'll change its src dynamically) -->
+            <iframe id="primaryFrame" class="primary-frame" src="/brands"></iframe>
+        </div>
     </div>
 </main>
 
 <script>
-    function showPage(page, el) {
-        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
-        el.classList.add('active');
+    (function () {
+        const links = document.querySelectorAll('.nav-link');
+        const pageTitle = document.getElementById('pageTitle');
+        const pageDesc = document.getElementById('pageDesc');
+        const contentArea = document.getElementById('contentArea');
+        const frameWrap = document.getElementById('frameWrap');
+        const primaryFrame = document.getElementById('primaryFrame');
 
-        const content = document.getElementById('contentArea');
-        const title = document.getElementById('pageTitle');
-        const desc = document.getElementById('pageDesc');
+        // initial state: show welcome
+        showPage('welcome');
 
-        if (page === 'brands') {
-            content.innerHTML = '<iframe src="brands.html"></iframe>';
-            title.textContent = 'Quản lý Brands';
-            desc.textContent = 'Trang này hiển thị danh sách các thương hiệu.';
-        } else if (page === 'categories') {
-            content.innerHTML = '<iframe src="categories.html"></iframe>';
-            title.textContent = 'Quản lý Categories';
-            desc.textContent = 'Trang này hiển thị danh mục sản phẩm.';
-        } else {
-            content.innerHTML = `
-          <div style="padding:24px;">
-            <h2>Chào mừng quản trị viên 👋</h2>
-            <p>Bạn có thể truy cập nhanh các module quản lý ở thanh bên trái.</p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px;">
-              <iframe src="admin/brands.html"></iframe>
-              <iframe src="admin/categories.html"></iframe>
-            </div>
-          </div>`;
-            title.textContent = 'Trang chào mừng';
-            desc.textContent = 'Hiển thị tổng quan hai module Brands và Categories.';
+        links.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const page = this.getAttribute('data-page');
+                // update active styles
+                document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+                this.classList.add('active');
+                showPage(page);
+            });
+        });
+
+        function showPage(page) {
+            // clear frameWrap content then re-add appropriate iframe(s)
+            frameWrap.innerHTML = '';
+
+            if (page === 'brands') {
+                pageTitle.textContent = 'Quản lý Brands';
+                pageDesc.textContent = 'Trang này hiển thị danh sách các thương hiệu.';
+                const f = document.createElement('iframe');
+                f.className = 'primary-frame';
+                f.id = 'primaryFrame';
+                f.src = '/brands';
+                frameWrap.appendChild(f);
+
+            } else if (page === 'categories') {
+                pageTitle.textContent = 'Quản lý Categories';
+                pageDesc.textContent = 'Trang này hiển thị danh mục sản phẩm.';
+                const f = document.createElement('iframe');
+                f.className = 'primary-frame';
+                f.id = 'primaryFrame';
+                f.src = '/categories';
+                frameWrap.appendChild(f);
+
+            } else if (page === 'create') {
+                pageTitle.textContent = 'Tạo Product mới';
+                pageDesc.textContent = 'Điền thông tin và upload ảnh cho product.';
+                const f = document.createElement('iframe');
+                f.className = 'primary-frame';
+                f.id = 'primaryFrame';
+                // use the /createProduct mapping you have
+                f.src = '/createProduct';
+                frameWrap.appendChild(f);
+            }
+            else if (page === 'products') {
+                pageTitle.textContent = 'Danh sách Products';
+                pageDesc.textContent = 'Xem, sửa, xoá các product hiện có.';
+                const f = document.createElement('iframe');
+                f.className = 'primary-frame';
+                f.id = 'primaryFrame';
+                f.src = '/products';   // mapping controller của bạn
+                frameWrap.appendChild(f);
+
+            } else { // welcome overview with two mini frames
+                pageTitle.textContent = 'Trang chào mừng';
+                pageDesc.textContent = 'Hiển thị tổng quan hai module Brands và Categories.';
+                const container = document.createElement('div');
+                container.style.padding = '8px 0';
+                // grid of two mini frames
+                const grid = document.createElement('div');
+                grid.className = 'mini-grid';
+
+                const miniA = document.createElement('iframe');
+                miniA.className = 'mini-frame';
+                miniA.src = '/brands';
+                miniA.title = 'Brands overview';
+
+                const miniB = document.createElement('iframe');
+                miniB.className = 'mini-frame';
+                miniB.src = '/categories';
+                miniB.title = 'Categories overview';
+
+                grid.appendChild(miniA);
+                grid.appendChild(miniB);
+                container.appendChild(grid);
+
+                // also add a full-size frame below for quick inspection
+                const full = document.createElement('iframe');
+                full.className = 'primary-frame';
+                full.id = 'primaryFrame';
+                full.src = '/brands';
+                full.style.marginTop = '12px';
+
+                frameWrap.appendChild(container);
+                frameWrap.appendChild(full);
+            }
         }
-    }
+    })();
 </script>
 </body>
 </html>

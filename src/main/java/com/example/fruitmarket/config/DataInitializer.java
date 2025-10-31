@@ -62,7 +62,6 @@ public class DataInitializer implements CommandLineRunner {
                 Product p1 = new Product();
                 p1.setProduct_name("Red Apple");
                 p1.setProduct_description("Crisp, sweet red apples - 1kg pack");
-                p1.setProduct_price(2.99);
                 p1.setImages(new ArrayList<>()); // no images for seeding
                 p1.setCategory(c1);
                 p1.setBrand(b1);
@@ -70,7 +69,6 @@ public class DataInitializer implements CommandLineRunner {
                 Product p2 = new Product();
                 p2.setProduct_name("Baby Spinach");
                 p2.setProduct_description("Fresh baby spinach - 200g");
-                p2.setProduct_price(1.49);
                 p2.setImages(new ArrayList<>());
                 p2.setCategory(c2);
                 p2.setBrand(b2);
@@ -78,7 +76,6 @@ public class DataInitializer implements CommandLineRunner {
                 Product p3 = new Product();
                 p3.setProduct_name("Dried Mango");
                 p3.setProduct_description("Sweet dried mango slices - 250g");
-                p3.setProduct_price(4.50);
                 p3.setImages(new ArrayList<>());
                 p3.setCategory(savedCategories.get(savedCategories.size() - 1));
                 p3.setBrand(b1);

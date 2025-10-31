@@ -14,7 +14,9 @@ public class ProductVariant {
     private Long id;
     @OneToMany
     private List<Product> products;
-    @OneToMany
-    private List<Image> images;
+    @OneToOne(cascade = CascadeType.ALL)
+    private Image image;
 
+    @Column
+    private double product_price;
 }
