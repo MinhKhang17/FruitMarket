@@ -1,0 +1,13 @@
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="mainHeader">
+    <nav>
+        <a th:href="@{/}">Trang chủ</a>
+        <span th:if="${#httpSession.getAttribute('loggedUser') != null}">
+            Xin chào <b th:text="${#httpSession.getAttribute('loggedUser').username}"></b> |
+            <a th:href="@{/auth/logout}">Đăng xuất</a>
+        </span>
+        <span th:if="${#httpSession.getAttribute('loggedUser') == null}">
+            <a th:href="@{/auth/login}">Đăng nhập</a> |
+            <a th:href="@{/auth/register}">Đăng ký</a>
+        </span>
+    </nav>
+</div>

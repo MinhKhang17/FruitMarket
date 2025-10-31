@@ -1,0 +1,137 @@
+/* ===== Trang Đăng ký ===== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #fffde7, #e8f5e9);
+    margin: 0;
+    padding: 0;
+}
+
+.register-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.register-card {
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    width: 420px;
+    padding: 40px 35px;
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+}
+
+/* Logo + tiêu đề */
+.logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: #43a047;
+    margin-bottom: 10px;
+}
+
+.logo span {
+    color: #ff9800;
+}
+
+h2 {
+    margin-bottom: 25px;
+    color: #2e7d32;
+}
+
+/* Form */
+.form-group {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+label {
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+input:focus {
+    border-color: #66bb6a;
+    box-shadow: 0 0 4px rgba(102,187,106,0.4);
+}
+
+/* Nút đăng ký */
+.btn-register {
+    background-color: #43a047;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.btn-register:hover {
+    background-color: #388e3c;
+}
+
+/* Liên kết đăng nhập */
+.login-link {
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #43a047;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Thông báo */
+.alert {
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.alert-success {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.alert-danger {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+/* Lỗi từng field */
+.error {
+    color: #d32f2f;
+    font-size: 13px;
+    margin-top: 4px;
+}
+
+/* Hiệu ứng nhẹ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
