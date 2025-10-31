@@ -1,0 +1,98 @@
+/* ===== Reset cơ bản ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===== Biến màu (lấy cảm hứng từ login) ===== */
+:root{
+    --leaf-50:#e8f5e9;
+    --leaf-100:#c8e6c9;
+    --leaf-300:#81c784;
+    --leaf-400:#66bb6a;
+    --leaf-500:#43a047;
+    --leaf-600:#388e3c;
+    --leaf-700:#2e7d32;
+    --leaf-900:#1b5e20;
+
+    --ink:#333;
+    --muted:#5f6b6b;
+
+    --card-bg:#fff;
+    --ring:#cfe8cf;
+    --shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+/* ===== Nền trang (đồng bộ vibe login) ===== */
+body{
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    color: var(--ink);
+}
+
+/* ===== Khung nội dung chính ===== */
+.page-wrap{ flex:1; padding:24px 0; }
+
+/* ===== Card hero ===== */
+.hero-card{
+    background: var(--card-bg);
+    border: 1px solid var(--leaf-100);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 24px;
+}
+
+/* ===== Tiêu đề & mô tả ===== */
+.page-title{
+    color: var(--leaf-500);
+    font-weight: 800;
+    letter-spacing: .2px;
+    text-shadow: 0 1px 2px rgba(0,0,0,.06);
+}
+.page-subtitle{
+    color: var(--leaf-700);
+    opacity: .9;
+}
+
+/* ===== Nút hành động ===== */
+.btn-outline-sky{ /* giữ nguyên class cũ cho đỡ sửa HTML */
+    border-color: var(--leaf-500);
+    color: var(--leaf-500);
+    font-weight: 700;
+    border-radius: 10px;
+    transition: all .25s ease;
+}
+.btn-outline-sky:hover{
+    background: var(--leaf-500);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(67,160,71,.25);
+}
+
+/* ===== Khung “iframe card” + responsive ===== */
+.frame-wrap{
+    background: var(--card-bg);
+    border: 1px solid var(--leaf-100);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+.frame{
+    width: 100%;
+    height: 70vh;   /* desktop mặc định */
+    border: 0;
+    display: block;
+}
+@media (max-width: 992px){
+    .frame{ height: 62vh; }
+}
+@media (max-width: 576px){
+    .frame{ height: 58vh; }
+}
+
+/* ===== Hiệu ứng vào trang (mềm) ===== */
+@keyframes fadeIn{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform: translateY(0); }
+}
+.hero-card, .frame-wrap{ animation: fadeIn .6s ease; }

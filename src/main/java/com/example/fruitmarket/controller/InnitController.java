@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class InnitController {
-    @GetMapping("/")
+    @GetMapping("/init")
     private String toMainPage(){
-        return "home/page";
+        return "redirect:/";
     }
 }

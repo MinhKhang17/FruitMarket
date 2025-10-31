@@ -8,17 +8,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
 @Controller
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class HomeController {
 
     private final CategorysService categorysService;
     private final BrandsService brandsService;
 
-    @GetMapping({"/", "/home", "/home/page"})
+    @GetMapping
     public String homePage() {
         return "home/page";
     }
