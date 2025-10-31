@@ -1,0 +1,141 @@
+<!-- file: src/main/resources/templates/fragments/header.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <style>
+        /* Tổng thể navbar */
+        .navbar-custom {
+            background: linear-gradient(135deg, #f0faff, #e8f7ff);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border-bottom: 1px solid #d7edff;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            color: #00aaff !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            font-size: 1.3rem;
+            letter-spacing: 0.3px;
+            transition: transform 0.2s ease, color 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            color: #0091cc !important;
+        }
+
+        .nav-link {
+            color: #0078b8 !important;
+            font-weight: 500;
+            transition: color 0.2s ease, background 0.2s ease;
+            border-radius: 8px;
+            padding: 6px 12px !important;
+        }
+
+        .nav-link:hover,
+        .nav-link:focus {
+            color: #005c8f !important;
+            background: rgba(0, 170, 255, 0.08);
+        }
+
+        .dropdown-menu {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            background: #ffffff;
+        }
+
+        .dropdown-item {
+            color: #0078b8;
+            font-weight: 500;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #e6f6ff;
+            color: #005c8f;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #cde9ff;
+        }
+
+        .btn-outline-success {
+            border-color: #00aaff;
+            color: #00aaff;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-success:hover {
+            background: #00aaff;
+            color: white;
+        }
+
+        /* Dropdown hiển thị khi hover (desktop) */
+        @media (min-width: 992px) {
+            .navbar .dropdown:hover > .dropdown-menu {
+                display: block;
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+<div th:fragment="header">
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">🍓 FruitMarket</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navMenu">
+                <form class="d-flex me-3" th:action="@{/products}" method="get">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search products..."
+                           th:value="${param.q}" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li th:if="${#lists.isEmpty(categories)}"><span class="dropdown-item text-muted">No categories</span></li>
+                            <li th:each="c : ${categories}">
+                                <a class="dropdown-item" th:href="@{/products(category=${c.id})}" th:text="${c.name}">Category</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="brandsDropdown" role="button" aria-expanded="false">
+                            Brands
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
+                            <li th:if="${#lists.isEmpty(brands)}"><span class="dropdown-item text-muted">No brands</span></li>
+                            <li th:each="b : ${brands}">
+                                <a class="dropdown-item" th:href="@{/products(brand=${b.id})}" th:text="${b.name}">Brand</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item"><a class="nav-link" th:href="@{/products}">Products</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
