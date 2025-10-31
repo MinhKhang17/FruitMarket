@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --sidebar: #1e293b;
+            --hover: #334155;
+            --active: #2563eb;
+            --text: #e2e8f0;
+            --muted: #94a3b8;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+        }
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: var(--sidebar);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #1f2937;
+        }
+        .sidebar header {
+            padding: 24px 16px;
+            font-size: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #1f2937;
+        }
+        nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .nav-link {
+            padding: 14px 20px;
+            text-decoration: none;
+            color: var(--text);
+            transition: background 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .nav-link:hover {
+            background: var(--hover);
+        }
+        .nav-link.active {
+            background: var(--hover);
+            border-left: 4px solid var(--active);
+            color: var(--active);
+        }
+        footer {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--muted);
+            border-top: 1px solid #1f2937;
+            text-align: center;
+        }
+
+        /* Main content */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        header.main-header {
+            padding: 20px;
+            border-bottom: 1px solid #1f2937;
+            background: #0b1222;
+        }
+        header.main-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            flex: 1;
+            background: #111827;
+            padding: 0;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+<aside class="sidebar">
+    <header>Admin Panel</header>
+    <nav>
+        <a href="#" class="nav-link active" onclick="showPage('welcome', this)">🏠 Trang chào mừng</a>
+        <a href="#" class="nav-link" onclick="showPage('brands', this)">🏷️ Brands</a>
+        <a href="#" class="nav-link" onclick="showPage('categories', this)">📂 Categories</a>
+    </nav>
+    <footer>© 2025 Admin System</footer>
+</aside>
+
+<main>
+    <header class="main-header">
+        <h1 id="pageTitle">Chào mừng đến Admin Panel 👋</h1>
+        <p id="pageDesc" style="margin-top:8px;color:#94a3b8;">Hệ thống quản lý gồm Brands và Categories.</p>
+    </header>
+
+    <div class="content" id="contentArea">
+        <iframe src="brands.html"></iframe>
+        <iframe src="categories.html"></iframe>
+    </div>
+</main>
+
+<script>
+    function showPage(page, el) {
+        document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+        el.classList.add('active');
+
+        const content = document.getElementById('contentArea');
+        const title = document.getElementById('pageTitle');
+        const desc = document.getElementById('pageDesc');
+
+        if (page === 'brands') {
+            content.innerHTML = '<iframe src="brands.html"></iframe>';
+            title.textContent = 'Quản lý Brands';
+            desc.textContent = 'Trang này hiển thị danh sách các thương hiệu.';
+        } else if (page === 'categories') {
+            content.innerHTML = '<iframe src="categories.html"></iframe>';
+            title.textContent = 'Quản lý Categories';
+            desc.textContent = 'Trang này hiển thị danh mục sản phẩm.';
+        } else {
+            content.innerHTML = `
+          <div style="padding:24px;">
+            <h2>Chào mừng quản trị viên 👋</h2>
+            <p>Bạn có thể truy cập nhanh các module quản lý ở thanh bên trái.</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:24px;">
+              <iframe src="admin/brands.html"></iframe>
+              <iframe src="admin/categories.html"></iframe>
+            </div>
+          </div>`;
+            title.textContent = 'Trang chào mừng';
+            desc.textContent = 'Hiển thị tổng quan hai module Brands và Categories.';
+        }
+    }
+</script>
+</body>
+</html>
