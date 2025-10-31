@@ -1,0 +1,112 @@
+package com.example.fruitmarket.service;
+
+import com.example.fruitmarket.model.Users;
+import com.example.fruitmarket.model.VerificationToken;
+import com.example.fruitmarket.repository.UserRepository;
+import com.example.fruitmarket.repository.VerificationTokenRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+    private final VerificationTokenRepository tokenRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+
+    @Value("${app.base-url}")
+    private String baseUrl;
+
+    @Override
+    @Transactional
+    public Users register(Users user) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("Tên đăng nhập đã tồn tại.");
+        }
+
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("Email này đã được sử dụng.");
+        }
+
+        if (userRepository.findByPhone(user.getPhone()).isPresent()) {
+            throw new IllegalArgumentException("Số điện thoại này đã tồn tại.");
+        }
+
+        user.setRole("CUSTOMER");
+        user.setStatus("PENDING");
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        Users saved = userRepository.save(user);
+
+        String token = createVerificationToken(saved);
+        String link = baseUrl + "/auth/verify?token=" + token;
+        String content = String.format("""
+        Xin chào %s,
+        
+        Cảm ơn bạn đã đăng ký tài khoản tại FruitMarket.
+        Vui lòng xác thực tài khoản bằng cách nhấn vào liên kết sau:
+        %s
+        
+        Nếu bạn không đăng ký, vui lòng bỏ qua email này.
+        """, saved.getUsername(), link);
+
+        emailService.sendEmail(saved.getEmail(), "Xác thực email - FruitMarket", content);
+
+        return saved;
+    }
+
+
+    @Override
+    public String createVerificationToken(Users user) {
+        // xóa token cũ
+        tokenRepository.deleteByUserId(user.getId());
+        String token = UUID.randomUUID().toString();
+        VerificationToken vt = VerificationToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(LocalDateTime.now().plusDays(1))
+                .build();
+        tokenRepository.save(vt);
+        return token;
+    }
+
+    @Override
+    @Transactional
+    public boolean verifyToken(String token) {
+        Optional<VerificationToken> opt = tokenRepository.findByToken(token);
+        if (opt.isEmpty()) return false;
+        VerificationToken vt = opt.get();
+        if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+        Users user = vt.getUser();
+        user.setStatus("ACTIVE");
+        userRepository.save(user);
+        tokenRepository.delete(vt);
+        return true;
+    }
+
+    @Override
+    public Users login(String username, String rawPassword) {
+        Optional<Users> opt = userRepository.findByUsername(username);
+        if (opt.isEmpty()) return null;
+        Users user = opt.get();
+        if (!"ACTIVE".equals(user.getStatus())) return null;
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) return null;
+        return user;
+    }
+
+    @Override
+    public Users findByUsername(String username) {
+        return userRepository.findByUsername(username).orElse(null);
+    }
+}
