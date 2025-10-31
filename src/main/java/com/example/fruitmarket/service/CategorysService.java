@@ -9,7 +9,7 @@ import java.util.List;
 public interface CategorysService {
     Categorys findById(long id);
     Categorys addCategorys(Categorys categorys);
-    Categorys updateCategorys(Categorys categorys);
-    void deleteCategorys(Categorys categorys);
+    void updateCategorys(Long id, Categorys categorys);
+    void deleteCategorys(Long id);
     List<Categorys> findAll();
 }

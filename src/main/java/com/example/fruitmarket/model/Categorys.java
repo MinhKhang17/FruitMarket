@@ -20,7 +20,8 @@ public class Categorys {
     @Column(nullable = false, length = 200)
     private String name;
 
-
+    @Column(nullable = false)
+    private boolean status;
 
     // 1 Category -> n Product
 //    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = false)

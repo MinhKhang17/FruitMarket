@@ -19,6 +19,9 @@ public class Brands {
     @Column(nullable = false, length = 200)
     private String name;
 
+    @Column(nullable = false)
+    private boolean status;
+
     // 1 Brand -> n Product
 //    @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL, orphanRemoval = false)
 //    private List<Product> products = new ArrayList<>();
