@@ -1,10 +1,12 @@
 package com.example.fruitmarket.controller;
 
+import com.example.fruitmarket.Enums.ImageType;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.service.BrandsService;
 import com.example.fruitmarket.service.CategorysService;
+import com.example.fruitmarket.service.ImageService;
 import com.example.fruitmarket.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
 
 @Controller()
 @RequestMapping("/admin")
@@ -19,6 +25,7 @@ public class AdminController {
     @Autowired private ProductService productService;
     @Autowired private BrandsService brandsService;
     @Autowired private CategorysService categorysService;
+    @Autowired private ImageService imageService;
     @GetMapping("/adminPage")
     public  String adminPage(Model model){
         return "admin/adminPage";
@@ -52,8 +59,18 @@ public class AdminController {
     }
 
     @PostMapping("/product/save")
-    public String saveProduct(@ModelAttribute Product product, BindingResult result, HttpSession session){
-        productService.saveProduct(product);
+    public String saveProduct(@ModelAttribute Product product,
+                              BindingResult result,
+                              HttpSession session,
+                              @RequestParam(value = "productImage", required = false) List<MultipartFile> files)
+            throws IOException {
+
+        Product saved = productService.saveProduct(product);
+
+        if (files != null && !files.isEmpty()) {
+            imageService.uploadImagesForProduct(saved.getId(), files, ImageType.PRODUCT);
+        }
+
         return "redirect:/admin/products";
     }
 

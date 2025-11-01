@@ -14,4 +14,5 @@ public interface UserService {
     Users findByUsername(String username);
 
     List<User_detail> getUserDetailFromSession(HttpSession session);
+    User_detail saveUserDetail(User_detail userDetail);
 }

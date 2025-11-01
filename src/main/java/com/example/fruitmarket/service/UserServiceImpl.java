@@ -123,5 +123,11 @@ public class UserServiceImpl implements UserService {
         return userDetailRepo.findAllByUser(users);
     }
 
+    @Override
+    public User_detail saveUserDetail(User_detail userDetail) {
+        return userDetailRepo.save(userDetail);
+
+    }
+
 
 }
