@@ -1,6 +1,7 @@
 package com.example.fruitmarket.controller;
 
-import ch.qos.logback.core.model.Model;
+import com.example.fruitmarket.model.Brands;
+import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.service.BrandsService;
 import com.example.fruitmarket.service.CategorysService;
@@ -8,6 +9,7 @@ import com.example.fruitmarket.service.ProductService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,5 +57,97 @@ public class AdminController {
         return "redirect:/admin/products";
     }
 
+    // Xóa sản phẩm
+    @GetMapping("/products/delete/{id}")
+    public String deleteProduct(@PathVariable Long id) {
+        productService.deleteById(id);
+        return "redirect:/admin/products";
+    }
+
+    @GetMapping("/products/edit/{id}")
+    public String editProduct(@PathVariable Long id, org.springframework.ui.Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        model.addAttribute("categories", categorysService.findAll());
+        model.addAttribute("brands", brandsService.findAll());
+        return "admin/createProduct"; // dùng lại form createProduct cho edit
+    }
+
+    @PostMapping("/product/update")
+    public String updateProduct(@ModelAttribute Product product, BindingResult result) {
+        if (result.hasErrors()) {
+            return "admin/createProduct";
+        }
+        productService.saveProduct(product); // cùng method với saveProduct, vì JPA .save() sẽ update nếu có id
+        return "redirect:/admin/products";
+    }
+
+    @GetMapping("/brands/create")
+    public String createBrandForm(Model model) {
+        model.addAttribute("brand", new Brands());
+        return "admin/createBrand";
+    }
+
+    @PostMapping("/brands/save")
+    public String saveBrand(@ModelAttribute("brand") Brands brand, BindingResult result) {
+        if (result.hasErrors()) return "admin/createBrand";
+        brandsService.addBrand(brand);
+        return "redirect:/admin/brands";
+    }
+
+    @GetMapping("/brands/edit/{id}")
+    public String editBrand(@PathVariable Long id, Model model) {
+        Brands brand = brandsService.findById(id);
+        if (brand == null) return "redirect:/admin/brands";
+        model.addAttribute("brand", brand);
+        return "admin/createBrand";
+    }
+
+    @PostMapping("/brands/update")
+    public String updateBrand(@ModelAttribute("brand") Brands brand, BindingResult result) {
+        if (result.hasErrors()) return "admin/createBrand";
+        brandsService.addBrand(brand);
+        return "redirect:/admin/brands";
+    }
+
+    @GetMapping("/brands/delete/{id}")
+    public String deleteBrand(@PathVariable Long id) {
+        brandsService.deleteById(id); // bạn thêm method này vào BrandsServiceImpl
+        return "redirect:/admin/brands";
+    }
+
+    @GetMapping("/categories/create")
+    public String createCategoryForm(Model model) {
+        model.addAttribute("category", new Categorys());
+        return "admin/createCategory";
+    }
+
+    @PostMapping("/categories/save")
+    public String saveCategory(@ModelAttribute("category") Categorys category, BindingResult result) {
+        if (result.hasErrors()) return "admin/createCategory";
+        categorysService.addCategorys(category);
+        return "redirect:/admin/categories";
+    }
+
+    @GetMapping("/categories/edit/{id}")
+    public String editCategory(@PathVariable Long id, Model model) {
+        Categorys category = categorysService.findById(id);
+        if (category == null) return "redirect:/admin/categories";
+        model.addAttribute("category", category);
+        return "admin/createCategory";
+    }
+
+    @PostMapping("/categories/update")
+    public String updateCategory(@ModelAttribute("category") Categorys category, BindingResult result) {
+        if (result.hasErrors()) return "admin/createCategory";
+        categorysService.addCategorys(category);
+        return "redirect:/admin/categories";
+    }
+
+    @GetMapping("/categories/delete/{id}")
+    public String deleteCategory(@PathVariable Long id) {
+        categorysService.deleteById(id);
+        return "redirect:/admin/categories";
+    }
 
 }

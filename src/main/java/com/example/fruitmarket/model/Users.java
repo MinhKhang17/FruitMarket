@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Table(name = "user_information")
 @Entity
@@ -51,6 +52,9 @@ public class Users {
     private LocalDateTime createdDate;
 
     private LocalDateTime updatedDate;
+
+    @OneToMany
+    private List<User_detail> userDetail;
 
     @PrePersist
     public void prePersist() {
