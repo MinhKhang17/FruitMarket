@@ -24,10 +24,16 @@ public class ProductVariant {
     @Column
     private String name;
 
-
+    @Column
+    private long stock;
 
 
     // Dùng BigDecimal cho money
     @Column(precision = 15, scale = 2)
     private BigDecimal price;
+    // ProductVariant.java (phần image)
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "image_id", referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "FK_product_image"))
+    private Image image = new  Image();
 }

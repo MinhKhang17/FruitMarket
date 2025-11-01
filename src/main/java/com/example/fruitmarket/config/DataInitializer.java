@@ -77,11 +77,13 @@ public class DataInitializer implements CommandLineRunner {
                 v11.setName("1kg");
                 v11.setPrice(new BigDecimal("49000.00"));
                 v11.setProduct(p1);
+                v11.setStock(100);
 
                 ProductVariant v12 = new ProductVariant();
                 v12.setName("500g");
                 v12.setPrice(new BigDecimal("25000.00"));
                 v12.setProduct(p1);
+                v12.setStock(100);
 
                 p1.getVariants().add(v11);
                 p1.getVariants().add(v12);
@@ -98,6 +100,7 @@ public class DataInitializer implements CommandLineRunner {
                 v31.setName("250g");
                 v31.setPrice(new BigDecimal("79000.00"));
                 v31.setProduct(p3);
+                v31.setStock(100);
                 p3.getVariants().add(v31);
 
                 // Save products (cascade sẽ lưu variants vì cascade = ALL)

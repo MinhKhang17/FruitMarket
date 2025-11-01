@@ -1,5 +1,7 @@
 package com.example.fruitmarket.service;
 
+import com.example.fruitmarket.Dto.ProductDTO;
+import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.repository.ProductRepository;
 import com.example.fruitmarket.repository.ProductRepository;
@@ -24,5 +26,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product findById(Long id) {
         return productRepo.findById(id);
+    }
+
+    @Override
+    public ProductDTO findAllProductWithProductVariant(long id) {
+        return FruitMapper.toProductDTO(productRepo.findById(id));
     }
 }

@@ -1,5 +1,6 @@
 package com.example.fruitmarket.controller;
 
+import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.service.BrandsService;
 import com.example.fruitmarket.service.CategorysService;
@@ -25,13 +26,18 @@ public class ProductController {
 
     @GetMapping("/products/{id}")
     public String productDetail(@PathVariable Long id, Model model) {
-        Product product = productService.findById(id);
+        ProductDTO product = productService.findAllProductWithProductVariant(id);
         model.addAttribute("product", product);
         return "home/detail";
     }
+
+
     @GetMapping("/products")
     public String listProducts(Model model, HttpSession session) {
         model.addAttribute("products", productService.findAll());
         return "home/product";
     }
+
+
+
 }

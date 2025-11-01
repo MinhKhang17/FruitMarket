@@ -7,6 +7,7 @@ import lombok.Data;
 // Image.java
 @Entity
 @Table(name = "images")   // <-- chọn "images" và dùng nhất quán
+@Data
 public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

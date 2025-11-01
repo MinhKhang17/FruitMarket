@@ -1,72 +1,145 @@
 <!-- file: src/main/resources/templates/home/detail.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title th:text="${product.product_name} + ' — Detail'">Product Detail</title>
+    <title th:text="${product.productName} + ' — Detail'">Product Detail</title>
     <base target="_top">
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-    <!-- CSS riêng của trang Detail (vibe xanh lá) -->
+    <!-- CSS riêng của trang Detail -->
     <link th:href="@{/css/detail.css}" rel="stylesheet"/>
+    <style>
+        .variant-controls { margin-top: 12px; }
+        .price-large { font-size: 1.5rem; font-weight: 700; color: #198754; }
+        .stock-info { color: #6c757d; font-size: 0.95rem; }
+        .img-wrap img { max-height: 520px; object-fit: contain; }
+        .variant-list { max-height: 260px; overflow:auto; border:1px solid #e9ecef; padding:8px; border-radius:6px;}
+    </style>
 </head>
 <body>
 
 <div th:replace="fragments/header :: header"></div>
 
-<main class="page">
+<main class="page py-4">
     <div class="container" th:object="${product}">
-        <div class="detail-card">
-            <div class="row g-4 align-items-start">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row g-4 align-items-start">
 
-                <!-- Left: Image -->
-                <div class="col-lg-6">
-                    <div class="img-wrap">
-                        <!-- Nếu Product có Image (OneToOne) -> show image.url, nếu không -> placeholder -->
-                        <img th:src="${product.images == null ? '/images/placeholder.png' : product.images.url}"
-                             th:alt="${product.product_name}"
-                             class="img-fluid rounded"/>
+                    <!-- Left: Image -->
+                    <div class="col-lg-6">
+                        <div class="img-wrap text-center mb-3">
+                            <img id="productImage"
+                                 th:src="${#strings.isEmpty(product.imageUrl) ? '/images/placeholder.png' : product.imageUrl}"
+                                 th:alt="${product.productName}"
+                                 class="img-fluid rounded"
+                                 onerror="this.src='/images/placeholder.png'"/>
+                        </div>
+                    </div>
+
+                    <!-- Right: Content -->
+                    <div class="col-lg-6">
+                        <h1 class="title h3 mb-2" th:text="${product.productName}">Product name</h1>
+
+                        <div class="mb-3">
+                            <span id="displayPrice" class="price-large"
+                                  th:text="${
+                                    (product.productVariants != null && !#lists.isEmpty(product.productVariants))
+                                    ? #numbers.formatDecimal(#lists.first(product.productVariants).price,0,'COMMA',2,'POINT')
+                                    : (product.productPrice != null ? #numbers.formatDecimal(product.productPrice,0,'COMMA',2,'POINT') : '—')
+                                  }">
+                                0.00
+                            </span>
+                        </div>
+
+                        <p class="mb-3" th:text="${product.description != null ? product.description : '-'}">Description</p>
+
+                        <div class="meta mb-3">
+                            <p class="mb-1">
+                                <strong>Category: </strong>
+                                <span th:text="${product.categoryName != null ? product.categoryName : '—'}">Category</span>
+                            </p>
+                            <p class="mb-1">
+                                <strong>Brand: </strong>
+                                <span th:text="${product.brandName != null ? product.brandName : '—'}">Brand</span>
+                            </p>
+                        </div>
+
+                        <!-- ================= VARIANT FILTER / SELECTION ================= -->
+                        <div class="variant-controls">
+                            <label class="form-label"><strong>Chọn biến thể</strong></label>
+
+                            <!-- Container: sẽ chứa dynamic filters OR radio list -->
+                            <div id="variantControls">
+                                <!-- Nếu không có variant: show message -->
+                                <div th:if="${product.productVariants == null || #lists.isEmpty(product.productVariants)}"
+                                     class="text-muted">
+                                    Sản phẩm hiện không có biến thể. Bạn có thể chọn số lượng và thanh toán.
+                                </div>
+
+                                <!-- If product has variants, render invisible data for JS -->
+                                <div th:if="${product.productVariants != null && !#lists.isEmpty(product.productVariants)}">
+                                    <!-- We render a hidden data-block that JS will read to build controls.
+                                         Also render a fallback radio list for accessibility -->
+                                    <div id="variantData" style="display:none;">
+                                        <ul>
+                                            <li th:each="v : ${product.productVariants}"
+                                                th:attr="data-id=${v.id}, data-name=${v.name}, data-price=${v.price}, data-stock=${v.stock}, data-image=${v.image != null && v.image.url != null ? v.image.url : ''}">
+                                                <span th:text="${v.name}">Variant</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Fallback UI (radio list) - hidden by default, JS can show if parsing fails -->
+                                    <div id="variantRadios" class="variant-list d-none" aria-hidden="true">
+                                        <div th:each="v : ${product.productVariants}" class="form-check">
+                                            <input class="form-check-input variant-radio" type="radio"
+                                                   th:id="${'variantRadio_' + v.id}"
+                                                   th:value="${v.id}"
+                                                   name="variantRadio">
+                                            <label class="form-check-label" th:for="${'variantRadio_' + v.id}">
+                                                <span th:text="${v.name}">Variant name</span>
+                                                &nbsp; — &nbsp;
+                                                <small th:text="${#numbers.formatDecimal(v.price,0,'COMMA',2,'POINT')}">price</small>
+                                                &nbsp; (<small th:text="${'stock: ' + v.stock}">stock</small>)
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- If parsed variant parts exist, JS will generate selects here -->
+                                    <div id="variantFilters"></div>
+                                    <!-- If parsed combination resolved to a single variant, show selection summary -->
+                                    <div id="variantSummary" class="mt-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ================= END VARIANT CONTROLS ================= -->
+
+                        <!-- QUANTITY & CHECKOUT FORM -->
+                        <form id="checkoutForm" th:action="@{/checkout}" method="post" onsubmit="return prepareCheckout();">
+                            <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                            <input type="hidden" id="variantIdInput" name="variantId" value=""/>
+                            <input type="hidden" id="productIdInput" name="productId" th:value="${product.productId}"/>
+
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <label class="form-label mb-0 me-2">Số lượng</label>
+                                <input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control" style="width:96px;" />
+                                <div class="ms-3 stock-info" id="stockHint"></div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-2">
+                                <a class="btn btn-outline-secondary" th:href="@{/}">Back to list</a>
+                                <button id="checkoutBtn" type="submit" class="btn btn-primary">Checkout</button>
+                            </div>
+                        </form>
+                        <!-- END form -->
+
                     </div>
                 </div>
-
-                <!-- Right: Content -->
-                <div class="col-lg-6">
-                    <h1 class="title h3 mb-2" th:text="*{product_name}">Product name</h1>
-
-                    <div class="mb-3">
-                        <span class="price"
-                              th:text="${
-                                  (product.variants != null && !#lists.isEmpty(product.variants))
-                                  ? #numbers.formatDecimal(#lists.first(product.variants).price,0,'COMMA',2,'POINT')
-                                  : (product.product_price != null ? #numbers.formatDecimal(product.product_price,0,'COMMA',2,'POINT') : '—')
-                              }">0.00</span>
-                    </div>
-
-                    <p class="text-dark mb-3" th:text="*{product_description}">
-                        Description
-                    </p>
-
-                    <div class="meta mb-3">
-                        <p class="mb-1">
-                            <strong>Category: </strong>
-                            <span th:text="${product.category != null ? product.category.name : '—'}">Category</span>
-                        </p>
-                        <p class="mb-1">
-                            <strong>Brand: </strong>
-                            <span th:text="${product.brand != null ? product.brand.name : '—'}">Brand</span>
-                        </p>
-                    </div>
-
-                    <div class="d-flex gap-2 mt-4">
-                        <!-- Nếu trang list là "/" thì có thể đổi th:href="@{ / }" -->
-                        <a class="btn btn-ghost" th:href="@{/}">Back to list</a>
-                        <a class="btn btn-leaf" th:href="@{|/products/${product.id}/buy|}">Buy now</a>
-                    </div>
-                </div>
-
             </div>
         </div>
     </div>
@@ -75,5 +148,266 @@
 <div th:replace="fragments/footer :: footer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- ================= SCRIPT: build controls, parse variants, update UI ================= -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+        // Read variant items from hidden DOM into JS array
+        const variantDataNode = document.getElementById('variantData');
+        const variantItems = [];
+        if (variantDataNode) {
+            const lis = variantDataNode.querySelectorAll('li');
+            lis.forEach(li => {
+                variantItems.push({
+                    id: li.getAttribute('data-id'),
+                    name: li.getAttribute('data-name') || '',
+                    price: li.getAttribute('data-price') || '',
+                    stock: li.getAttribute('data-stock') || '',
+                    image: li.getAttribute('data-image') || ''
+                });
+            });
+        }
+
+        const variantFiltersContainer = document.getElementById('variantFilters');
+        const variantRadios = document.getElementById('variantRadios');
+        const variantSummary = document.getElementById('variantSummary');
+        const displayPrice = document.getElementById('displayPrice');
+        const productImage = document.getElementById('productImage');
+        const stockHint = document.getElementById('stockHint');
+        const qtyInput = document.getElementById('qtyInput');
+        const variantIdInput = document.getElementById('variantIdInput');
+
+        // helper format
+        function fmtNum(v){
+            const n = Number(v);
+            if (isNaN(n)) return v;
+            return n.toLocaleString('vi-VN', {minimumFractionDigits:0, maximumFractionDigits:2});
+        }
+
+        // If no variants, nothing to build
+        if (!variantItems || variantItems.length === 0) {
+            // nothing to do
+            return;
+        }
+
+        // Try detect structured delimiter by checking first variant name for separators
+        const firstName = variantItems[0].name || '';
+        const delimiters = [' / ', '/', '|', ' - ', '-', ',', ';'];
+        let usedDelim = null;
+        for (const d of delimiters) {
+            if (firstName.indexOf(d) !== -1) { usedDelim = d; break; }
+        }
+
+        // If all variant names contain same number of segments when split by usedDelim, we treat as structured
+        let structured = false;
+        let segmentCount = 0;
+        if (usedDelim) {
+            const segs = variantItems.map(v => (v.name || '').split(usedDelim).length);
+            const allSame = segs.every(s => s === segs[0]);
+            if (allSame && segs[0] > 1) {
+                structured = true;
+                segmentCount = segs[0];
+            }
+        }
+
+        // UTIL: build mapping from combination key -> variant
+        // For structured: key = seg0||'__'||seg1||... trimmed
+        // For non-structured, fallback to showing radios and simple selection
+        const comboMap = new Map();
+        if (structured) {
+            variantItems.forEach(v => {
+                const parts = (v.name || '').split(usedDelim).map(p => p.trim());
+                const key = parts.join('||');
+                comboMap.set(key, v);
+            });
+
+            // Build selects for each segment position with distinct values
+            const buckets = Array.from({length: segmentCount}, () => new Set());
+            variantItems.forEach(v => {
+                const parts = v.name.split(usedDelim).map(p => p.trim());
+                parts.forEach((p, idx) => buckets[idx].add(p));
+            });
+
+            // Create DOM selects
+            for (let i = 0; i < segmentCount; ++i) {
+                const selWrap = document.createElement('div');
+                selWrap.className = 'mb-2';
+
+                const label = document.createElement('label');
+                label.className = 'form-label';
+                label.innerText = 'Lựa chọn ' + (i+1);
+                selWrap.appendChild(label);
+
+                const sel = document.createElement('select');
+                sel.className = 'form-select variant-part';
+                sel.dataset.index = i;
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.text = '-- Chọn --';
+                sel.appendChild(emptyOpt);
+
+                Array.from(buckets[i]).forEach(val => {
+                    const o = document.createElement('option');
+                    o.value = val;
+                    o.text = val;
+                    sel.appendChild(o);
+                });
+
+                selWrap.appendChild(sel);
+                variantFiltersContainer.appendChild(selWrap);
+            }
+
+            // Add a button to "Find" (optionally)
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-sm btn-outline-primary';
+            btn.innerText = 'Áp dụng bộ lọc';
+            btn.addEventListener('click', applyStructuredFilter);
+            variantFiltersContainer.appendChild(btn);
+
+        } else {
+            // fallback: show radio list for direct selection
+            variantRadios.classList.remove('d-none');
+            variantRadios.removeAttribute('aria-hidden');
+            const radios = variantRadios.querySelectorAll('.variant-radio');
+            radios.forEach(r => {
+                r.addEventListener('change', function () {
+                    selectVariantById(this.value);
+                });
+            });
+        }
+
+        // Apply structured filter: read selects, match in comboMap
+        function applyStructuredFilter() {
+            const selects = variantFiltersContainer.querySelectorAll('select.variant-part');
+            const parts = [];
+            for (const s of selects) {
+                const v = s.value ? s.value.trim() : '';
+                if (!v) {
+                    // user hasn't selected all parts -> partial; show message or find matches
+                }
+                parts.push(v);
+            }
+            // If any part empty, attempt to find candidates that match non-empty parts
+            const hasEmpty = parts.some(p => !p);
+            if (hasEmpty) {
+                // find candidates matching non-empty parts
+                const candidates = variantItems.filter(v => {
+                    const p = v.name.split(usedDelim).map(x => x.trim());
+                    return parts.every((part, idx) => !part || p[idx] === part);
+                });
+                if (candidates.length === 1) {
+                    selectVariant(candidates[0]);
+                    return;
+                }
+                // show candidate list for user to choose
+                renderCandidateList(candidates);
+                return;
+            }
+
+            // all parts provided -> exact key
+            const key = parts.join('||');
+            const v = comboMap.get(key);
+            if (v) {
+                selectVariant(v);
+            } else {
+                variantSummary.innerText = 'Không tìm thấy biến thể tương ứng.';
+            }
+        }
+
+        // Render candidate list (when partial matches)
+        function renderCandidateList(candidates) {
+            variantSummary.innerHTML = '';
+            if (!candidates || candidates.length === 0) {
+                variantSummary.innerText = 'Không có biến thể phù hợp.';
+                return;
+            }
+            const list = document.createElement('div');
+            list.className = 'variant-list';
+            candidates.forEach(c => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'btn btn-sm btn-outline-secondary w-100 text-start mb-1';
+                btn.innerHTML = '<strong>' + escapeHtml(c.name) + '</strong> &nbsp; <small>' + fmtNum(c.price) + '</small>';
+                btn.addEventListener('click', () => selectVariant(c));
+                list.appendChild(btn);
+            });
+            variantSummary.appendChild(list);
+        }
+
+        // selectVariant by object or by id
+        function selectVariant(v) {
+            if (!v) return;
+            // update hidden input
+            variantIdInput.value = v.id;
+            // update price
+            if (v.price) displayPrice.textContent = fmtNum(v.price);
+            // update image
+            if (v.image) productImage.src = v.image;
+            // update stock hint and qty max
+            if (v.stock !== undefined && v.stock !== '') {
+                stockHint.textContent = '(Tồn kho: ' + v.stock + ')';
+                qtyInput.max = v.stock;
+                if (Number(qtyInput.value) > Number(v.stock)) qtyInput.value = v.stock;
+            } else {
+                stockHint.textContent = '';
+                qtyInput.removeAttribute('max');
+            }
+            // show summary
+            variantSummary.innerHTML = '<div class="small text-muted">Đã chọn: <strong>' + escapeHtml(v.name) + '</strong></div>';
+            // If there are radio inputs, set matching radio checked
+            const radio = document.querySelector('input.variant-radio[value="' + v.id + '"]');
+            if (radio) radio.checked = true;
+        }
+
+        function selectVariantById(id) {
+            const v = variantItems.find(x => String(x.id) === String(id));
+            if (v) selectVariant(v);
+        }
+
+        // escape helper
+        function escapeHtml(s) {
+            return String(s).replace(/[&<>"]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; });
+        }
+
+        // fallback: if structured and only one variant -> auto select
+        if (structured && variantItems.length === 1) {
+            selectVariant(variantItems[0]);
+        }
+
+        // attach event to radios (if present)
+        const radiosAll = document.querySelectorAll('.variant-radio');
+        radiosAll.forEach(r => r.addEventListener('change', function(){ selectVariantById(this.value); }));
+
+        // prepareCheckout validation: ensure variant selected (if variants exist)
+        window.prepareCheckout = function () {
+            if (variantItems.length > 0) {
+                if (!variantIdInput.value) {
+                    alert('Vui lòng chọn một biến thể trước khi thanh toán.');
+                    return false;
+                }
+            }
+            const qty = Number(qtyInput.value);
+            if (isNaN(qty) || qty <= 0) {
+                alert('Số lượng không hợp lệ.');
+                return false;
+            }
+            if (qtyInput.max && Number(qtyInput.max) > 0 && qty > Number(qtyInput.max)) {
+                alert('Số lượng vượt quá tồn kho.');
+                return false;
+            }
+            return true;
+        };
+
+        // utility formatting
+        function fmtNum(v) {
+            const n = Number(v);
+            if (isNaN(n)) return v;
+            return n.toLocaleString('vi-VN', {minimumFractionDigits:0, maximumFractionDigits:2}) + ' ₫';
+        }
+    })();
+    /*]]>*/
+</script>
 </body>
 </html>

@@ -22,11 +22,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String product_description;
 
-    // ProductVariant.java (phần image)
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "FK_product_image"))
-    private Image image;
+
 
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
