@@ -1,14 +1,13 @@
 package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.model.User_detail;
-import com.example.fruitmarket.model.Users;
+import com.example.fruitmarket.model.User;
 import com.example.fruitmarket.model.VerificationToken;
 import com.example.fruitmarket.repository.UserDetailRepo;
 import com.example.fruitmarket.repository.UserRepository;
 import com.example.fruitmarket.repository.VerificationTokenRepository;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Users register(Users user) {
+    public User register(User user) {
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Tên đăng nhập đã tồn tại.");
         }
@@ -52,7 +51,7 @@ public class UserServiceImpl implements UserService {
         user.setStatus("PENDING");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        Users saved = userRepository.save(user);
+        User saved = userRepository.save(user);
 
         String token = createVerificationToken(saved);
         String link = baseUrl + "/auth/verify?token=" + token;
@@ -73,7 +72,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public String createVerificationToken(Users user) {
+    public String createVerificationToken(User user) {
         // xóa token cũ
         tokenRepository.deleteByUserId(user.getId());
         String token = UUID.randomUUID().toString();
@@ -95,7 +94,7 @@ public class UserServiceImpl implements UserService {
         if (vt.getExpiryDate().isBefore(LocalDateTime.now())) {
             return false;
         }
-        Users user = vt.getUser();
+        User user = vt.getUser();
         user.setStatus("ACTIVE");
         userRepository.save(user);
         tokenRepository.delete(vt);
@@ -103,24 +102,24 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Users login(String username, String rawPassword) {
-        Optional<Users> opt = userRepository.findByUsername(username);
+    public User login(String username, String rawPassword) {
+        Optional<User> opt = userRepository.findByUsername(username);
         if (opt.isEmpty()) return null;
-        Users user = opt.get();
+        User user = opt.get();
         if (!"ACTIVE".equals(user.getStatus())) return null;
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) return null;
         return user;
     }
 
     @Override
-    public Users findByUsername(String username) {
+    public User findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
 
     @Override
     public List<User_detail> getUserDetailFromSession(HttpSession session) {
-        Users users = (Users)session.getAttribute("loggedUser");
-        return userDetailRepo.findAllByUser(users);
+        User user = (User)session.getAttribute("loggedUser");
+        return userDetailRepo.findAllByUser(user);
     }
 
 
