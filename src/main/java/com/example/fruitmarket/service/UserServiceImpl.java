@@ -1,16 +1,21 @@
 package com.example.fruitmarket.service;
 
+import com.example.fruitmarket.model.User_detail;
 import com.example.fruitmarket.model.Users;
 import com.example.fruitmarket.model.VerificationToken;
+import com.example.fruitmarket.repository.UserDetailRepo;
 import com.example.fruitmarket.repository.UserRepository;
 import com.example.fruitmarket.repository.VerificationTokenRepository;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private final VerificationTokenRepository tokenRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final UserDetailRepo userDetailRepo;
+
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -109,4 +116,12 @@ public class UserServiceImpl implements UserService {
     public Users findByUsername(String username) {
         return userRepository.findByUsername(username).orElse(null);
     }
+
+    @Override
+    public List<User_detail> getUserDetailFromSession(HttpSession session) {
+        Users users = (Users)session.getAttribute("loggedUser");
+        return userDetailRepo.findAllByUser(users);
+    }
+
+
 }

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -21,9 +22,12 @@ public class DataInitializer implements CommandLineRunner {
     private final BrandsRepository brandsRepository;
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
+
         if (categorysRepository.count() == 0) {
             List<Categorys> categories = List.of(
                     createCategory("Fruits", true),
@@ -45,6 +49,14 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         if (productRepository.count() == 0) {
+            Users users = new Users();
+            users.setUsername("user");
+            users.setPassword(passwordEncoder.encode("password"));
+            users.setRole("CLIENT");
+            users.setPhone("0933456172");
+            users.setEmail("user@gmail.com");
+            users.setStatus("ACTIVE");
+            userRepository.save(users);
             var savedCategories = categorysRepository.findAll();
             var savedBrands = brandsRepository.findAll();
 
@@ -74,13 +86,13 @@ public class DataInitializer implements CommandLineRunner {
 
                 // Tạo variants cho p1 (ví dụ 1kg, 500g)
                 ProductVariant v11 = new ProductVariant();
-                v11.setName("1kg");
+                v11.setVariant_name("1kg");
                 v11.setPrice(new BigDecimal("49000.00"));
                 v11.setProduct(p1);
                 v11.setStock(100);
 
                 ProductVariant v12 = new ProductVariant();
-                v12.setName("500g");
+                v12.setVariant_name("500g");
                 v12.setPrice(new BigDecimal("25000.00"));
                 v12.setProduct(p1);
                 v12.setStock(100);
@@ -90,14 +102,14 @@ public class DataInitializer implements CommandLineRunner {
 
                 // Variants cho p2
                 ProductVariant v21 = new ProductVariant();
-                v21.setName("200g");
+                v21.setVariant_name("200g");
                 v21.setPrice(new BigDecimal("29000.00"));
                 v21.setProduct(p2);
                 p2.getVariants().add(v21);
 
                 // Variants cho p3
                 ProductVariant v31 = new ProductVariant();
-                v31.setName("250g");
+                v31.setVariant_name("250g");
                 v31.setPrice(new BigDecimal("79000.00"));
                 v31.setProduct(p3);
                 v31.setStock(100);

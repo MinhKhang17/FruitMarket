@@ -1,7 +1,11 @@
 package com.example.fruitmarket.mapper;
 
+import com.example.fruitmarket.Dto.ProductCheckoutResponse;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.model.Product;
+import com.example.fruitmarket.model.ProductVariant;
+
+import java.math.BigDecimal;
 
 public class FruitMapper {
     public static ProductDTO toProductDTO(Product product) {
@@ -12,10 +16,24 @@ public class FruitMapper {
         result.setCategoryName(product.getCategory().getName());
         result.setProductPrice(product.getVariants().get(0).getPrice());
         result.setDescription(product.getProduct_description());
+        result.setProductVariants(product.getVariants());
         if (product.getVariants().get(0) != null && product.getVariants().get(0).getImage() != null) {
 
         result.setImageUrl(product.getVariants().get(0).getImage().getUrl());
     }
 return result;
+    }
+
+    public static ProductCheckoutResponse toProductCheckout(ProductVariant productVariant) {
+        ProductCheckoutResponse result = new ProductCheckoutResponse();
+        result.setId(productVariant.getId());
+        result.setProduct_name(productVariant.getProduct().getProduct_name());
+        result.setProduct_description(productVariant.getProduct().getProduct_description());
+        result.setProduct_price(productVariant.getPrice());
+
+        if(productVariant.getImage() != null){
+            result.setImage_url(productVariant.getImage().getUrl());
+        }
+        return  result;
     }
 }

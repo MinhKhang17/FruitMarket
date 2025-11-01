@@ -3,7 +3,9 @@ package com.example.fruitmarket.service;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.Product;
+import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.repository.ProductRepository;
+import com.example.fruitmarket.repository.ProductVariantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,7 @@ import java.util.List;
 @Service
 public class ProductServiceImpl implements ProductService {
     @Autowired private ProductRepository productRepo;
+    @Autowired private ProductVariantRepository productVariantRepo;
     @Override
     public Product saveProduct(Product product){
         return productRepo.save(product);
@@ -35,5 +38,10 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO findAllProductWithProductVariant(long id) {
         return FruitMapper.toProductDTO(productRepo.findById(id).orElseThrow());
+    }
+
+    @Override
+    public ProductVariant findProductVariantById(long productVariantId) {
+        return productVariantRepo.findById(productVariantId).orElseThrow();
     }
 }

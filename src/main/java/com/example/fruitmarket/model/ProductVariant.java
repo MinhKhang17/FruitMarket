@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "product_variants")
+@Table(name = "product_variant")
 @Data
 @NoArgsConstructor
 public class ProductVariant {
@@ -22,7 +22,7 @@ public class ProductVariant {
 
     // Ví dụ: "1kg", "500g", "Red / Large" (tuỳ model)
     @Column
-    private String name;
+    private String variant_name;
 
     @Column
     private long stock;
@@ -31,9 +31,10 @@ public class ProductVariant {
     // Dùng BigDecimal cho money
     @Column(precision = 15, scale = 2)
     private BigDecimal price;
-    // ProductVariant.java (phần image)
-    @OneToOne(cascade = CascadeType.ALL)
+
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "image_id", referencedColumnName = "id",
             foreignKey = @ForeignKey(name = "FK_product_image"))
-    private Image image = new  Image();
+    private Image image;
+
 }

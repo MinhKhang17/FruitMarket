@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Table(name = "user_information")
@@ -49,12 +50,12 @@ public class Users {
     @Column(nullable = false)
     private String status;
 
-    private LocalDateTime createdDate;
+    private LocalDateTime createdDate = LocalDateTime.now();
 
-    private LocalDateTime updatedDate;
+    private LocalDateTime updatedDate=LocalDateTime.now();
 
     @OneToMany
-    private List<User_detail> userDetail;
+    private List<User_detail> userDetail = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

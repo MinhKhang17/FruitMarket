@@ -1,110 +1,302 @@
+<!-- file: src/main/resources/templates/home/checkout.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
-    <title>Checkout</title>
+    <title>Thanh toán — Fruit Market</title>
+
+    <!-- Bootstrap + icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+
     <style>
-        body { background:#f6f8fa; }
-        .card { max-width:820px; margin:32px auto; }
-        .muted { color:#6c757d; }
-        .price { font-weight:700; color:#198754; font-size:1.25rem; }
+        :root {
+            --green: #198754;
+            --green-dark: #156a3c;
+            --muted: #6c757d;
+            --card-bg: #ffffff;
+            --page-bg: #f6faf6;
+        }
+        body { background: var(--page-bg); font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+        .card { max-width: 920px; margin: 40px auto; border-radius: 12px; }
+        .title { font-weight: 600; color: var(--green-dark); }
+        .price { font-weight: 700; color: var(--green); font-size: 1.2rem; }
+        .muted { color: var(--muted); font-size: 0.95rem; }
+        .form-section { background: var(--card-bg); padding: 20px; border-radius: 10px; }
+        .divider { border-top: 2px solid #e7f3ea; margin: 25px 0; }
+        .btn-success { background-color: var(--green); border: none; }
+        .btn-success:hover { background-color: var(--green-dark); }
+        .thumb { width:90px; height:90px; object-fit:cover; border-radius:8px; }
+        .small-muted { color: #95a49a; font-size: 0.85rem; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h4 class="mb-3">Xác nhận đơn hàng</h4>
 
-            <!-- Nếu server cung cấp biến "variant" thì show chi tiết, nếu không vẫn giữ form -->
-            <div th:if="${variant != null}">
-                <div class="row align-items-center mb-3">
-                    <div class="col-auto">
-                        <img th:src="${variant.imageUrl != null ? variant.imageUrl : '/images/placeholder.png'}"
-                             alt="thumb" style="width:84px;height:84px;object-fit:cover;border-radius:6px;" />
-                    </div>
-                    <div class="col">
-                        <div th:text="${variant.name}">Variant name</div>
-                        <div class="muted" th:text="${variant.additionalInfo}">additional info</div>
-                    </div>
-                    <div class="col-auto text-end">
-                        <div class="price" th:text="${#numbers.formatDecimal(variant.price,0,'COMMA',2,'POINT')}">0</div>
+<!-- header / notification fragments (use ~{} syntax per Thymeleaf newer versions) -->
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/notification :: notification}"></div>
+
+<div class="container">
+    <div class="card shadow-sm p-4">
+        <h4 class="title mb-4"><i class="bi bi-basket2-fill text-success"></i> Xác nhận đơn hàng</h4>
+
+        <!-- ================= THÔNG TIN SẢN PHẨM ================= -->
+        <div class="form-section mb-4" th:object="${productVariant}">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <!-- image fallback: server image_url else placeholder; onerror fallback too -->
+                    <img th:src="${#strings.isEmpty(productVariant.image_url) ? '/images/placeholder.png' : productVariant.image_url}"
+                         alt="Ảnh sản phẩm"
+                         class="thumb"
+                         onerror="this.src='/images/placeholder.png'"/>
+                </div>
+
+                <div class="col">
+                    <h6 class="mb-1" th:text="${productVariant.product_name}">Tên sản phẩm</h6>
+                    <p class="muted mb-0" th:text="${productVariant.product_description}">Mô tả sản phẩm</p>
+                </div>
+
+                <div class="col-auto text-end">
+                    <div id="displayUnitPrice" class="price"
+                         th:text="${#numbers.formatDecimal(productVariant.product_price,0,'COMMA',2,'POINT')} + ' ₫'">
+                        0 ₫
                     </div>
                 </div>
             </div>
 
-            <!-- Form: gửi variantId + quantity -->
-            <form id="checkoutForm" th:action="@{/checkout/process}" method="post" class="row g-3">
-                <!-- CSRF token (Spring Security) -->
-                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-
-                <!-- Nhận từ query param (GET) hoặc server (Model) -->
-                <input type="hidden" id="variantId" name="variantId" th:value="${variant != null ? variant.id : ${param.variantId}}"/>
-                <input type="hidden" id="productId" name="productId" th:value="${productId}" />
-
-                <div class="col-12 col-md-6">
+            <div class="mt-3 row g-2">
+                <div class="col-auto">
                     <label class="form-label">Số lượng</label>
-                    <input id="quantity" name="quantity" type="number" min="1" value="${param.quantity != null ? param.quantity : 1}" class="form-control" required />
+                    <input id="quantityInput" th:value="${quantity}" type="number" min="1" value="1"
+                           class="form-control" style="max-width:120px;" onchange="updateTotal()" />
                 </div>
 
-                <div class="col-12 col-md-6">
-                    <label class="form-label">Tổng tiền (ước tính)</label>
-                    <div id="totalPrice" class="form-control-plaintext price">—</div>
+                <div class="col-auto align-self-end">
+                    <label class="form-label">Tổng tạm tính</label>
+                    <div id="totalPrice" class="price">—</div>
                 </div>
-
-                <div class="col-12">
-                    <small class="muted">Bạn sẽ được chuyển tới bước thanh toán sau khi xác nhận. Trang chỉ gửi ID biến thể và số lượng cho server xử lý.</small>
-                </div>
-
-                <div class="col-12 d-flex gap-2 justify-content-end mt-3">
-                    <a class="btn btn-outline-secondary" th:href="@{/products/{id}(id=${productId})}">Quay lại</a>
-                    <button id="confirmBtn" type="submit" class="btn btn-primary">Xác nhận & Tiếp tục</button>
-                </div>
-            </form>
-
+            </div>
         </div>
+
+        <div class="divider"></div>
+
+        <!-- ================= THÔNG TIN GIAO HÀNG ================= -->
+        <div class="form-section mb-4">
+            <h5 class="mb-3"><i class="bi bi-geo-alt-fill text-success"></i> Địa chỉ giao hàng</h5>
+
+            <!-- Nếu có nhiều địa chỉ -->
+            <div th:if="${userDetail != null and !#lists.isEmpty(userDetail)}">
+                <p class="muted">Chọn địa chỉ giao hàng có sẵn hoặc thêm mới nếu cần.</p>
+
+                <!-- Note: radios controlled by JS; the final chosen addressId will be copied into #finalAddressId -->
+                <div class="list-group mb-3">
+                    <label th:each="addr, i : ${userDetail}"
+                           class="list-group-item d-flex justify-content-between align-items-start">
+                        <div>
+                            <input class="form-check-input me-2" type="radio" name="addressSelect"
+                                   th:id="${'addr_'+i.index}" th:value="${addr.id}"
+                                   th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
+                            <strong th:text="${addr.phone}">0123456789</strong>
+                            <div class="small text-muted" th:text="${addr.address}">Địa chỉ giao hàng</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleNewAddressForm()">
+                        <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <!-- Form thêm địa chỉ mới (POST riêng về /userDetail/create) -->
+                <form id="newAddressForm" class="mt-3 d-none" th:action="@{/userDetail/create}" method="post">
+                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                    <div class="row g-2">
+                        <div class="col-md-8">
+                            <label class="form-label">Địa chỉ mới</label>
+                            <input type="text" class="form-control" name="address"
+                                   placeholder="Nhập địa chỉ cụ thể..." required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" name="phone"
+                                   placeholder="Nhập số điện thoại..." required />
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="bi bi-check2-circle"></i> Lưu địa chỉ mới
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Nếu chưa có userDetail -->
+            <div th:if="${userDetail == null or #lists.isEmpty(userDetail)}">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    Bạn chưa có thông tin giao hàng. Vui lòng nhập địa chỉ và số điện thoại bên dưới.
+                </div>
+
+                <!-- Khi chưa có địa chỉ, form thêm mới sẽ hiện và bắt submit tới /userDetail/create -->
+                <form id="newAddressFormSingle" th:action="@{/userDetail/create}" method="post">
+                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                    <div class="mb-2">
+                        <label class="form-label">Địa chỉ</label>
+                        <input type="text" class="form-control" name="address" placeholder="Nhập địa chỉ cụ thể..." required />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check2-circle"></i> Lưu địa chỉ và tiếp tục
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- ================= PHƯƠNG THỨC THANH TOÁN ================= -->
+        <div class="form-section mb-4">
+            <h5 class="mb-3"><i class="bi bi-credit-card text-success"></i> Phương thức thanh toán</h5>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="COD" checked>
+                <label class="form-check-label" for="cod"><i class="bi bi-cash-stack text-success"></i> Thanh toán khi nhận hàng</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="BANK">
+                <label class="form-check-label" for="bank"><i class="bi bi-bank text-primary"></i> Chuyển khoản ngân hàng</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="MOMO">
+                <label class="form-check-label" for="momo"><i class="bi bi-phone text-danger"></i> Ví MoMo</label>
+            </div>
+        </div>
+
+        <!-- ================= FORM XÁC NHẬN ĐƠN HÀNG ================= -->
+        <form th:action="@{/checkout/process}" method="post" onsubmit="return finalizeAndSubmit(this);">
+            <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+
+            <!-- variant id (from DTO) -->
+            <input type="hidden" name="variantId" th:value="${productVariant.id}" />
+
+            <!-- final values set by JS -->
+            <input type="hidden" id="finalQuantity" name="quantity" th:value="${quantity}" />
+            <input type="hidden" id="finalAddressId" name="addressId" value="" />
+            <input type="hidden" id="finalPayment" name="paymentMethod" value="COD" />
+
+            <div class="d-flex justify-content-end gap-3 mt-3">
+                <a th:href="@{/}" class="btn btn-outline-success">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+                <button type="submit" class="btn btn-success px-4">
+                    <i class="bi bi-check2-circle"></i> Xác nhận đặt hàng
+                </button>
+            </div>
+        </form>
+
     </div>
 </div>
 
-<script>
-    (function(){
-        // Tự động tính tổng tạm dựa trên giá variant (nếu server cung cấp variant.price)
-        const qty = document.getElementById('quantity');
-        const totalPrice = document.getElementById('totalPrice');
+<div th:replace="~{fragments/footer :: footer}"></div>
 
-        // get variant price if server rendered it into dataset
-        const variantEl = /*[[${variant != null}]]*/ false ? null : null; // placeholder for Thymeleaf; we will instead read a data-price attribute if present
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-        // Try read server-side rendered price from hidden data attribute on body (if present)
-        const serverPrice = window.SERVER_VARIANT_PRICE || null; // if you want to inject this
+<!-- Thymeleaf inline JS để inject productVariant.product_price -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const qtyInput = document.getElementById("quantityInput");
+    const totalPrice = document.getElementById("totalPrice");
+    const finalQty = document.getElementById("finalQuantity");
+    const paymentRadios = document.querySelectorAll("input[name='paymentMethod']");
+    const finalPayment = document.getElementById("finalPayment");
+    const newAddressForm = document.getElementById("newAddressForm");
+    const finalAddressId = document.getElementById("finalAddressId");
 
-        function fmt(n) {
-            try { return n.toLocaleString('vi-VN', {minimumFractionDigits: 0, maximumFractionDigits: 2}); } catch(e) { return n; }
+    // read server-rendered unit price (as number)
+    const variantPrice = /*[[${productVariant != null && productVariant.product_price != null}]]*/ false
+        ? /*[[${productVariant.product_price}]]*/ 0
+        : 0;
+
+    function fmt(num) {
+        try {
+            return Number(num).toLocaleString("vi-VN", {minimumFractionDigits: 0, maximumFractionDigits: 2}) + " ₫";
+        } catch(e) { return num; }
+    }
+
+    function updateTotal() {
+        const qty = Number(qtyInput.value) || 1;
+        totalPrice.textContent = fmt(variantPrice * qty);
+        finalQty.value = qty;
+    }
+
+    function toggleNewAddressForm() {
+        const frm = document.getElementById("newAddressForm");
+        if (!frm) return;
+        frm.classList.toggle("d-none");
+    }
+
+    function selectExistingAddress(radio) {
+        if (!radio) return;
+        if (radio.value === "new") {
+            const frm = document.getElementById("newAddressForm");
+            if (frm) frm.classList.remove("d-none");
+            finalAddressId.value = "";
+        } else {
+            const frm = document.getElementById("newAddressForm");
+            if (frm) frm.classList.add("d-none");
+            finalAddressId.value = radio.value;
+        }
+    }
+
+    // listen payment radio changes -> update hidden input
+    paymentRadios.forEach(r => r.addEventListener("change", () => finalPayment.value = r.value));
+
+    // finalize values then submit
+    function finalizeAndSubmit(form) {
+        // ensure quantity valid
+        const qty = Number(finalQty.value) || 1;
+        if (qty <= 0) { alert("Số lượng không hợp lệ."); return false; }
+
+        // if user selected an existing address, finalAddressId already set by selectExistingAddress
+        // if finalAddressId empty and there is visible newAddressForm (user creating new address) - that will be created by /userDetail/create flow
+        // For safety, require an address id or new address form (server will validate)
+        const addr = finalAddressId.value;
+        if (!addr) {
+            // if there is no existing address selected and newAddressFormSingle is present (user had no addresses), we let server handle it
+            // but warn user if they didn't enter address (best-effort)
+            const newAddr = document.querySelector("#newAddressForm input[name='address'], #newAddressFormSingle input[name='address']");
+            const newPhone = document.querySelector("#newAddressForm input[name='phone'], #newAddressFormSingle input[name='phone']");
+            if (newAddr && newPhone) {
+                if (!newAddr.value.trim() || !newPhone.value.trim()) {
+                    alert("Vui lòng chọn địa chỉ có sẵn hoặc nhập địa chỉ giao hàng mới.");
+                    return false;
+                }
+                // user filled new address: we'll submit checkout; server should create userDetail or accept new address fields in the request.
+                // (Alternatively you may prefer to require creating address first via /userDetail/create, but support both flows.)
+            } else {
+                alert("Vui lòng chọn địa chỉ giao hàng hoặc thêm địa chỉ mới.");
+                return false;
+            }
         }
 
-        function updateTotal() {
-            const q = Number(qty.value) || 1;
-            let price = null;
-            // priority 1: window.SERVER_VARIANT_PRICE
-            if (typeof window.SERVER_VARIANT_PRICE !== 'undefined' && window.SERVER_VARIANT_PRICE !== null) price = Number(window.SERVER_VARIANT_PRICE);
-            // priority 2: data attribute on hidden input
-            const variantIdInput = document.getElementById('variantId');
-            if (price === null && variantIdInput && variantIdInput.dataset && variantIdInput.dataset.price) {
-                price = Number(variantIdInput.dataset.price);
-            }
-            if (price === null || isNaN(price)) {
-                totalPrice.textContent = '—';
-                return;
-            }
-            totalPrice.textContent = fmt(price * q) + ' ₫';
-        }
+        return true;
+    }
 
-        qty.addEventListener('input', updateTotal);
-        // init
-        updateTotal();
-    })();
+    // init
+    if (qtyInput) {
+        qtyInput.addEventListener("input", updateTotal);
+    }
+    updateTotal();
+    /*]]>*/
 </script>
 </body>
 </html>

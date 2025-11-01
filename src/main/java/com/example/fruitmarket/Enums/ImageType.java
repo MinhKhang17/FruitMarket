@@ -1,4 +1,4 @@
-package com.example.fruitmarket.Dtos;
+package com.example.fruitmarket.Enums;
 
 
 public enum ImageType {

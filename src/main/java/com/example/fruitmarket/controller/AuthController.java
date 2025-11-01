@@ -48,7 +48,7 @@ public class AuthController {
         session.setAttribute("loggedUser", user);
 
         ra.addFlashAttribute("success", "Đăng nhập thành công. Chào " + user.getUsername() + "!");
-        return "redirect:/home/page";
+        return "redirect:/";
     }
 
 

@@ -13,18 +13,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 @Controller
-@RequestMapping("/")
 @RequiredArgsConstructor
 public class HomeController {
 
     private final CategorysService categorysService;
     private final BrandsService brandsService;
 
-    @GetMapping("/")
+    @GetMapping({"", "/", "/home"})
     public String homePage() {
         return "home/page";
     }
-
 
     @ModelAttribute("categories")
     public List<Categorys> categories() {

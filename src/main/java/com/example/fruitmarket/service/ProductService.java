@@ -3,6 +3,7 @@ package com.example.fruitmarket.service;
 import aj.org.objectweb.asm.commons.Remapper;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.model.Product;
+import com.example.fruitmarket.model.ProductVariant;
 
 import java.util.List;
 
@@ -15,4 +16,6 @@ public interface ProductService {
     void deleteById(Long id);
 
     ProductDTO findAllProductWithProductVariant(long id);
+
+    ProductVariant findProductVariantById(long productVariantId);
 }

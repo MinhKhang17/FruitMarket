@@ -1,6 +1,6 @@
 package com.example.fruitmarket.model;
 
-import com.example.fruitmarket.Dtos.ImageType;
+import com.example.fruitmarket.Enums.ImageType;
 import jakarta.persistence.*;
 import lombok.Data;
 
