@@ -3,71 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" th:href="@{/productList.css}" />
     <title>Admin - Products</title>
-    <style>
-        :root {
-            --bg: #0b1222;
-            --card: #0f172a;
-            --muted: #94a3b8;
-            --accent: #2563eb;
-            --text: #e2e8f0;
-        }
-        body {
-            margin: 0;
-            padding: 18px;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
-            background: var(--bg);
-            color: var(--text);
-        }
-        .card {
-            background: var(--card);
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
-        }
-        .top-row {
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            gap:12px;
-            margin-bottom:12px;
-        }
-        .btn {
-            background: var(--accent);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        table {
-            width:100%;
-            border-collapse: collapse;
-            margin-top:8px;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #0f172a;
-            font-size: 14px;
-            color: var(--text);
-        }
-        th { color: var(--muted); font-weight: 600; font-size:13px;}
-        .thumb {
-            width:64px;
-            height:64px;
-            object-fit:cover;
-            border-radius:6px;
-            border:1px solid #111827;
-        }
-        .actions a {
-            margin-right:8px;
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-        }
-        .no-data { color: var(--muted); padding: 20px; text-align: center; }
-    </style>
 </head>
 <body>
 <div class="card">
@@ -77,8 +14,7 @@
             <div style="color:var(--muted); font-size:13px">Quản lý sản phẩm — xem, sửa, xóa hoặc tạo mới.</div>
         </div>
         <div>
-            <!-- Lưu ý: đường dẫn điều chỉnh theo mapping controller của bạn -->
-            <a class="btn" th:href="@{/admin/products/create}">➕ Tạo Product mới</a>
+            <a class="btn" th:href="@{/admin/product/create}">➕ Tạo Product mới</a>
         </div>
     </div>
 
@@ -101,20 +37,24 @@
             <tr th:each="p,iter : ${products}">
                 <td th:text="${iter.index + 1}">1</td>
 
-                <!-- Ảnh: nếu object image không null thì show thumbnail.
-                     Thay URL theo cách bạn phục vụ ảnh (dưới đây giả sử /images/{id} trả ảnh) -->
+                <!-- Ảnh: lấy từ variant đầu tiên có image; nếu không có -> dấu gạch ngang -->
                 <td>
-                    <img th:if="${p.image != null}"
-                         th:src="@{/images/{id}(id=${p.image.id})}"
-                         alt="thumb"
-                         class="thumb" />
-                    <span th:if="${p.image == null}" style="color:var(--muted)">—</span>
+                    <!-- Guard 1: có danh sách variants -->
+                    <th:block th:if="${p.variants != null and !#lists.isEmpty(p.variants)}">
+                        <!-- Guard 2: phần tử đầu tiên có image -->
+                        <img th:if="${p.variants[0].image != null}"
+                             th:src="@{/images/{id}(id=${p.variants[0].image.id})}"
+                             alt="thumb" class="thumb"/>
+                        <span th:if="${p.variants[0].image == null}" style="color:var(--muted)">—</span>
+                    </th:block>
+
+                    <!-- Không có variants -->
+                    <span th:if="${p.variants == null or #lists.isEmpty(p.variants)}" style="color:var(--muted)">—</span>
                 </td>
 
                 <td th:text="${p.product_name}">Product name</td>
                 <td th:text="${p.product_description != null ? p.product_description : '-'}">Description...</td>
 
-                <!-- Category & Brand: dùng name field (đổi nếu tên trường khác) -->
                 <td th:text="${p.category != null ? p.category.name : '—'}">Category</td>
                 <td th:text="${p.brand != null ? p.brand.name : '—'}">Brand</td>
 
