@@ -6,5 +6,19 @@
 </head>
 <body>
     <h1>Xin chào</h1>
+    <button onclick="payVNPay()">Thanh toán bằng VNPay</button>
+
+    <script>
+        async function payVNPay() {
+            const res = await fetch(`/payment/create?orderId=HD001&amount=100000`);
+            const data = await res.json();
+            if (data.code === "00") {
+                window.location.href = data.url; // chuyển qua VNPay
+            } else {
+                alert("Lỗi tạo thanh toán: " + data.message);
+            }
+        }
+    </script>
+
 </body>
 </html>
