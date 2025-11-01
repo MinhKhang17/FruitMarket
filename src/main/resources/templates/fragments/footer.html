@@ -1,0 +1,15 @@
+<!-- file: src/main/resources/templates/fragments/footer.html -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="footer">
+    <link th:href="@{/footer.css}" rel="stylesheet"/>
+
+    <footer class="text-center py-4 mt-4">
+        <div class="container">
+            <div>
+                <span class="footer-logo">🍃 FruitMarket</span>
+            </div>
+            <small>
+                © <span th:text="${T(java.time.Year).now().value}">2025</span> FruitMarket. All rights reserved.
+            </small>
+        </div>
+    </footer>
+</div>

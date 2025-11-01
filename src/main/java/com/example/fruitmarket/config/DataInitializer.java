@@ -1,19 +1,14 @@
-// java
 package com.example.fruitmarket.config;
 
-import com.example.fruitmarket.model.Brands;
-import com.example.fruitmarket.model.Categorys;
-import com.example.fruitmarket.model.Product;
-import com.example.fruitmarket.repository.BrandsRepository;
-import com.example.fruitmarket.repository.CategorysRepository;
-import com.example.fruitmarket.repository.ProductRepository;
+import com.example.fruitmarket.model.*;
+import com.example.fruitmarket.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -25,6 +20,7 @@ public class DataInitializer implements CommandLineRunner {
     private final CategorysRepository categorysRepository;
     private final BrandsRepository brandsRepository;
     private final ProductRepository productRepository;
+    private final ProductVariantRepository productVariantRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -49,10 +45,9 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         if (productRepository.count() == 0) {
-            List<Categorys> savedCategories = categorysRepository.findAll();
-            List<Brands> savedBrands = brandsRepository.findAll();
+            var savedCategories = categorysRepository.findAll();
+            var savedBrands = brandsRepository.findAll();
 
-            // defensive: ensure we have at least one category and brand
             if (!savedCategories.isEmpty() && !savedBrands.isEmpty()) {
                 Categorys c1 = savedCategories.get(0);
                 Categorys c2 = savedCategories.size() > 1 ? savedCategories.get(1) : c1;
@@ -61,28 +56,53 @@ public class DataInitializer implements CommandLineRunner {
 
                 Product p1 = new Product();
                 p1.setProduct_name("Red Apple");
-                p1.setProduct_description("Crisp, sweet red apples - 1kg pack");
-                p1.setImages(new ArrayList<>()); // no images for seeding
+                p1.setProduct_description("Crisp, sweet red apples - base product");
                 p1.setCategory(c1);
                 p1.setBrand(b1);
 
                 Product p2 = new Product();
                 p2.setProduct_name("Baby Spinach");
-                p2.setProduct_description("Fresh baby spinach - 200g");
-                p2.setImages(new ArrayList<>());
+                p2.setProduct_description("Fresh baby spinach - base product");
                 p2.setCategory(c2);
                 p2.setBrand(b2);
 
                 Product p3 = new Product();
                 p3.setProduct_name("Dried Mango");
-                p3.setProduct_description("Sweet dried mango slices - 250g");
-                p3.setImages(new ArrayList<>());
+                p3.setProduct_description("Sweet dried mango slices - base product");
                 p3.setCategory(savedCategories.get(savedCategories.size() - 1));
                 p3.setBrand(b1);
 
-                List<Product> products = List.of(p1, p2, p3);
-                productRepository.saveAll(products);
-                log.info("Seeded {} products", products.size());
+                // Tạo variants cho p1 (ví dụ 1kg, 500g)
+                ProductVariant v11 = new ProductVariant();
+                v11.setName("1kg");
+                v11.setPrice(new BigDecimal("49000.00"));
+                v11.setProduct(p1);
+
+                ProductVariant v12 = new ProductVariant();
+                v12.setName("500g");
+                v12.setPrice(new BigDecimal("25000.00"));
+                v12.setProduct(p1);
+
+                p1.getVariants().add(v11);
+                p1.getVariants().add(v12);
+
+                // Variants cho p2
+                ProductVariant v21 = new ProductVariant();
+                v21.setName("200g");
+                v21.setPrice(new BigDecimal("29000.00"));
+                v21.setProduct(p2);
+                p2.getVariants().add(v21);
+
+                // Variants cho p3
+                ProductVariant v31 = new ProductVariant();
+                v31.setName("250g");
+                v31.setPrice(new BigDecimal("79000.00"));
+                v31.setProduct(p3);
+                p3.getVariants().add(v31);
+
+                // Save products (cascade sẽ lưu variants vì cascade = ALL)
+                productRepository.saveAll(List.of(p1, p2, p3));
+                log.info("Seeded products with variants");
             } else {
                 log.warn("Skipping product seeding: categories or brands not present");
             }

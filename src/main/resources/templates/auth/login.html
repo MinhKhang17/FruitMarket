@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Đăng nhập - FruitMarket</title>
+    <link rel="stylesheet" th:href="@{/login.css}" />
+</head>
+<body>
+<section class="login-section">
+    <div class="login-container">
+        <div class="login-left">
+            <div class="brand">
+                🍊 <span>FruitMarket</span>
+            </div>
+            <h2>Chào mừng trở lại!</h2>
+            <p>Đăng nhập để tiếp tục mua sắm những loại trái cây tươi ngon nhất 🌿</p>
+        </div>
+
+        <div class="login-right">
+            <h3>Đăng nhập</h3>
+
+            <form th:action="@{/auth/login}" method="post" th:object="${user}">
+                <div class="form-group">
+                    <label>Tên đăng nhập</label>
+                    <input type="text" th:field="*{username}" placeholder="Nhập tên đăng nhập" required />
+                    <div class="error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <input type="password" th:field="*{password}" placeholder="Nhập mật khẩu" required />
+                    <div class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+
+                <button type="submit" class="btn-login">Đăng nhập</button>
+            </form>
+
+            <p class="register-link">
+                Chưa có tài khoản? <a th:href="@{/auth/register}">Đăng ký ngay</a>
+            </p>
+
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

@@ -77,7 +77,8 @@
             <div style="color:var(--muted); font-size:13px">Quản lý sản phẩm — xem, sửa, xóa hoặc tạo mới.</div>
         </div>
         <div>
-            <a class="btn" th:href="@{/createProduct}">➕ Tạo Product mới</a>
+            <!-- Lưu ý: đường dẫn điều chỉnh theo mapping controller của bạn -->
+            <a class="btn" th:href="@{/admin/products/create}">➕ Tạo Product mới</a>
         </div>
     </div>
 
@@ -99,21 +100,25 @@
             <tbody>
             <tr th:each="p,iter : ${products}">
                 <td th:text="${iter.index + 1}">1</td>
+
+                <!-- Ảnh: nếu object image không null thì show thumbnail.
+                     Thay URL theo cách bạn phục vụ ảnh (dưới đây giả sử /images/{id} trả ảnh) -->
                 <td>
-                    <!-- hiển thị ảnh đầu tiên nếu có, giả sử Image.filename lưu tên file -->
-                    <img th:if="${p.images != null and #lists.size(p.images) > 0}"
-                         th:src="@{${'/uploads/' + p.images.get(0).filename}}"
-                         alt="thumb" class="thumb"/>
-                    <div th:if="${p.images == null || #lists.isEmpty(p.images)}" style="width:64px;height:64px;display:flex;align-items:center;justify-content:center;background:#071023;color:var(--muted);border-radius:6px;border:1px solid #0f172a;font-size:12px">
-                        No image
-                    </div>
+                    <img th:if="${p.image != null}"
+                         th:src="@{/images/{id}(id=${p.image.id})}"
+                         alt="thumb"
+                         class="thumb" />
+                    <span th:if="${p.image == null}" style="color:var(--muted)">—</span>
                 </td>
+
                 <td th:text="${p.product_name}">Product name</td>
-                <td th:text="${p.product_description}">Description...</td>
-                <td th:text="${p.category != null ? p.category.provinceName ?: p.category.name : '—'}">Category</td>
+                <td th:text="${p.product_description != null ? p.product_description : '-'}">Description...</td>
+
+                <!-- Category & Brand: dùng name field (đổi nếu tên trường khác) -->
+                <td th:text="${p.category != null ? p.category.name : '—'}">Category</td>
                 <td th:text="${p.brand != null ? p.brand.name : '—'}">Brand</td>
+
                 <td class="actions">
-                    <!-- giả sử bạn có mapping edit và delete (bổ sung controller nếu cần) -->
                     <a th:href="@{'/admin/products/edit/' + ${p.id}}">Edit</a>
                     <a th:href="@{'/admin/products/delete/' + ${p.id}}"
                        onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">Delete</a>

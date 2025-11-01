@@ -4,19 +4,17 @@ import com.example.fruitmarket.Dtos.ImageType;
 import jakarta.persistence.*;
 import lombok.Data;
 
-@Table
+// Image.java
 @Entity
-@Data
+@Table(name = "images")   // <-- chọn "images" và dùng nhất quán
 public class Image {
-@Id
-@GeneratedValue(strategy= GenerationType.IDENTITY)
-    private String id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-@Column(unique = true)
+    @Column(unique = true, length = 1000)
     private String url;
 
-@Column
+    @Enumerated(EnumType.STRING)
     private ImageType imageType;
-
-
 }

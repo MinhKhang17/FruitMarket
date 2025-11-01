@@ -5,48 +5,33 @@ import com.example.fruitmarket.service.BrandsService;
 import com.example.fruitmarket.service.CategorysService;
 import com.example.fruitmarket.service.ProductService;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
+@RequiredArgsConstructor
+@RequestMapping
 public class ProductController {
-    @Autowired private CategorysService categorysService;
-    @Autowired private BrandsService brandsService;
-    @Autowired private ProductService productService;
 
-    @GetMapping("/categories")
-    public String categories(Model model) {
-        model.addAttribute("categories", categorysService.findAll());
-        return "admin/categories";
-    }
-    @GetMapping("/brands")
-    public String brands(Model model) {
-        model.addAttribute("brands", brandsService.findAll());
-        return "admin/brands";
-    }
+    private final CategorysService categorysService;
+    private final BrandsService brandsService;
+    private final ProductService productService;
 
-    @GetMapping("/products")
-    public String products(Model model) {
+
+    // Public: list and detail for frontend (distinct from /admin)
+    @GetMapping("home/products")
+    public String listProducts(Model model) {
         model.addAttribute("products", productService.findAll());
-        return "admin/products";
+        return "home/product";
     }
 
-
-        @GetMapping("/createProduct")
-    public String createProduct(Model model){
-        model.addAttribute("product", new Product());
-        model.addAttribute("categories",categorysService.findAll() );
-        model.addAttribute("brands",brandsService.findAll() );
-        return "admin/createProduct";
-    }
-    @PostMapping("/admin/products/save")
-    public String saveProduct(@ModelAttribute Product product, BindingResult result, HttpSession session){
-        productService.saveProduct(product);
-        return "redirect:/products";
+    @GetMapping("/products/{id}")
+    public String productDetail(@PathVariable Long id, Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "home/detail";
     }
 }

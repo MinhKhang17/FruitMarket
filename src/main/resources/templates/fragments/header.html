@@ -1,0 +1,77 @@
+<!-- file: src/main/resources/templates/fragments/header.html -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="header">
+    <!-- CSS riêng cho header -->
+    <link th:href="@{/header.css}" rel="stylesheet"/>
+
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">🍃 FruitMarket</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                    aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navMenu">
+                <!-- Search -->
+                <form class="d-flex me-3" th:action="@{/products}" method="get">
+                    <input class="form-control me-2" type="search" name="q" placeholder="Search products..."
+                           th:value="${param.q}" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
+
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+
+                    <!-- Categories -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" aria-expanded="false">
+                            Categories
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li th:if="${#lists.isEmpty(categories)}"><span class="dropdown-item text-muted">No categories</span></li>
+                            <li th:each="c : ${categories}">
+                                <a class="dropdown-item" th:href="@{/products(category=${c.id})}" th:text="${c.name}">Category</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Brands -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="brandsDropdown" role="button" aria-expanded="false">
+                            Brands
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
+                            <li th:if="${#lists.isEmpty(brands)}"><span class="dropdown-item text-muted">No brands</span></li>
+                            <li th:each="b : ${brands}">
+                                <a class="dropdown-item" th:href="@{/products(brand=${b.id})}" th:text="${b.name}">Brand</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item"><a class="nav-link" th:href="@{/products}">Products</a></li>
+
+                    <!-- Auth -->
+                    <li class="nav-item ms-lg-3">
+                        <span class="nav-link p-0"
+                              th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}">
+                            Xin chào <b th:text="${#httpSession.getAttribute('loggedUser').username}"></b> |
+                            <a class="nav-link d-inline p-0" th:href="@{/auth/logout}">Đăng xuất</a>
+                        </span>
+
+                        <span class="nav-link p-0"
+                              th:if="${#httpSession == null or #httpSession.getAttribute('loggedUser') == null}">
+                            <a class="nav-link d-inline p-0" th:href="@{/auth/login}">Đăng nhập</a> |
+                            <a class="nav-link d-inline p-0" th:href="@{/auth/register}">Đăng ký</a>
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<!-- Alias để tương thích với các template đang dùng tên 'mainHeader' -->
+<div xmlns:th="http://www.thymeleaf.org" th:fragment="mainHeader">
+    <div th:replace="~{::header}"></div>
+</div>
