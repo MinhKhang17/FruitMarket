@@ -21,17 +21,17 @@ public class ProductController {
     private final ProductService productService;
 
 
-    // Public: list and detail for frontend (distinct from /admin)
-    @GetMapping("home/products")
-    public String listProducts(Model model) {
-        model.addAttribute("products", productService.findAll());
-        return "home/product";
-    }
+
 
     @GetMapping("/products/{id}")
     public String productDetail(@PathVariable Long id, Model model) {
         Product product = productService.findById(id);
         model.addAttribute("product", product);
         return "home/detail";
+    }
+    @GetMapping("/products")
+    public String listProducts(Model model, HttpSession session) {
+        model.addAttribute("products", productService.findAll());
+        return "home/product";
     }
 }
