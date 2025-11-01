@@ -44,4 +44,11 @@ public class ProductServiceImpl implements ProductService {
     public ProductVariant findProductVariantById(long productVariantId) {
         return productVariantRepo.findById(productVariantId).orElseThrow();
     }
+
+    @Override
+    public void decreaseStock(Long variantId, Integer quantity) {
+        ProductVariant productVariant = findProductVariantById(variantId);
+        productVariant.setStock(productVariant.getStock() - quantity);
+        productVariantRepo.save(productVariant);
+    }
 }

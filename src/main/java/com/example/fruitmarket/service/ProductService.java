@@ -18,4 +18,6 @@ public interface ProductService {
     ProductDTO findAllProductWithProductVariant(long id);
 
     ProductVariant findProductVariantById(long productVariantId);
+
+    void decreaseStock(Long variantId, Integer quantity);
 }

@@ -123,5 +123,10 @@ public class UserServiceImpl implements UserService {
         return userDetailRepo.findAllByUser(users);
     }
 
+    @Override
+    public User_detail findUserDetalById(Long addressId) {
+        return userDetailRepo.findById(addressId).orElseThrow();
+    }
+
 
 }
