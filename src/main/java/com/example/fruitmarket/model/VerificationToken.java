@@ -20,7 +20,7 @@ public class VerificationToken {
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
-    private Users user;
+    private User user;
 
     private LocalDateTime expiryDate;
 }

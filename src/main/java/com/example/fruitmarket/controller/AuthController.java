@@ -1,7 +1,8 @@
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.model.Users;
+import com.example.fruitmarket.model.User;
 import com.example.fruitmarket.service.UserService;
+import com.example.fruitmarket.util.AuthUtils;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,13 @@ public class AuthController {
     @GetMapping("/login")
     public String loginForm(Model model) {
         if (!model.containsAttribute("user")) {
-            model.addAttribute("user", new Users());
+            model.addAttribute("user", new User());
         }
         return "auth/login";
     }
 
     @PostMapping("/login")
-    public String doLogin(@ModelAttribute("user") Users form,
+    public String doLogin(@ModelAttribute("user") User form,
                           RedirectAttributes ra,
                           HttpSession session) {
 
@@ -38,7 +39,7 @@ public class AuthController {
             return "redirect:/auth/login";
         }
 
-        Users user = userService.login(form.getUsername(), form.getPassword());
+        User user = userService.login(form.getUsername(), form.getPassword());
         if (user == null) {
             ra.addFlashAttribute("error", "Đăng nhập thất bại — kiểm tra tài khoản/mật khẩu hoặc xác thực email.");
             ra.addFlashAttribute("user", form);
@@ -48,6 +49,7 @@ public class AuthController {
         session.setAttribute("loggedUser", user);
 
         ra.addFlashAttribute("success", "Đăng nhập thành công. Chào " + user.getUsername() + "!");
+        if (AuthUtils.isAdmin(session)) return "redirect:/admin/adminPage";
         return "redirect:/";
     }
 
@@ -55,13 +57,13 @@ public class AuthController {
     @GetMapping("/register")
     public String registerForm(Model model) {
         if (!model.containsAttribute("user")) {
-            model.addAttribute("user", new Users());
+            model.addAttribute("user", new User());
         }
         return "auth/register";
     }
 
     @PostMapping("/register")
-    public String doRegister(@ModelAttribute("user") @Valid Users form,
+    public String doRegister(@ModelAttribute("user") @Valid User form,
                              BindingResult result,
                              RedirectAttributes ra) {
 

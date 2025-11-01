@@ -49,14 +49,14 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         if (productRepository.count() == 0) {
-            Users users = new Users();
-            users.setUsername("user");
-            users.setPassword(passwordEncoder.encode("password"));
-            users.setRole("CLIENT");
-            users.setPhone("0933456172");
-            users.setEmail("user@gmail.com");
-            users.setStatus("ACTIVE");
-            userRepository.save(users);
+            User user = new User();
+            user.setUsername("user");
+            user.setPassword(passwordEncoder.encode("password"));
+            user.setRole("CLIENT");
+            user.setPhone("0933456172");
+            user.setEmail("user@gmail.com");
+            user.setStatus("ACTIVE");
+            userRepository.save(user);
             var savedCategories = categorysRepository.findAll();
             var savedBrands = brandsRepository.findAll();
 
