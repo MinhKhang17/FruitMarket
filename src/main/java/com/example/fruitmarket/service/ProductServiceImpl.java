@@ -47,16 +47,10 @@ public class ProductServiceImpl implements ProductService {
         return productVariantRepo.findById(productVariantId).orElseThrow();
     }
 
-
-
     @Override
-    public String processCheckout(CheckoutForm form) {
-        Order order = new Order();
-        return null;
-    }
-
-    @Override
-    public List<ProductVariant> findProductVariantsByIds(List<Long> productVariantIds) {
-        return productVariantRepo.findAllById(productVariantIds);
+    public void decreaseStock(Long variantId, Integer quantity) {
+        ProductVariant productVariant = findProductVariantById(variantId);
+        productVariant.setStock(productVariant.getStock() - quantity);
+        productVariantRepo.save(productVariant);
     }
 }

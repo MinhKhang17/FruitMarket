@@ -1,11 +1,14 @@
 package com.example.fruitmarket.model;
 
+import com.example.fruitmarket.Enums.OrderStauts;
+import com.example.fruitmarket.Enums.PricingMethod;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@Table
+@Table(name = "orders")
 @Entity
 @Data
 public class Order {
@@ -13,18 +16,22 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToMany(cascade = CascadeType.ALL)
+    private List<OrderItem> orderItemList;
+
     @ManyToOne
-    private Users user;
-
-    @OneToMany
-    private List<OrderItem> orderItems  ;
+    private Users users;
 
     @Column
-    private boolean isPaid = false;
+    private boolean isPaid;
 
-    @Column
-    private double price;
+    @Enumerated(EnumType.STRING)
+    private OrderStauts orderStauts;
 
+    @Enumerated(EnumType.STRING)
+    private PricingMethod pricingMethod;
     @Column
-    private double total;
+    private String address;
+    @Column
+    private String phoneNumber;
 }

@@ -1,6 +1,6 @@
 package com.example.fruitmarket.service;
 
-import com.example.fruitmarket.Dto.CheckoutForm;
+import aj.org.objectweb.asm.commons.Remapper;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
@@ -20,7 +20,5 @@ public interface ProductService {
 
     ProductVariant findProductVariantById(long productVariantId);
 
-    String processCheckout(CheckoutForm form);
-
-    List<ProductVariant> findProductVariantsByIds(List<Long> productVariantId);
+    void decreaseStock(Long variantId, Integer quantity);
 }

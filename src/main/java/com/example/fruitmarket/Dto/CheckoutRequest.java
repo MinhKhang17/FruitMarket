@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class CheckoutRequest {
-    private List<Long> product_variant_id;
+    private Long product_variant_id;
     private int quantity;
 }
