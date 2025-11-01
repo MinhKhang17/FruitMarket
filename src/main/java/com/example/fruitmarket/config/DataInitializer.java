@@ -24,6 +24,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductVariantRepository productVariantRepository;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final UserDetailRepo userDetailRepo;
 
     @Override
     public void run(String... args) throws Exception {
@@ -56,7 +57,11 @@ public class DataInitializer implements CommandLineRunner {
             users.setPhone("0933456172");
             users.setEmail("user@gmail.com");
             users.setStatus("ACTIVE");
-            userRepository.save(users);
+            User_detail userDetail = new User_detail();
+            userDetail.setUser(userRepository.save(users));
+            userDetail.setAddress("Ho Chi Minh");
+            userDetail.setPhone("0933456789");
+        userDetailRepo.save(userDetail);
             var savedCategories = categorysRepository.findAll();
             var savedBrands = brandsRepository.findAll();
 

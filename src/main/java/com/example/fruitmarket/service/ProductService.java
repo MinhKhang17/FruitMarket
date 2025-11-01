@@ -1,9 +1,10 @@
 package com.example.fruitmarket.service;
 
-import aj.org.objectweb.asm.commons.Remapper;
+import com.example.fruitmarket.Dto.CheckoutForm;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
+import org.springframework.ui.Model;
 
 import java.util.List;
 
@@ -18,4 +19,8 @@ public interface ProductService {
     ProductDTO findAllProductWithProductVariant(long id);
 
     ProductVariant findProductVariantById(long productVariantId);
+
+    String processCheckout(CheckoutForm form);
+
+    List<ProductVariant> findProductVariantsByIds(List<Long> productVariantId);
 }

@@ -1,5 +1,6 @@
 package com.example.fruitmarket.controller;
 
+import com.example.fruitmarket.Dto.CheckoutForm;
 import com.example.fruitmarket.Dto.CheckoutRequest;
 import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.User_detail;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class BuyController {
@@ -24,7 +26,9 @@ public class BuyController {
 
     @PostMapping("/checkout")
     public String checkout(@ModelAttribute CheckoutRequest checkoutRequest, Model model, HttpSession session, RedirectAttributes ra) {
-        model.addAttribute("productVariant", FruitMapper.toProductCheckout(productService.findProductVariantById(checkoutRequest.getProduct_variant_id())));
+        model.addAttribute("productVariants", productService.findProductVariantsByIds(checkoutRequest.getProduct_variant_id())
+                .stream().map(FruitMapper::toProductCheckout)
+                .collect(Collectors.toList()));
         model.addAttribute("quantity", checkoutRequest.getQuantity());
 
         List<User_detail> user =  userService.getUserDetailFromSession(session);
@@ -37,5 +41,15 @@ public class BuyController {
 
         return "home/checkout";
     }
+    @PostMapping("/checkout/process")
+    public String processCheckout(@ModelAttribute CheckoutForm form, HttpSession session, Model model) {
 
+        if(session.getAttribute("loggedUser") == null) {
+            return "redirect:/auth/login";
+        }
+
+        String url = productService.processCheckout(form);
+
+        return "";
+    }
 }

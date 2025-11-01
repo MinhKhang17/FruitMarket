@@ -1,7 +1,9 @@
 package com.example.fruitmarket.service;
 
+import com.example.fruitmarket.Dto.CheckoutForm;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.mapper.FruitMapper;
+import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.repository.ProductRepository;
@@ -43,5 +45,18 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductVariant findProductVariantById(long productVariantId) {
         return productVariantRepo.findById(productVariantId).orElseThrow();
+    }
+
+
+
+    @Override
+    public String processCheckout(CheckoutForm form) {
+        Order order = new Order();
+        return null;
+    }
+
+    @Override
+    public List<ProductVariant> findProductVariantsByIds(List<Long> productVariantIds) {
+        return productVariantRepo.findAllById(productVariantIds);
     }
 }
