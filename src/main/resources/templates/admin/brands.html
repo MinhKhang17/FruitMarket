@@ -1,31 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Brand</title>
 </head>
 <body>
+<h2>Brand List</h2>
 <table>
     <thead>
     <tr>
         <th>ID</th>
         <th>Name</th>
+        <th>Status</th>
         <th>Actions</th>
+    </tr>
     </thead>
     <tbody>
-    <tr th:each=" b : ${brands} ">
+    <tr th:each="b : ${brands}">
         <td th:text="${b.id}"></td>
         <td th:text="${b.name}">Brand Name</td>
+        <td th:text="${b.status ? 'Inactive' : 'Active'}"
+            th:classappend="${b.status ? 'inactive' : 'active'}"></td>
         <td>
             <a th:href="@{'/admin/brands/edit/' + ${b.id}}">Edit</a>
             |
             <a th:href="@{'/admin/brands/delete/' + ${b.id}}"
-               onclick="return confirm('Are you sure you want to delete this brand?');">Delete</a>
+               onclick="return confirm('Are you sure you want to delete this brand?');">
+                Delete
+            </a>
         </td>
-
     </tr>
     </tbody>
-
 </table>
 </body>
 </html>

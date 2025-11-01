@@ -2,7 +2,6 @@ package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.repository.ProductRepository;
-import com.example.fruitmarket.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +22,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product findById(Long id) {
-        return productRepo.findById(id);
+        return productRepo.findProductById(id);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        productRepo.deleteById(id);
     }
 }

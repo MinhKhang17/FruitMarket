@@ -10,4 +10,5 @@ public interface CategorysService {
     Categorys findById(long id);
     Categorys addCategorys(Categorys categorys);
     List<Categorys> findAll();
+    void deleteById(Long id);
 }

@@ -27,4 +27,13 @@ public class CategorysServiceImpl implements  CategorysService {
     public List<Categorys> findAll() {
         return categorysRepository.findAll();
     }
+
+    @Override
+    public void deleteById(Long id) {
+        Categorys brand = categorysRepository.findById(id).orElse(null);
+        if (brand != null) {
+            brand.setStatus(true);
+            categorysRepository.save(brand);
+        }
+    }
 }
