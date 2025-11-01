@@ -7,49 +7,81 @@
 </head>
 <body>
 <div class="register-wrapper">
+
     <div class="register-card">
+        <!-- Logo đơn giản hơn -->
         <div class="logo">
             🍊 <span>FruitMarket</span>
         </div>
+        <p class="logo-subtitle">Trái cây tươi ngon</p>
 
         <h2>Tạo tài khoản mới</h2>
+        <p class="subtitle">Đăng ký để trải nghiệm mua sắm tuyệt vời 🌿</p>
+
+        <!-- Thông báo -->
+        <div th:if="${success}" class="alert alert-success">
+            <span class="alert-icon">✅</span>
+            <span th:text="${success}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-danger">
+            <span class="alert-icon">❌</span>
+            <span th:text="${error}"></span>
+        </div>
 
         <!-- Form đăng ký -->
         <form th:action="@{/auth/register}" method="post" th:object="${user}">
             <div class="form-group">
-                <label>Tên đăng nhập</label>
+                <label>
+                    <span class="label-icon">👤</span>
+                    Tên đăng nhập
+                </label>
                 <input type="text" th:field="*{username}" placeholder="Nhập tên đăng nhập" required/>
                 <div class="error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
             </div>
 
             <div class="form-group">
-                <label>Email</label>
+                <label>
+                    <span class="label-icon">📧</span>
+                    Email
+                </label>
                 <input type="email" th:field="*{email}" placeholder="Nhập email" required/>
                 <div class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
             </div>
 
             <div class="form-group">
-                <label>Số điện thoại</label>
+                <label>
+                    <span class="label-icon">📱</span>
+                    Số điện thoại
+                </label>
                 <input type="text" th:field="*{phone}" placeholder="Nhập số điện thoại" required/>
                 <div class="error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
             </div>
 
             <div class="form-group">
-                <label>Mật khẩu</label>
+                <label>
+                    <span class="label-icon">🔒</span>
+                    Mật khẩu
+                </label>
                 <input type="password" th:field="*{password}" placeholder="Nhập mật khẩu" required/>
                 <div class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
             </div>
 
-            <button type="submit" class="btn-register">Đăng ký</button>
+            <button type="submit" class="btn-register">
+                Đăng ký ngay →
+            </button>
         </form>
 
         <p class="login-link">
             Đã có tài khoản?
             <a th:href="@{/auth/login}">Đăng nhập ngay</a>
         </p>
-        <!-- Thông báo -->
-        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <!-- Features badges -->
+        <div class="features-badges">
+            <span class="feature-badge">🔒 An toàn</span>
+            <span class="feature-badge">⚡ Nhanh chóng</span>
+            <span class="feature-badge">💯 Miễn phí</span>
+        </div>
     </div>
 </div>
 </body>

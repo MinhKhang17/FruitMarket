@@ -18,4 +18,7 @@ public interface ProductService {
     ProductDTO findAllProductWithProductVariant(long id);
 
     ProductVariant findProductVariantById(long productVariantId);
+
+    List<Product> findByFilters(Long categoryId, Long brandId);
+
 }

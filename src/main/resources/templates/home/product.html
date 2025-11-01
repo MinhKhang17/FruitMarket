@@ -1,4 +1,3 @@
-<!-- file: src/main/resources/templates/home/product.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
@@ -24,7 +23,9 @@
             <div class="product-card h-100">
                 <!-- Image (Product.image is OneToOne) -->
                 <img class="img-fluid rounded mb-2"
-                     th:src="${p.getVariants().get(0).getImage() == null ? '/images/placeholder.png' : p.getVariants().get(0).getImage().getUrl()}"
+                     th:src="${(p.variants != null && !p.variants.isEmpty() && p.variants[0].image != null)
+                              ? p.variants[0].image.url
+                              : '/images/placeholder.png'}"
                      th:alt="${p.product_name}"/>
 
                 <h2 class="product-name" th:text="${p.product_name}">Product name</h2>

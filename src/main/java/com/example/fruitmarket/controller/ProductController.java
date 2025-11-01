@@ -12,10 +12,13 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Controller
 @RequiredArgsConstructor
 @RequestMapping
-public class ProductController {
+public class  ProductController {
 
     private final CategorysService categorysService;
     private final BrandsService brandsService;
@@ -33,8 +36,43 @@ public class ProductController {
 
 
     @GetMapping("/products")
-    public String listProducts(Model model, HttpSession session) {
-        model.addAttribute("products", productService.findAll());
+    public String listProducts(
+            @RequestParam(required = false) Long category,
+            @RequestParam(required = false) Long brand,
+            @RequestParam(required = false) String q,
+            Model model
+    ) {
+        List<Product> products;
+
+        // Nếu có filter category hoặc brand
+        if (category != null || brand != null) {
+            products = productService.findByFilters(category, brand);
+        } else {
+            // Lấy tất cả products
+            products = productService.findAll();
+
+            // Lọc chỉ lấy products có variants
+            products = products.stream()
+                    .filter(p -> p.getVariants() != null && !p.getVariants().isEmpty())
+                    .collect(Collectors.toList());
+        }
+
+        // Lọc theo search query nếu có
+        if (q != null && !q.trim().isEmpty()) {
+            String query = q.toLowerCase().trim();
+            products = products.stream()
+                    .filter(p -> p.getProduct_name().toLowerCase().contains(query) ||
+                            (p.getProduct_description() != null &&
+                                    p.getProduct_description().toLowerCase().contains(query)))
+                    .collect(Collectors.toList());
+        }
+
+        model.addAttribute("products", products);
+
+        // Debug log
+        System.out.println("Filter - Category: " + category + ", Brand: " + brand + ", Query: " + q);
+        System.out.println("Products found: " + products.size());
+
         return "home/product";
     }
 

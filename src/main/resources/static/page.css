@@ -33,6 +33,154 @@ body{
 /* ===== Khung nội dung chính ===== */
 .page-wrap{ flex:1; padding:24px 0; }
 
+/* ===== ✅ BANNER HERO ===== */
+.hero-banner {
+    position: relative;
+    background: linear-gradient(135deg, var(--leaf-500), var(--leaf-600));
+    border-radius: 20px;
+    padding: 50px 40px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(67, 160, 71, 0.3);
+    animation: fadeInUp 0.8s ease;
+}
+
+.banner-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+}
+
+.banner-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    animation: bounce 2s infinite;
+}
+
+.banner-title {
+    font-size: 38px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    color: #fff;
+}
+
+.banner-subtitle {
+    font-size: 18px;
+    margin-bottom: 25px;
+    opacity: 0.95;
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.banner-badges {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.badge-item {
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(10px);
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+}
+
+.badge-item:hover {
+    background: rgba(255,255,255,0.35);
+    transform: translateY(-2px);
+}
+
+/* ===== Decoration - Floating Fruits ===== */
+.banner-decoration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.fruit-float {
+    position: absolute;
+    font-size: 40px;
+    opacity: 0.2;
+    animation: float 6s ease-in-out infinite;
+}
+
+.fruit-1 { top: 10%; left: 5%; animation-delay: 0s; }
+.fruit-2 { top: 60%; left: 10%; animation-delay: 1.5s; }
+.fruit-3 { top: 20%; right: 8%; animation-delay: 0.7s; }
+.fruit-4 { top: 70%; right: 5%; animation-delay: 2s; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== ✅ Features Section ===== */
+.features-section {
+    animation: fadeIn 0.8s ease 0.2s both;
+}
+
+.feature-card {
+    background: var(--card-bg);
+    border: 2px solid var(--leaf-100);
+    border-radius: 16px;
+    padding: 30px 20px;
+    text-align: center;
+    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--leaf-400);
+    box-shadow: 0 8px 25px rgba(67,160,71,0.2);
+}
+
+.feature-icon {
+    font-size: 48px;
+    margin-bottom: 15px;
+}
+
+.feature-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--leaf-600);
+    margin-bottom: 8px;
+}
+
+.feature-text {
+    font-size: 14px;
+    color: var(--muted);
+    margin: 0;
+}
+
 /* ===== Card hero ===== */
 .hero-card{
     background: var(--card-bg);
@@ -55,7 +203,7 @@ body{
 }
 
 /* ===== Nút hành động ===== */
-.btn-outline-sky{ /* giữ nguyên class cũ cho đỡ sửa HTML */
+.btn-outline-sky{
     border-color: var(--leaf-500);
     color: var(--leaf-500);
     font-weight: 700;
@@ -69,7 +217,7 @@ body{
     box-shadow: 0 6px 14px rgba(67,160,71,.25);
 }
 
-/* ===== Khung “iframe card” + responsive ===== */
+/* ===== Khung "iframe card" + responsive ===== */
 .frame-wrap{
     background: var(--card-bg);
     border: 1px solid var(--leaf-100);
@@ -79,15 +227,83 @@ body{
 }
 .frame{
     width: 100%;
-    height: 70vh;   /* desktop mặc định */
+    height: 70vh;
     border: 0;
     display: block;
 }
+
+/* ===== ✅ Stats Section ===== */
+.stats-section {
+    background: linear-gradient(135deg, var(--leaf-500), var(--leaf-600));
+    border-radius: 20px;
+    padding: 40px 20px;
+    box-shadow: 0 10px 30px rgba(67,160,71,0.25);
+    animation: fadeIn 0.8s ease 0.4s both;
+}
+
+.stat-card {
+    text-align: center;
+    color: white;
+    padding: 20px;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: scale(1.1);
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.stat-label {
+    font-size: 14px;
+    opacity: 0.95;
+    font-weight: 600;
+}
+
+/* ===== Responsive ===== */
 @media (max-width: 992px){
     .frame{ height: 62vh; }
+    .banner-title { font-size: 32px; }
+    .banner-subtitle { font-size: 16px; }
+    .hero-banner { padding: 40px 30px; }
 }
+
 @media (max-width: 576px){
     .frame{ height: 58vh; }
+    .banner-title { font-size: 26px; }
+    .banner-subtitle { font-size: 14px; }
+    .banner-icon { font-size: 45px; }
+    .hero-banner { padding: 35px 25px; }
+    .badge-item { font-size: 12px; padding: 8px 16px; }
+
+    .feature-card {
+        padding: 25px 15px;
+    }
+
+    .feature-icon {
+        font-size: 40px;
+    }
+
+    .feature-title {
+        font-size: 16px;
+    }
+
+    .stats-section {
+        padding: 30px 15px;
+    }
+
+    .stat-number {
+        font-size: 28px;
+    }
+
+    .stat-label {
+        font-size: 12px;
+    }
 }
 
 /* ===== Hiệu ứng vào trang (mềm) ===== */
