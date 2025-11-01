@@ -35,6 +35,10 @@ public class BrandsServiceImpl implements BrandsService {
 
     @Override
     public void deleteById(Long id) {
-        brandsRepository.deleteById(id);
+        Brands brand = brandsRepository.findById(id).orElse(null);
+        if (brand != null) {
+            brand.setStatus(true); // true = đã xóa / inactive
+            brandsRepository.save(brand); // cập nhật lại DB thay vì xóa
+        }
     }
 }

@@ -30,6 +30,10 @@ public class CategorysServiceImpl implements  CategorysService {
 
     @Override
     public void deleteById(Long id) {
-        categorysRepository.deleteById(id);
+        Categorys brand = categorysRepository.findById(id).orElse(null);
+        if (brand != null) {
+            brand.setStatus(true);
+            categorysRepository.save(brand);
+        }
     }
 }
