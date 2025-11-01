@@ -2,15 +2,19 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Create Product</title>
+    <title th:text="${product.id} != null ? 'Edit Product' : 'Create Product'">Product Form</title>
 </head>
 <body>
-<h1>Create Product</h1>
+<h1 th:text="${product.id} != null ? 'Edit Product' : 'Create Product'">Product Form</h1>
 
-<form th:action="@{/admin/products/save}" th:object="${product}" method="post" enctype="multipart/form-data">
+<form th:action="${product.id} != null ? @{/admin/product/update} : @{/admin/product/save}"
+      th:object="${product}" method="post">
+<!--    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
 
-    <label for="id">Product Id (leave blank for new)</label>
-    <input type="text" id="id" th:field="*{id}" readonly/>
+    <div th:if="${product.id != null}">
+        <label for="id">Product Id</label>
+        <input type="text" id="id" th:field="*{id}" readonly/>
+    </div>
 
     <div>
         <label for="product_name">Product Name</label>
@@ -24,25 +28,22 @@
 
     <div>
         <label for="category">Category</label>
-        <select id="category" name="categoryId" required>
+        <select id="category" th:field="*{category.id}" required>
+            <option value="" th:if="${product.category == null}">-- Select category --</option>
             <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
         </select>
     </div>
 
     <div>
         <label for="brand">Brand</label>
-        <select id="brand" name="brandId" required>
+        <select id="brand" th:field="*{brand.id}" required>
+            <option value="" th:if="${product.brand == null}">-- Select brand --</option>
             <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
         </select>
     </div>
 
     <div>
-        <label for="images">Images (you can select multiple)</label>
-        <input type="file" id="images" name="images" accept="image/*" multiple/>
-    </div>
-
-    <div>
-        <button type="submit">Save Product</button>
+        <button type="submit" th:text="${product.id} != null ? 'Update' : 'Create'">Save Product</button>
     </div>
 </form>
 

@@ -32,4 +32,9 @@ public class BrandsServiceImpl implements BrandsService {
     public List<Brands> findAll() {
         return brandsRepository.findAll();
     }
+
+    @Override
+    public void deleteById(Long id) {
+        brandsRepository.deleteById(id);
+    }
 }

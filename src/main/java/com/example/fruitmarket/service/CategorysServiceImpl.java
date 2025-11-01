@@ -27,4 +27,9 @@ public class CategorysServiceImpl implements  CategorysService {
     public List<Categorys> findAll() {
         return categorysRepository.findAll();
     }
+
+    @Override
+    public void deleteById(Long id) {
+        categorysRepository.deleteById(id);
+    }
 }
