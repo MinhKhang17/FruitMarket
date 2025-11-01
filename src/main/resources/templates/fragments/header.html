@@ -3,75 +3,97 @@
     <!-- CSS riêng cho header -->
     <link th:href="@{/header.css}" rel="stylesheet"/>
 
-    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+    <nav class="navbar navbar-expand-lg navbar-custom">
         <div class="container">
-            <a class="navbar-brand" th:href="@{/}">🍃 FruitMarket</a>
+            <!-- Logo nâng cấp -->
+            <a class="navbar-brand brand-enhanced" th:href="@{/}">
+                <span class="brand-icon">🍊</span>
+                <span class="brand-text">FruitMarket</span>
+            </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
+            <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
                     aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navMenu">
-                <!-- Search -->
-                <form class="d-flex me-3" th:action="@{/products}" method="get">
-                    <input class="form-control me-2" type="search" name="q" placeholder="Search products..."
-                           th:value="${param.q}" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form>
-
-                <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
-
-                    <!-- Categories -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" aria-expanded="false">
-                            Categories
+                <!-- Navigation Links -->
+                <ul class="navbar-nav mx-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-enhanced" th:href="@{/}">
+                            <span class="nav-icon">🏠</span> Trang chủ
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                            <li th:if="${#lists.isEmpty(categories)}"><span class="dropdown-item text-muted">No categories</span></li>
+                    </li>
+
+                    <!-- Categories Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-link-enhanced dropdown-toggle" href="#" id="categoriesDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="nav-icon">📂</span> Danh mục
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-enhanced" aria-labelledby="categoriesDropdown">
+                            <li th:if="${#lists.isEmpty(categories)}">
+                                <span class="dropdown-item text-muted">Chưa có danh mục</span>
+                            </li>
                             <li th:each="c : ${categories}">
                                 <a class="dropdown-item" th:href="@{/products(category=${c.id})}" th:text="${c.name}">Category</a>
                             </li>
                         </ul>
                     </li>
 
-                    <!-- Brands -->
+                    <!-- Brands Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="brandsDropdown" role="button" aria-expanded="false">
-                            Brands
+                        <a class="nav-link nav-link-enhanced dropdown-toggle" href="#" id="brandsDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="nav-icon">🏷️</span> Thương hiệu
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
-                            <li th:if="${#lists.isEmpty(brands)}"><span class="dropdown-item text-muted">No brands</span></li>
+                        <ul class="dropdown-menu dropdown-menu-enhanced" aria-labelledby="brandsDropdown">
+                            <li th:if="${#lists.isEmpty(brands)}">
+                                <span class="dropdown-item text-muted">Chưa có thương hiệu</span>
+                            </li>
                             <li th:each="b : ${brands}">
                                 <a class="dropdown-item" th:href="@{/products(brand=${b.id})}" th:text="${b.name}">Brand</a>
                             </li>
                         </ul>
                     </li>
 
-                    <li class="nav-item"><a class="nav-link" th:href="@{/products}">Products</a></li>
-
-                    <!-- Auth -->
-                    <li class="nav-item ms-lg-3">
-                        <span class="nav-link p-0"
-                              th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}">
-                            Xin chào <b th:text="${#httpSession.getAttribute('loggedUser').username}"></b> |
-                            <a class="nav-link d-inline p-0" th:href="@{/auth/logout}">Đăng xuất</a>
-                        </span>
-
-                        <span class="nav-link p-0"
-                              th:if="${#httpSession == null or #httpSession.getAttribute('loggedUser') == null}">
-                            <a class="nav-link d-inline p-0" th:href="@{/auth/login}">Đăng nhập</a> |
-                            <a class="nav-link d-inline p-0" th:href="@{/auth/register}">Đăng ký</a>
-                        </span>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-enhanced" th:href="@{/products}">
+                            <span class="nav-icon">🛒</span> Sản phẩm
+                        </a>
                     </li>
                 </ul>
+
+                <!-- Search Form -->
+                <form class="search-form me-3" th:action="@{/products}" method="get">
+                    <div class="search-wrapper">
+                        <input class="search-input" type="search" name="q" placeholder="Tìm kiếm sản phẩm..."
+                               th:value="${param.q}" aria-label="Search">
+                        <button class="search-btn" type="submit">
+                            <span>🔍</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Auth Section -->
+                <div class="auth-section">
+                    <div th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}"
+                         class="user-info">
+                        <span class="welcome-text">
+                            👋 Xin chào, <strong th:text="${#httpSession.getAttribute('loggedUser').username}"></strong>
+                        </span>
+                        <a class="btn-auth btn-logout" th:href="@{/auth/logout}">
+                            Đăng xuất
+                        </a>
+                    </div>
+
+                    <div th:if="${#httpSession == null or #httpSession.getAttribute('loggedUser') == null}"
+                         class="auth-buttons">
+                        <a class="btn-auth btn-login" th:href="@{/auth/login}">Đăng nhập</a>
+                        <a class="btn-auth btn-register" th:href="@{/auth/register}">Đăng ký</a>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
-</div>
-
-<!-- Alias để tương thích với các template đang dùng tên 'mainHeader' -->
-<div xmlns:th="http://www.thymeleaf.org" th:fragment="mainHeader">
-    <div th:replace="~{::header}"></div>
 </div>

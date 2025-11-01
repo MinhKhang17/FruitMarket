@@ -2,14 +2,66 @@
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="footer">
     <link th:href="@{/footer.css}" rel="stylesheet"/>
 
-    <footer class="text-center py-4 mt-4">
+    <footer class="footer-enhanced">
+        <!-- Decorative Wave TOP -->
+        <div class="footer-wave">
+            <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                <path d="M0,0 C150,80 350,0 600,50 C850,100 1050,20 1200,50 L1200,120 L0,120 Z"
+                      fill="rgba(255,202,40,0.15)"></path>
+            </svg>
+        </div>
+
         <div class="container">
-            <div>
-                <span class="footer-logo">🍃 FruitMarket</span>
+            <!-- Footer Top - Info Sections -->
+            <div class="footer-top">
+                <div class="row g-4">
+                    <!-- About Section -->
+                    <div class="col-md-4">
+                        <div class="footer-section">
+                            <div class="footer-logo-large">
+                                🍊 <span>FruitMarket</span>
+                            </div>
+                            <p class="footer-desc">
+                                Cung cấp trái cây tươi ngon, chất lượng cao từ các trang trại uy tín.
+                                Cam kết 100% tươi mới và an toàn cho sức khỏe.
+                            </p>
+                            <div class="footer-social">
+                                <a href="#" class="social-link" title="Facebook">📘</a>
+                                <a href="#" class="social-link" title="Instagram">📷</a>
+                                <a href="#" class="social-link" title="Twitter">🐦</a>
+                                <a href="#" class="social-link" title="YouTube">📺</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="col-md-4">
+                        <div class="footer-section">
+                            <h4 class="footer-title">Liên kết nhanh</h4>
+                            <ul class="footer-links">
+                                <li><a href="/">🏠 Trang chủ</a></li>
+                                <li><a href="/products">🛒 Sản phẩm</a></li>
+                                <li><a href="/about">ℹ️ Về chúng tôi</a></li>
+                                <li><a href="/contact">📞 Liên hệ</a></li>
+                                <li><a href="/blog">📝 Blog</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="col-md-4">
+                        <div class="footer-section">
+                            <h4 class="footer-title">Liên hệ</h4>
+                            <ul class="footer-contact">
+                                <li>📍 123 Đường Trái Cây, Q1, TP.HCM</li>
+                                <li>📞 <a href="tel:0901234567">0901 234 567</a></li>
+                                <li>📧 <a href="mailto:info@fruitmarket.com">info@fruitmarket.com</a></li>
+                                <li>⏰ Mở cửa: 7:00 - 21:00 hàng ngày</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <small>
-                © <span th:text="${T(java.time.Year).now().value}">2025</span> FruitMarket. All rights reserved.
-            </small>
         </div>
     </footer>
 </div>

@@ -3,34 +3,156 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel</title>
+    <title>Admin Dashboard - FruitMarket</title>
     <link rel="stylesheet" href="admin.css" />
 </head>
 <body>
+<!-- Sidebar -->
 <aside class="sidebar">
-    <header>Admin Panel</header>
-    <nav>
-        <a href="#" class="nav-link active" data-page="welcome">🏠 Trang chào mừng</a>
-        <a href="#" class="nav-link" data-page="brands">🏷️ Brands</a>
-        <a href="#" class="nav-link" data-page="categories">📂 Categories</a>
-        <a href="#" class="nav-link" data-page="products">🧾 Products</a>
-        <a href="#" class="nav-link" data-page="create">➕ Tạo Product</a>
+    <div class="sidebar-header">
+        <div class="logo">
+            <span class="logo-icon">🛡️</span>
+            <span class="logo-text">Admin Panel</span>
+        </div>
+        <div class="admin-info">
+            <div class="admin-avatar">👨‍💼</div>
+            <div class="admin-details">
+                <span class="admin-name">Administrator</span>
+                <span class="admin-role">Super Admin</span>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <a href="#" class="nav-link active" data-page="welcome">
+            <span class="nav-icon">📊</span>
+            <span class="nav-text">Dashboard</span>
+        </a>
+        <a href="#" class="nav-link" data-page="brands">
+            <span class="nav-icon">🏷️</span>
+            <span class="nav-text">Brands</span>
+        </a>
+        <a href="#" class="nav-link" data-page="categories">
+            <span class="nav-icon">📂</span>
+            <span class="nav-text">Categories</span>
+        </a>
+        <a href="#" class="nav-link" data-page="products">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">Products</span>
+        </a>
+        <a href="#" class="nav-link" data-page="create">
+            <span class="nav-icon">➕</span>
+            <span class="nav-text">Create Product</span>
+        </a>
     </nav>
-    <footer>© 2025 Admin System</footer>
+
+    <div class="sidebar-footer">
+        <a href="/" class="footer-link">
+            <span>🏠</span>
+            <span>Back to Site</span>
+        </a>
+        <div class="system-info">
+            <span>v2.0.1</span>
+            <span>© 2025</span>
+        </div>
+    </div>
 </aside>
 
-<main>
-    <header class="main-header">
-        <h1 id="pageTitle">Chào mừng đến Admin Panel 👋</h1>
-        <p id="pageDesc">Hệ thống quản lý gồm Brands và Categories.</p>
+<!-- Main Content -->
+<main class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <button class="menu-toggle" id="menuToggle">☰</button>
+            <div class="breadcrumb">
+                <span>🏠</span>
+                <span>/</span>
+                <span id="breadcrumbText">Dashboard</span>
+            </div>
+        </div>
+        <div class="topbar-right">
+            <button class="topbar-btn" title="Notifications">
+                🔔
+                <span class="badge">3</span>
+            </button>
+            <button class="topbar-btn" title="Settings">⚙️</button>
+            <button class="topbar-btn logout-btn" title="Logout">🚪</button>
+        </div>
     </header>
 
-    <div class="content" id="contentArea">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1 id="pageTitle">
+                <span class="title-icon">📊</span>
+                Dashboard Overview
+            </h1>
+            <p id="pageDesc">Welcome to the admin control panel. Manage your system efficiently.</p>
+        </div>
+        <div class="page-actions">
+            <button class="action-btn">
+                🔄 Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
         <div class="frame-wrap" id="frameWrap">
-            <!-- Lúc đầu: không hiển thị gì -->
-            <div id="welcomeMessage" class="welcome">
-                <h2>🎉 Xin chào Quản trị viên!</h2>
-                <p>Vui lòng chọn một mục trong menu bên trái để bắt đầu.</p>
+            <!-- Welcome Dashboard -->
+            <div id="welcomeMessage" class="dashboard-welcome">
+                <div class="stats-grid">
+                    <div class="stat-card blue">
+                        <div class="stat-icon">🏷️</div>
+                        <div class="stat-details">
+                            <span class="stat-value">24</span>
+                            <span class="stat-label">Total Brands</span>
+                        </div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-icon">📂</div>
+                        <div class="stat-details">
+                            <span class="stat-value">18</span>
+                            <span class="stat-label">Categories</span>
+                        </div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="stat-icon">📦</div>
+                        <div class="stat-details">
+                            <span class="stat-value">156</span>
+                            <span class="stat-label">Products</span>
+                        </div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-details">
+                            <span class="stat-value">1.2K</span>
+                            <span class="stat-label">Users</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3>⚡ Quick Actions</h3>
+                    <div class="actions-grid">
+                        <button class="quick-action-btn" data-page="create">
+                            <span class="action-icon">➕</span>
+                            <span>Add Product</span>
+                        </button>
+                        <button class="quick-action-btn" data-page="brands">
+                            <span class="action-icon">🏷️</span>
+                            <span>Manage Brands</span>
+                        </button>
+                        <button class="quick-action-btn" data-page="categories">
+                            <span class="action-icon">📂</span>
+                            <span>Categories</span>
+                        </button>
+                        <button class="quick-action-btn" data-page="products">
+                            <span class="action-icon">📋</span>
+                            <span>View Products</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -39,50 +161,143 @@
 <script>
     (function () {
         const links = document.querySelectorAll('.nav-link');
+        const quickBtns = document.querySelectorAll('.quick-action-btn');
         const pageTitle = document.getElementById('pageTitle');
         const pageDesc = document.getElementById('pageDesc');
+        const breadcrumb = document.getElementById('breadcrumbText');
         const frameWrap = document.getElementById('frameWrap');
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
 
+        // Menu toggle
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        // Navigation
         links.forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 const page = this.getAttribute('data-page');
-                document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
+                links.forEach(a => a.classList.remove('active'));
                 this.classList.add('active');
                 showPage(page);
             });
         });
 
-        function showPage(page) {
-            frameWrap.innerHTML = ''; // xóa nội dung hiện có
+        // Quick actions
+        quickBtns.forEach(btn => {
+            btn.addEventListener('click', function () {
+                const page = this.getAttribute('data-page');
+                links.forEach(a => a.classList.remove('active'));
+                const targetLink = document.querySelector(`.nav-link[data-page="${page}"]`);
+                if (targetLink) targetLink.classList.add('active');
+                showPage(page);
+            });
+        });
 
-            if (page === 'brands') {
-                pageTitle.textContent = 'Quản lý Brands';
-                pageDesc.textContent = 'Trang này hiển thị danh sách các thương hiệu.';
-                addFrame('/admin/brands');
-            } else if (page === 'categories') {
-                pageTitle.textContent = 'Quản lý Categories';
-                pageDesc.textContent = 'Trang này hiển thị danh mục sản phẩm.';
-                addFrame('/admin/categories');
-            } else if (page === 'create') {
-                pageTitle.textContent = 'Tạo Product mới';
-                pageDesc.textContent = 'Điền thông tin và upload ảnh cho product.';
-                addFrame('/admin/product/create');
-            } else if (page === 'products') {
-                pageTitle.textContent = 'Danh sách Products';
-                pageDesc.textContent = 'Xem, sửa, xoá các product hiện có.';
-                addFrame('/admin/products');
-            } else {
-                // Trang chào mừng
-                pageTitle.textContent = 'Chào mừng đến Admin Panel 👋';
-                pageDesc.textContent = 'Hệ thống quản lý gồm Brands và Categories.';
-                const welcome = document.createElement('div');
-                welcome.className = 'welcome';
-                welcome.innerHTML = `
-                <h2>🎉 Xin chào Quản trị viên!</h2>
-                <p>Vui lòng chọn một mục trong menu bên trái để bắt đầu quản lý dữ liệu.</p>
-            `;
-                frameWrap.appendChild(welcome);
+        function showPage(page) {
+            frameWrap.innerHTML = '';
+
+            const pageConfig = {
+                brands: {
+                    title: '<span class="title-icon">🏷️</span> Brand Management',
+                    desc: 'View and manage all product brands',
+                    breadcrumb: 'Brands',
+                    url: '/admin/brands'
+                },
+                categories: {
+                    title: '<span class="title-icon">📂</span> Category Management',
+                    desc: 'Organize products into categories',
+                    breadcrumb: 'Categories',
+                    url: '/admin/categories'
+                },
+                create: {
+                    title: '<span class="title-icon">➕</span> Create New Product',
+                    desc: 'Add a new product to the inventory',
+                    breadcrumb: 'Create Product',
+                    url: '/admin/product/create'
+                },
+                products: {
+                    title: '<span class="title-icon">📦</span> Product List',
+                    desc: 'View, edit, and delete products',
+                    breadcrumb: 'Products',
+                    url: '/admin/products'
+                },
+                welcome: {
+                    title: '<span class="title-icon">📊</span> Dashboard Overview',
+                    desc: 'Welcome to the admin control panel. Manage your system efficiently.',
+                    breadcrumb: 'Dashboard',
+                    url: null
+                }
+            };
+
+            const config = pageConfig[page];
+            if (config) {
+                pageTitle.innerHTML = config.title;
+                pageDesc.textContent = config.desc;
+                breadcrumb.textContent = config.breadcrumb;
+
+                if (config.url) {
+                    addFrame(config.url);
+                } else {
+                    // Show welcome dashboard
+                    frameWrap.innerHTML = `
+                            <div class="dashboard-welcome">
+                                <div class="stats-grid">
+                                    <div class="stat-card blue">
+                                        <div class="stat-icon">🏷️</div>
+                                        <div class="stat-details">
+                                            <span class="stat-value">24</span>
+                                            <span class="stat-label">Total Brands</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card green">
+                                        <div class="stat-icon">📂</div>
+                                        <div class="stat-details">
+                                            <span class="stat-value">18</span>
+                                            <span class="stat-label">Categories</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card purple">
+                                        <div class="stat-icon">📦</div>
+                                        <div class="stat-details">
+                                            <span class="stat-value">156</span>
+                                            <span class="stat-label">Products</span>
+                                        </div>
+                                    </div>
+                                    <div class="stat-card orange">
+                                        <div class="stat-icon">👥</div>
+                                        <div class="stat-details">
+                                            <span class="stat-value">1.2K</span>
+                                            <span class="stat-label">Users</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="quick-actions">
+                                    <h3>⚡ Quick Actions</h3>
+                                    <div class="actions-grid">
+                                        <button class="quick-action-btn" onclick="document.querySelector('[data-page=create]').click()">
+                                            <span class="action-icon">➕</span>
+                                            <span>Add Product</span>
+                                        </button>
+                                        <button class="quick-action-btn" onclick="document.querySelector('[data-page=brands]').click()">
+                                            <span class="action-icon">🏷️</span>
+                                            <span>Manage Brands</span>
+                                        </button>
+                                        <button class="quick-action-btn" onclick="document.querySelector('[data-page=categories]').click()">
+                                            <span class="action-icon">📂</span>
+                                            <span>Categories</span>
+                                        </button>
+                                        <button class="quick-action-btn" onclick="document.querySelector('[data-page=products]').click()">
+                                            <span class="action-icon">📋</span>
+                                            <span>View Products</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                }
             }
         }
 

@@ -1,31 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Brand</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Management</title>
+    <link rel="stylesheet" href="/admin/admin-table.css" />
 </head>
 <body>
-<table>
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Actions</th>
-    </thead>
-    <tbody>
-    <tr th:each=" b : ${brands} ">
-        <td th:text="${b.id}"></td>
-        <td th:text="${b.name}">Brand Name</td>
-        <td>
-            <a th:href="@{'/admin/brands/edit/' + ${b.id}}">Edit</a>
-            |
-            <a th:href="@{'/admin/brands/delete/' + ${b.id}}"
-               onclick="return confirm('Are you sure you want to delete this brand?');">Delete</a>
-        </td>
+<div class="page-container">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="header-left">
+            <h1 class="page-title">
+                <span class="title-icon">🏷️</span>
+                Brand Management
+            </h1>
+            <p class="page-desc">Manage all product brands</p>
+        </div>
+        <div class="header-right">
+            <button class="btn btn-primary" onclick="window.location.href='/admin/brands/add'">
+                <span>➕</span>
+                Add New Brand
+            </button>
+        </div>
+    </div>
 
-    </tr>
-    </tbody>
+    <!-- Stats Cards -->
+    <div class="stats-row">
+        <div class="stat-card blue">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+                <span class="stat-value" th:text="${#lists.size(brands)}">0</span>
+                <span class="stat-label">Total Brands</span>
+            </div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-icon">✅</div>
+            <div class="stat-info">
+                <span class="stat-value" th:text="${#lists.size(brands.?[status == false])}">0</span>
+                <span class="stat-label">Active</span>
+            </div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-icon">🚫</div>
+            <div class="stat-info">
+                <span class="stat-value" th:text="${#lists.size(brands.?[status == true])}">0</span>
+                <span class="stat-label">Inactive</span>
+            </div>
+        </div>
+    </div>
 
-</table>
+    <!-- Table Card -->
+    <div class="table-card">
+        <div class="table-header">
+            <h2 class="table-title">📋 Brand List</h2>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search brands..." />
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Brand Name</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="b : ${brands}">
+                    <td>
+                        <span class="id-badge">#<span th:text="${b.id}"></span></span>
+                    </td>
+                    <td>
+                        <span class="brand-name" th:text="${b.name}">Brand Name</span>
+                    </td>
+                    <td>
+                        <span th:if="${!b.status}" class="status-badge active">✅ Active</span>
+                        <span th:if="${b.status}" class="status-badge inactive">🚫 Inactive</span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a th:href="@{'/admin/brands/edit/' + ${b.id}}" class="btn-action edit" title="Edit">
+                                ✏️
+                            </a>
+                            <a th:href="@{'/admin/brands/delete/' + ${b.id}}"
+                               class="btn-action delete"
+                               title="Delete"
+                               onclick="return confirm('Are you sure you want to delete this brand?');">
+                                🗑️
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('.data-table tbody tr');
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    });
+</script>
 </body>
 </html>
