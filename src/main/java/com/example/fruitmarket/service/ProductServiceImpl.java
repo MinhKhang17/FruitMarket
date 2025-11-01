@@ -1,7 +1,9 @@
 package com.example.fruitmarket.service;
 
+import com.example.fruitmarket.Dto.CheckoutForm;
 import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.mapper.FruitMapper;
+import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.repository.ProductRepository;
@@ -43,5 +45,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductVariant findProductVariantById(long productVariantId) {
         return productVariantRepo.findById(productVariantId).orElseThrow();
+    }
+
+    @Override
+    public void decreaseStock(Long variantId, Integer quantity) {
+        ProductVariant productVariant = findProductVariantById(variantId);
+        productVariant.setStock(productVariant.getStock() - quantity);
+        productVariantRepo.save(productVariant);
     }
 }

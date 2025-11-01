@@ -1,4 +1,3 @@
-<!-- file: src/main/resources/templates/home/checkout.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
@@ -45,7 +44,6 @@
         <div class="form-section mb-4" th:object="${productVariant}">
             <div class="row align-items-center">
                 <div class="col-auto">
-                    <!-- image fallback: server image_url else placeholder; onerror fallback too -->
                     <img th:src="${#strings.isEmpty(productVariant.image_url) ? '/images/placeholder.png' : productVariant.image_url}"
                          alt="Ảnh sản phẩm"
                          class="thumb"
@@ -53,7 +51,7 @@
                 </div>
 
                 <div class="col">
-                    <h6 class="mb-1" th:text="${productVariant.product_name}">Tên sản phẩm</h6>
+                    <h6 class="mb-1" th:text="${productVariant.productName}">Tên sản phẩm</h6>
                     <p class="muted mb-0" th:text="${productVariant.product_description}">Mô tả sản phẩm</p>
                 </div>
 
@@ -89,7 +87,7 @@
             <div th:if="${userDetail != null and !#lists.isEmpty(userDetail)}">
                 <p class="muted">Chọn địa chỉ giao hàng có sẵn hoặc thêm mới nếu cần.</p>
 
-                <!-- Note: radios controlled by JS; the final chosen addressId will be copied into #finalAddressId -->
+                <!-- radios: ensure value is the userDetail id -->
                 <div class="list-group mb-3">
                     <label th:each="addr, i : ${userDetail}"
                            class="list-group-item d-flex justify-content-between align-items-start">
@@ -218,7 +216,6 @@
     const finalQty = document.getElementById("finalQuantity");
     const paymentRadios = document.querySelectorAll("input[name='paymentMethod']");
     const finalPayment = document.getElementById("finalPayment");
-    const newAddressForm = document.getElementById("newAddressForm");
     const finalAddressId = document.getElementById("finalAddressId");
 
     // read server-rendered unit price (as number)
@@ -239,9 +236,10 @@
     }
 
     function toggleNewAddressForm() {
-        const frm = document.getElementById("newAddressForm");
-        if (!frm) return;
-        frm.classList.toggle("d-none");
+        const frm1 = document.getElementById("newAddressForm");
+        const frm2 = document.getElementById("newAddressFormSingle");
+        if (frm1) frm1.classList.toggle("d-none");
+        if (frm2) frm2.classList.toggle("d-none");
     }
 
     function selectExistingAddress(radio) {
@@ -258,7 +256,7 @@
     }
 
     // listen payment radio changes -> update hidden input
-    paymentRadios.forEach(r => r.addEventListener("change", () => finalPayment.value = r.value));
+    paymentRadios.forEach(r => r.addEventListener("change", (e) => finalPayment.value = e.target.value));
 
     // finalize values then submit
     function finalizeAndSubmit(form) {
@@ -267,12 +265,8 @@
         if (qty <= 0) { alert("Số lượng không hợp lệ."); return false; }
 
         // if user selected an existing address, finalAddressId already set by selectExistingAddress
-        // if finalAddressId empty and there is visible newAddressForm (user creating new address) - that will be created by /userDetail/create flow
-        // For safety, require an address id or new address form (server will validate)
         const addr = finalAddressId.value;
         if (!addr) {
-            // if there is no existing address selected and newAddressFormSingle is present (user had no addresses), we let server handle it
-            // but warn user if they didn't enter address (best-effort)
             const newAddr = document.querySelector("#newAddressForm input[name='address'], #newAddressFormSingle input[name='address']");
             const newPhone = document.querySelector("#newAddressForm input[name='phone'], #newAddressFormSingle input[name='phone']");
             if (newAddr && newPhone) {
@@ -280,8 +274,7 @@
                     alert("Vui lòng chọn địa chỉ có sẵn hoặc nhập địa chỉ giao hàng mới.");
                     return false;
                 }
-                // user filled new address: we'll submit checkout; server should create userDetail or accept new address fields in the request.
-                // (Alternatively you may prefer to require creating address first via /userDetail/create, but support both flows.)
+                // allow submit - server should accept these fields or create User_detail first
             } else {
                 alert("Vui lòng chọn địa chỉ giao hàng hoặc thêm địa chỉ mới.");
                 return false;
@@ -291,11 +284,19 @@
         return true;
     }
 
-    // init
-    if (qtyInput) {
-        qtyInput.addEventListener("input", updateTotal);
-    }
-    updateTotal();
+    // init on DOM ready: set initial selected address (if any) and payment
+    document.addEventListener('DOMContentLoaded', function() {
+        // set initial selected address -> pick checked radio
+        const checkedAddr = document.querySelector("input[name='addressSelect']:checked");
+        if (checkedAddr) finalAddressId.value = checkedAddr.value;
+
+        // set initial payment hidden value
+        const checkedPayment = document.querySelector("input[name='paymentMethod']:checked");
+        if (checkedPayment) finalPayment.value = checkedPayment.value;
+
+        if (qtyInput) qtyInput.addEventListener("input", updateTotal);
+        updateTotal();
+    });
     /*]]>*/
 </script>
 </body>

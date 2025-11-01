@@ -11,7 +11,7 @@ public class FruitMapper {
     public static ProductDTO toProductDTO(Product product) {
         ProductDTO result = new ProductDTO();
         result.setProductId(product.getId());
-        result.setProductName(product.getProduct_name());
+        result.setProductName(product.getProductName());
         result.setBrandName(product.getBrand().getName());
         result.setCategoryName(product.getCategory().getName());
         result.setProductPrice(product.getVariants().get(0).getPrice());
@@ -27,7 +27,7 @@ return result;
     public static ProductCheckoutResponse toProductCheckout(ProductVariant productVariant) {
         ProductCheckoutResponse result = new ProductCheckoutResponse();
         result.setId(productVariant.getId());
-        result.setProduct_name(productVariant.getProduct().getProduct_name());
+        result.setProductName(productVariant.getProduct().getProductName());
         result.setProduct_description(productVariant.getProduct().getProduct_description());
         result.setProduct_price(productVariant.getPrice());
 

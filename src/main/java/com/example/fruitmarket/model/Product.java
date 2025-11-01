@@ -17,7 +17,7 @@ public class Product {
     private Long id;
 
     @Column
-    private String product_name;
+    private String productName;
 
     @Column(columnDefinition = "TEXT")
     private String product_description;

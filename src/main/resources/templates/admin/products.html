@@ -52,7 +52,7 @@
                     <span th:if="${p.variants == null or #lists.isEmpty(p.variants)}" style="color:var(--muted)">—</span>
                 </td>
 
-                <td th:text="${p.product_name}">Product name</td>
+                <td th:text="${p.productName}">Product name</td>
                 <td th:text="${p.product_description != null ? p.product_description : '-'}">Description...</td>
 
                 <td th:text="${p.category != null ? p.category.name : '—'}">Category</td>
