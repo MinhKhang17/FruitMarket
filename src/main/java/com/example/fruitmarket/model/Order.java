@@ -1,7 +1,7 @@
 package com.example.fruitmarket.model;
 
-import com.example.fruitmarket.Enums.OrderStauts;
-import com.example.fruitmarket.Enums.PricingMethod;
+import com.example.fruitmarket.enums.OrderStauts;
+import com.example.fruitmarket.enums.PricingMethod;
 import jakarta.persistence.*;
 import lombok.Data;
 

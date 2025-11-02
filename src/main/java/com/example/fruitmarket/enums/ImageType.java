@@ -1,4 +1,4 @@
-package com.example.fruitmarket.Enums;
+package com.example.fruitmarket.enums;
 
 
 public enum ImageType {

@@ -42,5 +42,5 @@ public class Product {
     @JoinColumn(name = "product_id") // foreign key ở bảng images
     private List<Image> images = new ArrayList<>();
     @Column
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

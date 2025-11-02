@@ -1,4 +1,4 @@
-package com.example.fruitmarket.Dto;
+package com.example.fruitmarket.dto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

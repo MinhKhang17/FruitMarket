@@ -4,6 +4,7 @@ import com.example.fruitmarket.Dto.ProductDTO;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.service.BrandsService;
 import com.example.fruitmarket.service.CategorysService;
 import com.example.fruitmarket.service.ProductService;

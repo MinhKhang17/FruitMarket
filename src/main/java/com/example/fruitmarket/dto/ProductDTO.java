@@ -1,6 +1,5 @@
-package com.example.fruitmarket.Dto;
+package com.example.fruitmarket.dto;
 
-import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import lombok.Data;
 

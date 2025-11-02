@@ -1,68 +1,67 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" th:href="@{/product-form.css}" />
-    <title th:text="${product.id} != null ? 'Edit Product' : 'Create Product'">Product Form</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Tạo Product mới</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 </head>
-<body>
-<h1 th:text="${product.id} != null ? 'Edit Product' : 'Create Product'">Product Form</h1>
+<body class="p-4 bg-light">
+<div class="container" style="max-width:900px">
+    <div class="card mt-3 shadow-sm border-0">
+        <div class="card-body">
+            <h4 class="card-title mb-2">Tạo Product mới</h4>
+            <p class="text-muted mb-4">Form này chỉ tạo sản phẩm **chung**. Sau khi lưu, bạn có thể thêm <strong>variant</strong> riêng cho sản phẩm.</p>
 
-<!-- ✅ thêm enctype multipart/form-data -->
-<form th:action="${product.id} != null ? @{/admin/product/update} : @{/admin/product/save}"
-      th:object="${product}" method="post" enctype="multipart/form-data">
+            <!-- ✅ Form tạo sản phẩm -->
+            <form th:action="@{/admin/products/save}" th:object="${product}" method="post">
+                <!-- Tên sản phẩm -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tên sản phẩm</label>
+                    <input type="text" th:field="*{productName}" class="form-control" placeholder="VD: Mít sấy" required/>
+                    <div class="text-danger small" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}"></div>
+                </div>
 
-    <!-- Hidden field id (chỉ khi edit) -->
-    <div th:if="${product.id != null}">
-        <label for="id">Product Id</label>
-        <input type="text" id="id" th:field="*{id}" readonly/>
-    </div>
+                <!-- Mô tả -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mô tả</label>
+                    <textarea th:field="*{product_description}" class="form-control" rows="4"
+                              placeholder="Nhập mô tả ngắn gọn về sản phẩm..."></textarea>
+                </div>
 
-    <div>
-        <label for="productName">Product Name</label>
-        <input type="text" id="productName" th:field="*{productName}" required/>
-    </div>
+                <!-- Category & Brand -->
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Danh mục</label>
+                        <select th:field="*{category.id}" class="form-select" required>
+                            <option value="">-- Chọn Category --</option>
+                            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
+                        </select>
+                    </div>
 
-    <div>
-        <label for="product_description">Product Description</label>
-        <textarea id="product_description" th:field="*{product_description}" rows="3"></textarea>
-    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Thương hiệu</label>
+                        <select th:field="*{brand.id}" class="form-select" required>
+                            <option value="">-- Chọn Brand --</option>
+                            <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
+                        </select>
+                    </div>
+                </div>
 
-    <div>
-        <label for="category">Category</label>
-        <select id="category" th:field="*{category.id}" required>
-            <option value="" th:if="${product.category == null}">-- Select category --</option>
-            <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
-        </select>
-    </div>
+                <!-- Buttons -->
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">💾 Lưu Product</button>
+                    <a th:href="@{/admin/products}" class="btn btn-outline-secondary px-4">↩ Quay lại</a>
+                </div>
+            </form>
 
-    <div>
-        <label for="brand">Brand</label>
-        <select id="brand" th:field="*{brand.id}" required>
-            <option value="" th:if="${product.brand == null}">-- Select brand --</option>
-            <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
-        </select>
-    </div>
-
-    <!-- ✅ Upload nhiều ảnh -->
-    <div>
-        <label for="productImage">Product Images</label>
-        <input type="file" id="productImage" name="productImage" multiple accept="image/*"/>
-        <small>Chọn 1 hoặc nhiều ảnh (tự động upload lên Cloudinary)</small>
-    </div>
-
-    <!-- ✅ Nếu đang edit: hiển thị ảnh hiện có -->
-    <div th:if="${product.images != null and !#lists.isEmpty(product.images)}">
-        <p>Existing Images:</p>
-        <div th:each="img : ${product.images}">
-            <img th:src="${img.url}" alt="product image" width="100" style="margin:5px;border-radius:8px;"/>
+            <hr class="my-4"/>
+            <div class="text-muted small">
+            </div>
         </div>
     </div>
+</div>
 
-    <div>
-        <button type="submit" th:text="${product.id} != null ? 'Update' : 'Create'">Save Product</button>
-    </div>
-</form>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

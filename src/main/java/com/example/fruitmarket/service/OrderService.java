@@ -1,6 +1,6 @@
 package com.example.fruitmarket.service;
 
-import com.example.fruitmarket.Dto.OrderRequest;
+import com.example.fruitmarket.dto.OrderRequest;
 import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.ProductVariant;
 import jakarta.servlet.http.HttpSession;

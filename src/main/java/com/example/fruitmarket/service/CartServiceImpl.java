@@ -51,7 +51,6 @@ public class CartServiceImpl implements CartService {
             if (p.isPresent()) {
                 Product prod = p.get();
                 name = prod.getProductName();
-                if (prod.getImages() != null && !prod.getImages().isEmpty()) img = prod.getImages().get(0).getUrl();
                 if (prod.getVariants() != null && !prod.getVariants().isEmpty()) {
                     price = prod.getVariants().get(0).getPrice();
                 }
