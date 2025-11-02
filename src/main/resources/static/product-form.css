@@ -1,0 +1,170 @@
+/* ===== Reset & Theme ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+    --leaf-50:#e8f5e9;
+    --leaf-100:#c8e6c9;
+    --leaf-300:#81c784;
+    --leaf-400:#66bb6a;
+    --leaf-500:#43a047;
+    --leaf-600:#388e3c;
+    --leaf-700:#2e7d32;
+
+    --ink:#333;
+    --card:#fff;
+    --shadow:0 6px 14px rgba(0,0,0,.06);
+
+    --muted:#6b7280;
+    --danger-50:#ffebee;
+    --danger-500:#e53935;
+}
+
+/* ===== Page ===== */
+html, body{
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
+    min-height: 100vh;
+    color: var(--ink);
+}
+body{
+    padding: 30px 16px;
+    display: grid;
+    place-items: start center;
+}
+
+/* ===== Title ===== */
+h1{
+    color: var(--leaf-600);
+    font-weight: 800;
+    letter-spacing: .3px;
+    text-align: center;
+    margin: 0 0 18px 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* ===== Form Card ===== */
+form{
+    width: min(100%, 720px);
+    background: var(--card);
+    border: 1px solid var(--leaf-100);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    animation: fadeIn .45s ease;
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 cột gọn gàng */
+    gap: 16px;
+}
+
+/* Mỗi nhóm chiếm nguyên hàng khi cần */
+form > div{ display:flex; flex-direction:column; gap:8px; }
+form > div:last-child{ grid-column: 1 / -1; }      /* nhóm nút bấm full width */
+form > div:nth-child(1){ grid-column: 1 / -1; }     /* Id (readonly) full width */
+form > div:nth-child(2){ grid-column: 1 / -1; }     /* Product name full width */
+form > div:nth-child(3){ grid-column: 1 / -1; }     /* Description full width */
+
+label{
+    font-weight:700;
+    color: var(--leaf-700);
+}
+
+/* ===== Inputs & Selects ===== */
+input[type="text"],
+select{
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--leaf-100);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 15px;
+    transition: border-color .2s ease, box-shadow .2s ease;
+    outline: none;
+}
+
+input::placeholder{ color: #9aa3a7; }
+
+input:focus,
+select:focus{
+    border-color: var(--leaf-400);
+    box-shadow: 0 0 0 4px rgba(102,187,106,.18);
+}
+
+/* Readonly id */
+input[readonly]{
+    background: #fafafa;
+    color: #666;
+}
+
+/* HTML5 required feedback (khi focus) */
+input:invalid:focus,
+select:invalid:focus{
+    border-color: var(--danger-500);
+    box-shadow: 0 0 0 4px rgba(229,57,53,.18);
+}
+
+/* ===== Description input nhìn dài hơn một chút ===== */
+#product_description{
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* ===== Buttons ===== */
+button[type="submit"]{
+    background: var(--leaf-500);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    box-shadow: 0 6px 14px rgba(67,160,71,.18);
+    width: fit-content;
+}
+button[type="submit"]:hover{
+    background: var(--leaf-600);
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px rgba(67,160,71,.25);
+}
+
+/* Nếu bạn thêm nút Cancel sau này, gán class .btn-cancel để dùng style này */
+.btn-cancel{
+    display:inline-block;
+    margin-left:10px;
+    padding:10px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:700;
+    color:var(--leaf-700);
+    background:#f6fbf6;
+    border:1px solid var(--leaf-100);
+    transition: background .2s, transform .2s, box-shadow .2s, color .2s;
+}
+.btn-cancel:hover{
+    background:var(--leaf-50);
+    transform:translateY(-1px);
+    box-shadow:0 6px 14px rgba(0,0,0,.06);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 720px){
+    form{
+        grid-template-columns: 1fr;  /* 1 cột trên mobile */
+        padding: 16px;
+        border-radius: 12px;
+    }
+    h1{ font-size: 1.35rem; }
+}
+
+/* ===== A11y Focus ===== */
+button:focus, .btn-cancel:focus{
+    outline: 3px solid rgba(102,187,106,.35);
+    outline-offset: 2px;
+}
+
+/* ===== Fade-in ===== */
+@keyframes fadeIn{
+    from{ opacity:0; transform: translateY(8px); }
+    to{ opacity:1; transform: none; }
+}

@@ -2,35 +2,38 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/brand.css}" />
     <title>Brand</title>
 </head>
 <body>
-<h2>Brand List</h2>
-<table>
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="b : ${brands}">
-        <td th:text="${b.id}"></td>
-        <td th:text="${b.name}">Brand Name</td>
-        <td th:text="${b.status ? 'Inactive' : 'Active'}"
-            th:classappend="${b.status ? 'inactive' : 'active'}"></td>
-        <td>
-            <a th:href="@{'/admin/brands/edit/' + ${b.id}}">Edit</a>
-            |
-            <a th:href="@{'/admin/brands/delete/' + ${b.id}}"
-               onclick="return confirm('Are you sure you want to delete this brand?');">
-                Delete
-            </a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div class="container">
+    <h2>Brand List</h2>
+
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="b : ${brands}">
+            <td th:text="${b.id}"></td>
+            <td th:text="${b.name}">Brand Name</td>
+            <td th:text="${b.status ? 'Inactive' : 'Active'}"></td>
+            <td class="actions">
+                <a th:href="@{'/admin/brands/edit/' + ${b.id}}">Edit</a>
+                |
+                <a th:href="@{'/admin/brands/delete/' + ${b.id}}"
+                   onclick="return confirm('Are you sure you want to delete this brand?');">
+                    Delete
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

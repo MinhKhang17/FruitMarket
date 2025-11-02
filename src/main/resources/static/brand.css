@@ -1,0 +1,136 @@
+/* ===== Reset & Theme (giữ tone lá xanh) ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+    --leaf-50:#e8f5e9; --leaf-100:#c8e6c9; --leaf-300:#81c784; --leaf-400:#66bb6a;
+    --leaf-500:#43a047; --leaf-600:#388e3c; --leaf-700:#2e7d32;
+    --ink:#333; --card:#fff; --shadow:0 6px 14px rgba(0,0,0,.06);
+    --danger-50:#ffebee; --danger-500:#e53935; --danger-600:#c62828;
+    --muted-50:#eef2f3; --muted-400:#90a4ae;
+}
+
+/* ===== Page (KHÔNG dùng grid/center để khỏi bị “một nhúm” trong iframe) ===== */
+html, body{
+    font-family:'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
+    min-height: 100vh;
+    color: var(--ink);
+}
+body{ padding: 20px; }
+
+/* Khung rộng hơn, canh giữa nội dung */
+.container{
+    width: 100%;
+    max-width: 1120px;       /* tăng độ rộng hơn bản cũ */
+    margin: 0 auto;
+}
+
+/* ===== Title ===== */
+h2{
+    color: var(--leaf-500);
+    font-weight: 800;
+    letter-spacing:.3px;
+    text-align: center;
+    margin: 0 0 18px 0;
+    text-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+/* ===== Table Card ===== */
+table{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--card);
+    border: 1px solid var(--leaf-100);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    animation: fadeIn .45s ease;
+}
+
+/* Header */
+thead th{
+    background: linear-gradient(0deg, var(--leaf-50), #ffffff);
+    color: var(--leaf-700);
+    font-weight: 800;
+    text-align: left;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--leaf-100);
+    font-size: .95rem;
+}
+
+/* Cells */
+tbody td{
+    padding: 14px 16px;
+    border-bottom: 1px solid #f2f4f5;
+    font-size: .95rem;
+}
+tbody tr{ transition: background .2s ease; }
+tbody tr:hover{ background: #fbfff7; }
+tbody tr:last-child td{ border-bottom: none; }
+
+/* ===== Status pill (Thymeleaf đã gán class active/inactive) ===== */
+tbody td:nth-child(3){ font-weight:700; letter-spacing:.2px; }
+tbody td.active, tbody td.inactive{
+    display:inline-flex; align-items:center; gap:8px;
+    padding:6px 12px; border-radius:999px; font-size:.9rem; line-height:1;
+    border:1px solid transparent;
+}
+tbody td.active{ color:var(--leaf-700); background:#edf7ee; border-color:var(--leaf-100); }
+tbody td.active::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--leaf-500); }
+tbody td.inactive{ color:var(--danger-600); background:var(--danger-50); border-color:#ffcdd2; }
+tbody td.inactive::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--danger-500); }
+
+/* ===== Actions: biến link thành button, ẩn dấu “|” ===== */
+tbody td:last-child{
+    white-space: nowrap;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0; /* ẩn ký tự '|' trong HTML */
+}
+tbody td:last-child a{
+    font-size: .95rem; /* khôi phục cỡ chữ cho link */
+    display:inline-block; background:var(--leaf-500); color:#fff; text-decoration:none;
+    border-radius:10px; font-weight:600; padding:6px 12px; line-height:1;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    box-shadow:0 4px 10px rgba(67,160,71,.18);
+}
+tbody td:last-child a:hover{
+    background:var(--leaf-600); transform:translateY(-1px);
+    box-shadow:0 6px 14px rgba(67,160,71,.25);
+}
+tbody td:last-child a:nth-of-type(2){
+    background: var(--danger-500);
+    box-shadow: 0 4px 10px rgba(229,57,53,.18);
+}
+tbody td:last-child a:nth-of-type(2):hover{
+    background: var(--danger-600);
+    box-shadow: 0 6px 14px rgba(198,40,40,.25);
+}
+
+/* Giữ cột ổn định, đỡ “trượt” theo nội dung dài */
+table{ table-layout: fixed; width:100%; }
+
+/* Canh giữa header của 2 cột cuối */
+thead th:nth-child(3),
+thead th:nth-child(4){ text-align:center; }
+
+/* Canh giữa nội dung cột Status */
+tbody td:nth-child(3){ text-align:center; }
+
+/* Ô Actions: canh giữa hàng nút */
+tbody td:last-child{
+    justify-content: center;   /* thêm dòng này */
+}
+
+/* ===== A11y ===== */
+a:focus{ outline:3px solid rgba(102,187,106,.35); outline-offset:2px; border-radius:10px; }
+
+/* ===== Responsive ===== */
+@media (max-width: 720px){
+    .container{ max-width: 100%; }
+    thead th, tbody td{ padding:12px 14px; font-size:.92rem; }
+    h2{ font-size:1.25rem; }
+}
+
+/* ===== Fade-in ===== */
+@keyframes fadeIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }

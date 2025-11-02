@@ -2,22 +2,24 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" th:href="@{/brand-form.css}" />
     <title th:text="${brand.id} != null ? 'Edit Brand' : 'Create New Brand'">Brand Form</title>
 </head>
 <body>
-<h2 th:text="${brand.id} != null ? 'Edit Brand' : 'Create New Brand'"></h2>
+<div class="container">
+    <h2 th:text="${brand.id} != null ? 'Edit Brand' : 'Create New Brand'"></h2>
 
-<form th:action="@{/admin/brands/save}" th:object="${brand}" method="post">
-    <!-- Hidden ID field (chỉ có giá trị khi edit) -->
-    <input type="hidden" th:field="*{id}"/>
+    <form th:action="@{/admin/brands/save}" th:object="${brand}" method="post">
+        <input type="hidden" th:field="*{id}"/>
 
-    <label for="name">Brand Name:</label>
-    <input type="text" id="name" th:field="*{name}" placeholder="Enter brand name" required>
-    <br><br>
+        <label for="name">Brand Name:</label>
+        <input type="text" id="name" th:field="*{name}" placeholder="Enter brand name" required>
 
-    <button type="submit" th:text="${brand.id} != null ? 'Update' : 'Save'">Save</button>
-    <a th:href="@{/admin/brands}">Cancel</a>
-</form>
-
+        <div class="actions">
+            <button type="submit" th:text="${brand.id} != null ? 'Update' : 'Save'">Save</button>
+            <a class="btn-ghost" th:href="@{/admin/brands}">Cancel</a>
+        </div>
+    </form>
+</div>
 </body>
 </html>

@@ -1,0 +1,131 @@
+/* ===== Reset & Theme (khớp tone xanh lá) ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root{
+    --leaf-50:#e8f5e9; --leaf-100:#c8e6c9; --leaf-300:#81c784; --leaf-400:#66bb6a;
+    --leaf-500:#43a047; --leaf-600:#388e3c; --leaf-700:#2e7d32;
+    --ink:#333; --card:#fff; --shadow:0 6px 14px rgba(0,0,0,.06);
+    --muted:#6b7280; --accent:#2563eb;
+}
+
+html, body{
+    font-family:'Segoe UI', Tahoma, sans-serif;
+    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
+    min-height:100vh;
+    color:var(--ink);
+}
+
+body{ padding:20px; }
+
+/* ===== Card khung danh sách ===== */
+.card{
+    background:var(--card);
+    border:1px solid var(--leaf-100);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:18px;
+    max-width: 1200px;        /* to hơn 1 chút cho thoáng */
+    margin:0 auto;
+    animation:fadeIn .45s ease;
+}
+
+/* ===== Header hàng trên ===== */
+.top-row{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    margin-bottom:12px;
+}
+.top-row h2{
+    margin:0 0 4px 0; color:var(--leaf-600);
+}
+.top-row .desc, .top-row div[style]{ color:var(--muted); font-size:13px; }
+
+/* ===== Nút tạo mới ===== */
+.btn{
+    background: var(--leaf-500);
+    color:#fff; text-decoration:none; font-weight:700;
+    border:none; border-radius:10px; padding:10px 14px;
+    box-shadow:0 6px 14px rgba(67,160,71,.18);
+    transition: background .2s, transform .2s, box-shadow .2s;
+    display:inline-block;
+}
+.btn:hover{
+    background:var(--leaf-600);
+    transform: translateY(-1px);
+    box-shadow:0 10px 22px rgba(67,160,71,.25);
+}
+
+/* ===== Bảng ===== */
+table{
+    width:100%;
+    border-collapse: collapse;
+    margin-top:8px;
+}
+th, td{
+    padding:10px;
+    text-align:left;
+    border-bottom:1px solid #edf2f4;
+    font-size:14px;
+}
+th{
+    color:var(--muted);
+    font-weight:700; font-size:13px;
+}
+
+/* Ảnh thumbnail */
+.thumb{
+    width:72px; height:72px;
+    object-fit:cover;
+    border-radius:8px;
+    border:1px solid #e5e7eb;
+    display:block;
+}
+
+/* ===== Hành động ===== */
+.actions{
+    white-space:nowrap;
+}
+.actions a{
+    margin-right:8px;
+    color: var(--leaf-600);
+    text-decoration:none;
+    font-weight:700;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid var(--leaf-100);
+    background:#f6fbf6;
+    transition: background .2s, color .2s, transform .2s, box-shadow .2s;
+    display:inline-block;
+}
+.actions a:hover{
+    background:var(--leaf-50);
+    color:var(--leaf-700);
+    transform: translateY(-1px);
+    box-shadow:0 6px 12px rgba(0,0,0,.06);
+}
+
+/* Trạng thái rỗng */
+.no-data{
+    color:var(--leaf-700);
+    padding:20px;
+    text-align:center;
+    background:#fff;
+    border:1px solid var(--leaf-100);
+    border-radius:12px;
+}
+
+/* ===== A11y ===== */
+a:focus, button:focus{
+    outline:3px solid rgba(102,187,106,.35);
+    outline-offset:2px;
+    border-radius:10px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 900px){
+    .card{ padding:16px; }
+    .thumb{ width:60px; height:60px; }
+    th, td{ padding:8px; font-size:13px; }
+}
+
+/* ===== Fade-in ===== */
+@keyframes fadeIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }

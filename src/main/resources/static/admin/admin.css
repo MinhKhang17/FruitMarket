@@ -1,119 +1,91 @@
 :root {
-    --bg: #0f172a;
-    --sidebar: #1e293b;
-    --hover: #334155;
-    --active: #2563eb;
-    --text: #e2e8f0;
-    --muted: #94a3b8;
-    --card: #0b1222;
+    --bg:#0f172a; --sidebar:#1e293b; --hover:#334155; --active:#2563eb;
+    --text:#e2e8f0; --muted:#94a3b8; --card:#0b1222;
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, sans-serif;
-}
+* { box-sizing:border-box; margin:0; padding:0; font-family:system-ui, sans-serif; }
 
 body {
-    display: flex;
-    height: 100vh;
-    background: var(--bg);
-    color: var(--text);
-    overflow: hidden;
+    display:flex;
+    height:100vh;
+    background:var(--bg);
+    color:var(--text);
+    overflow:hidden; /* tránh scrollbar toàn trang */
 }
 
-/* Sidebar */
+/* ===== Sidebar ===== */
 .sidebar {
-    width: 230px;
-    background: var(--sidebar);
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #1f2937;
+    width:230px;
+    background:var(--sidebar);
+    display:flex; flex-direction:column;
+    border-right:1px solid #1f2937;
+}
+.sidebar header{
+    padding:20px; font-size:20px; font-weight:bold; text-align:center;
+    border-bottom:1px solid #1f2937;
+}
+nav{ flex:1; display:flex; flex-direction:column; }
+.nav-link{
+    padding:14px 20px; text-decoration:none; color:var(--text);
+    transition:.2s; border-left:4px solid transparent;
+}
+.nav-link:hover{ background:var(--hover); }
+.nav-link.active{
+    background:var(--hover); border-left-color:var(--active); color:var(--active);
+}
+footer{
+    padding:12px; font-size:13px; color:var(--muted); text-align:center;
+    border-top:1px solid #1f2937;
 }
 
-.sidebar header {
-    padding: 20px;
-    font-size: 20px;
-    font-weight: bold;
-    border-bottom: 1px solid #1f2937;
-    text-align: center;
+/* ===== Main (khớp HTML hiện tại) ===== */
+main{
+    flex:1; display:flex; flex-direction:column;
+    background:var(--card);
+    overflow:hidden; /* để khu vực nội dung chiếm trọn */
 }
 
-nav {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+.main-header{
+    padding:16px 20px; border-bottom:1px solid #1f2937; background:var(--card);
+}
+.main-header h1{ font-size:18px; margin-bottom:4px; }
+
+/* Khu vực content + khung iframe */
+.content{
+    flex:1;
+    display:flex;
+    overflow:hidden;        /* không cho cuộn 2 lớp */
+    padding:0;
+}
+.frame-wrap{
+    flex:1;
+    height:100%;
+    overflow:hidden;
+    /* Optional: padding tạo khoảng trống viền trắng cho iframe */
+    padding:0;
 }
 
-.nav-link {
-    padding: 14px 20px;
-    text-decoration: none;
-    color: var(--text);
-    transition: 0.2s;
-    border-left: 4px solid transparent;
+/* Iframe nạp trang con */
+.primary-frame{
+    width:100%;
+    height:100%;
+    border:0;
+    background:#fff;
+    display:block;          /* loại bỏ khoảng trắng inline */
 }
 
-.nav-link:hover {
-    background: var(--hover);
+/* Trang chào mừng khi chưa chọn menu */
+.welcome{
+    margin:auto;            /* canh giữa cả trục X/Y trong frame-wrap */
+    text-align:center;
+    color:var(--text);
+    padding:24px;
 }
+.welcome h2{ font-size:26px; margin-bottom:8px; }
+.welcome p{ color:var(--muted); font-size:15px; }
 
-.nav-link.active {
-    background: var(--hover);
-    border-left: 4px solid var(--active);
-    color: var(--active);
-}
-
-footer {
-    padding: 12px;
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    border-top: 1px solid #1f2937;
-}
-
-/* Main content */
-.main-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--card);
-}
-
-.main-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid #1f2937;
-    background: var(--card);
-}
-
-.main-header h1 {
-    font-size: 18px;
-    margin-bottom: 4px;
-}
-
-.iframe-container {
-    flex: 1;
-    overflow: hidden;
-}
-
-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: white;
-}
-.welcome {
-    text-align: center;
-    margin-top: 100px;
-    color: var(--text);
-}
-
-.welcome h2 {
-    font-size: 26px;
-    margin-bottom: 8px;
-}
-
-.welcome p {
-    color: var(--muted);
-    font-size: 15px;
+/* Nhỏ hơn 768px: thu sidebar và chữ lại một chút */
+@media (max-width: 768px){
+    .sidebar{ width:200px; }
+    .main-header h1{ font-size:16px; }
 }
