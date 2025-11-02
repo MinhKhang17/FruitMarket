@@ -1,96 +1,96 @@
-/* ===== Theme (match Home/Product/Detail/Footer) ===== */
-:root{
-    --leaf-50:#e8f5e9;
-    --leaf-100:#c8e6c9;
-    --leaf-300:#81c784;
-    --leaf-400:#66bb6a;
-    --leaf-500:#43a047;
-    --leaf-600:#388e3c;
-    --leaf-700:#2e7d32;
+    /* ===== Theme (match Home/Product/Detail/Footer) ===== */
+    :root{
+        --leaf-50:#e8f5e9;
+        --leaf-100:#c8e6c9;
+        --leaf-300:#81c784;
+        --leaf-400:#66bb6a;
+        --leaf-500:#43a047;
+        --leaf-600:#388e3c;
+        --leaf-700:#2e7d32;
 
-    --ink:#333;
-    --ring:#cfe8cf;
-    --shadow:0 2px 8px rgba(0,0,0,.05);
-}
-
-/* ===== Navbar ===== */
-.navbar-custom{
-    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
-    box-shadow: var(--shadow);
-    border-bottom: 1px solid var(--leaf-100);
-}
-
-.navbar-brand{
-    font-weight: 800;
-    color: var(--leaf-600) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,.08);
-    font-size: 1.3rem;
-    letter-spacing: .3px;
-    transition: transform .2s ease, color .3s ease;
-}
-.navbar-brand:hover{
-    transform: scale(1.05);
-    color: var(--leaf-700) !important;
-}
-
-/* Links */
-.nav-link{
-    color: var(--leaf-700) !important;
-    font-weight: 600;
-    border-radius: 8px;
-    padding: 6px 12px !important;
-    transition: color .2s ease, background .2s ease;
-}
-.nav-link:hover,
-.nav-link:focus{
-    color: #1b5e20 !important; /* darker leaf */
-    background: rgba(67,160,71,.10);
-}
-
-/* Dropdown */
-.dropdown-menu{
-    border-radius: 10px;
-    border: 1px solid var(--leaf-100);
-    box-shadow: 0 4px 12px rgba(0,0,0,.06);
-    background: #fff;
-}
-.dropdown-item{
-    color: var(--leaf-700);
-    font-weight: 600;
-    transition: background .2s ease, color .2s ease;
-}
-.dropdown-item:hover{
-    background: var(--leaf-50);
-    color: var(--leaf-700);
-}
-
-/* Form controls */
-.form-control{
-    border-radius: 8px;
-    border: 1px solid var(--ring);
-}
-.form-control:focus{
-    border-color: var(--leaf-400);
-    box-shadow: 0 0 0 0.15rem rgba(102,187,106,.25);
-}
-
-/* Buttons */
-.btn-outline-success{
-    border-color: var(--leaf-500);
-    color: var(--leaf-500);
-    font-weight: 600;
-    border-radius: 8px;
-    transition: all .25s ease;
-}
-.btn-outline-success:hover{
-    background: var(--leaf-500);
-    color: #fff;
-}
-
-/* Desktop: show dropdown on hover */
-@media (min-width: 992px){
-    .navbar .dropdown:hover > .dropdown-menu{
-        display: block;
-        margin-top: 0;
+        --ink:#333;
+        --ring:#cfe8cf;
+        --shadow:0 2px 8px rgba(0,0,0,.05);
     }
-}
+
+    /* ===== Navbar ===== */
+    .navbar-custom{
+        background: linear-gradient(135deg, #f1f8e9, #fff8e1);
+        box-shadow: var(--shadow);
+        border-bottom: 1px solid var(--leaf-100);
+    }
+
+    .navbar-brand{
+        font-weight: 800;
+        color: var(--leaf-600) !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,.08);
+        font-size: 1.3rem;
+        letter-spacing: .3px;
+        transition: transform .2s ease, color .3s ease;
+    }
+    .navbar-brand:hover{
+        transform: scale(1.05);
+        color: var(--leaf-700) !important;
+    }
+
+    /* Links */
+    .nav-link{
+        color: var(--leaf-700) !important;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 6px 12px !important;
+        transition: color .2s ease, background .2s ease;
+    }
+    .nav-link:hover,
+    .nav-link:focus{
+        color: #1b5e20 !important; /* darker leaf */
+        background: rgba(67,160,71,.10);
+    }
+
+    /* Dropdown */
+    .dropdown-menu{
+        border-radius: 10px;
+        border: 1px solid var(--leaf-100);
+        box-shadow: 0 4px 12px rgba(0,0,0,.06);
+        background: #fff;
+    }
+    .dropdown-item{
+        color: var(--leaf-700);
+        font-weight: 600;
+        transition: background .2s ease, color .2s ease;
+    }
+    .dropdown-item:hover{
+        background: var(--leaf-50);
+        color: var(--leaf-700);
+    }
+
+    /* Form controls */
+    .form-control{
+        border-radius: 8px;
+        border: 1px solid var(--ring);
+    }
+    .form-control:focus{
+        border-color: var(--leaf-400);
+        box-shadow: 0 0 0 0.15rem rgba(102,187,106,.25);
+    }
+
+    /* Buttons */
+    .btn-outline-success{
+        border-color: var(--leaf-500);
+        color: var(--leaf-500);
+        font-weight: 600;
+        border-radius: 8px;
+        transition: all .25s ease;
+    }
+    .btn-outline-success:hover{
+        background: var(--leaf-500);
+        color: #fff;
+    }
+
+    /* Desktop: show dropdown on hover */
+    @media (min-width: 992px){
+        .navbar .dropdown:hover > .dropdown-menu{
+            display: block;
+            margin-top: 0;
+        }
+    }

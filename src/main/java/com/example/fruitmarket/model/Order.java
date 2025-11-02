@@ -37,4 +37,8 @@ public class Order {
     private String phoneNumber;
     @Column
     private BigDecimal totalPrice;
+
+    @Column
+    private int totalQuantity;
+
 }
