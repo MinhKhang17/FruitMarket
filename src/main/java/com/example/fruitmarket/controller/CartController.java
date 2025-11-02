@@ -4,12 +4,17 @@ import com.example.fruitmarket.Dto.OrderRequest;
 import com.example.fruitmarket.Util.UserUtil;
 import com.example.fruitmarket.model.Cart;
 import com.example.fruitmarket.model.CartItem;
+import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.User_detail;
 import com.example.fruitmarket.service.CartService;
 import com.example.fruitmarket.service.OrderService;
 import com.example.fruitmarket.service.UserService;
+import com.example.fruitmarket.service.VnPayService;
+import com.example.fruitmarket.util.QrUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +41,9 @@ public class CartController {
     private final CartService cartService;
     private final UserService userService;
     private final OrderService orderService;
+
+    @Autowired
+    private VnPayService vnPayService;
     @GetMapping
     public String viewCart(Model model,HttpSession session) {
         if(!UserUtil.isLogin(session)){
@@ -218,7 +226,8 @@ public String checkoutCart(
             @RequestParam(name = "paymentMethod", defaultValue = "COD") String paymentMethod,
             HttpSession session,
             RedirectAttributes ra,
-            Model model
+            Model model,
+            HttpServletRequest request
     ) {
         // 1. Kiểm tra đăng nhập
         Object logged = session.getAttribute("loggedUser");
@@ -274,7 +283,27 @@ public String checkoutCart(
                 log.error("OrderService returned invalid orderId: {} for userId: {}", orderId, safeUserId(logged));
                 throw new IllegalStateException("Tạo đơn thất bại (invalid orderId). Vui lòng thử lại.");
             }
+            Order order=orderService.getOrderById(orderId);
+            if (paymentMethod.equals("VNPAY")){
+                try {
+                    String orderInfo = "Thanh toan don hang #" + order.getId();
+                    String paymentUrl = vnPayService.createPaymentUrl(request, order.getTotalPrice(), orderInfo, order.getId());
 
+                    String qrBase64 = QrUtils.generateQrBase64(paymentUrl);
+
+                    model.addAttribute("paymentUrl", paymentUrl);
+                    model.addAttribute("qrBase64", qrBase64);
+                    model.addAttribute("order", order);
+                    model.addAttribute("amount", order.getTotalPrice());
+                    cartService.clear();
+                    return "home/payment_qr";
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    ra.addFlashAttribute("message", "Lỗi tạo QR thanh toán VNPAY: " + e.getMessage());
+                    ra.addFlashAttribute("type", "danger");
+                    return "redirect:/";
+                }
+            }
             // 6. Xóa giỏ hàng sau khi đặt thành công
             cartService.clear();
 
