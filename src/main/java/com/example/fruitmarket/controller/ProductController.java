@@ -1,6 +1,6 @@
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.Dto.ProductDTO;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;

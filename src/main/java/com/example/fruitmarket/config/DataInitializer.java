@@ -127,6 +127,11 @@ public class DataInitializer implements CommandLineRunner {
             v11.setPrice(new BigDecimal("49000.00"));
             v11.setProduct(p1);
             v11.setStock(100);
+            v11.setImage(new Image());
+            Image image = new Image();
+            image.setUrl("/images/red_apple.jpg");
+            v11.setImage(image);
+
             try {
                 v11.getClass().getMethod("setImageUrl", String.class).invoke(v11, "/images/red_apple.jpg");
             } catch (Exception ignored) {
@@ -137,6 +142,7 @@ public class DataInitializer implements CommandLineRunner {
             v12.setPrice(new BigDecimal("25000.00"));
             v12.setProduct(p1);
             v12.setStock(100);
+            v12.setImage(new Image("/images/baby_spinach"));
             try {
                 v12.getClass().getMethod("setImageUrl", String.class).invoke(v12, "/images/red_apple.jpg");
             } catch (Exception ignored) {

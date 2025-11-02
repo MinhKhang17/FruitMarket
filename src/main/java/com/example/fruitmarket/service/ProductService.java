@@ -1,7 +1,7 @@
 package com.example.fruitmarket.service;
 
 import aj.org.objectweb.asm.commons.Remapper;
-import com.example.fruitmarket.Dto.ProductDTO;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.dto.ProductDTO;

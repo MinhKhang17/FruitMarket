@@ -1,6 +1,6 @@
 package com.example.fruitmarket.service;
 
-import com.example.fruitmarket.Dto.ProductDTO;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.*;

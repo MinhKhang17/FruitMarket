@@ -5,91 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title th:text="${product.productName} + ' — Chi tiết sản phẩm'">Chi tiết sản phẩm</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
     <style>
-        body { background: #f8f9fa; }
-        .price-large { font-size: 1.5rem; font-weight: 700; color: #198754; }
-        .variant-options { margin-top: 10px; }
-        .variant-btn {
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 6px 14px;
-            margin: 4px 6px 4px 0;
-            cursor: pointer;
-            background: white;
-            transition: all 0.15s;
-        }
-        .variant-btn.active {
-            background: #198754;
-            color: white;
-            border-color: #198754;
-        }
-        .stock-info { font-size: 0.9rem; color: #6c757d; }
-        .img-wrap img { max-height: 480px; object-fit: contain; border-radius: 8px; }
+        body { background: #f8f9fa; font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; color: #222; }
+        .card { border-radius: 12px; }
+        .img-wrap img { max-height: 480px; object-fit: contain; border-radius: 8px; width:100%; }
+        .thumbnail-btn { width:72px; height:72px; padding:0; border:1px solid #e9ecef; border-radius:8px; overflow:hidden; background:#fff; }
+        .thumbnail-btn.active { outline: 3px solid rgba(47,158,68,0.15); box-shadow: 0 6px 18px rgba(47,158,68,0.06); }
+        .variant-btn { border:1px solid #dee2e6; border-radius:6px; padding:6px 14px; margin:4px 6px 4px 0; cursor:pointer; background:white; transition: all .12s; }
+        .variant-btn.active { background: #198754; color:#fff; border-color:#198754; }
+        .price-large { font-size: 1.6rem; font-weight:700; color:#198754; }
+        .stock-info { font-size:.9rem; color:#6c757d; }
+        .btn-view { padding:.5rem 1rem; border-radius:8px; }
+        .small-muted { color:#6c757d; }
+        @media (max-width:767px) { .img-wrap img { max-height:320px; } }
     </style>
 </head>
 <body>
 
-<!-- Header -->
+<!-- header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main class="page py-4">
     <div class="container" th:object="${product}">
+
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="row g-4 align-items-start">
 
-                    <!-- Left: Image -->
+                    <!-- LEFT: Main image + thumbnails -->
                     <div class="col-lg-6 text-center">
                         <div class="img-wrap mb-3">
                             <img id="productImage"
                                  th:src="${
                                      (product.productVariants != null and !#lists.isEmpty(product.productVariants)
-                                      and product.productVariants.get(0).image != null)
+                                      and product.productVariants.get(0).image != null and product.productVariants.get(0).image.url != null)
                                      ? product.productVariants.get(0).image.url
-                                     : (#strings.isEmpty(product.imageUrl) ? '/images/placeholder.jpg' : product.imageUrl)
+                                     : (product.imageUrl != null and !#strings.isEmpty(product.imageUrl) ? product.imageUrl : '/images/placeholder.jpg')
                                  }"
                                  th:alt="${product.productName}"
                                  class="img-fluid rounded"
                                  onerror="this.src='/images/placeholder.jpg'"/>
                         </div>
-                    </div>
 
-                    <!-- Right: Product Info -->
+                        <!-- thumbnails from all variants (only those with images will show a thumbnail but we still create button for uniformity) -->
+                        <div class="d-flex justify-content-center gap-2 flex-wrap" id="variantThumbnails" th:if="${product.productVariants != null and !#lists.isEmpty(product.productVariants)}">
+                            <button type="button"
+                                    th:each="v, idx : ${product.productVariants}"
+                                    class="thumbnail-btn"
+                                    th:classappend="${idx.index == 0} ? ' active' : ''"
+                                    th:attr="data-index=${idx.index}, title=${v.variant_name}"
+                                    th:onclick="'selectVariantByIndex(' + ${idx.index} + ')'"
+                                    aria-label="thumbnail">
+                                <img th:src="${v.image != null and v.image.url != null ? v.image.url : '/images/placeholder.png'}"
+                                     th:alt="${v.variant_name}"
+                                     style="width:100%; height:100%; object-fit:cover;"
+                                     onerror="this.src='/images/placeholder.png'"/>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- END LEFT -->
+
+                    <!-- RIGHT: Product info and variant controls -->
                     <div class="col-lg-6">
                         <h2 class="mb-2" th:text="${product.productName}">Tên sản phẩm</h2>
 
-                        <!-- Price display -->
+                        <!-- Price -->
                         <div class="mb-3">
                             <span id="displayPrice" class="price-large"
                                   th:text="${
                                       (product.productVariants != null and !#lists.isEmpty(product.productVariants))
                                       ? #numbers.formatDecimal(product.productVariants.get(0).price, 0, 'COMMA', 0, 'POINT')
                                       : (product.productPrice != null ? #numbers.formatDecimal(product.productPrice, 0, 'COMMA', 0, 'POINT') : '—')
-                                  }">0</span> ₫
+                                  }">0</span> <small class="small-muted">₫</small>
                         </div>
 
-                        <!-- Description -->
-                        <p class="text-secondary mb-3"
-                           th:text="${product.description != null ? product.description : '-'}">Mô tả sản phẩm</p>
+                        <!-- short desc -->
+                        <p class="text-secondary mb-2" th:text="${product.description}">Mô tả ngắn</p>
 
-                        <p class="mb-1"><strong>Danh mục:</strong>
-                            <span th:text="${product.categoryName}">Category</span></p>
-                        <p class="mb-3"><strong>Thương hiệu:</strong>
-                            <span th:text="${product.brandName}">Brand</span></p>
+                        <p class="mb-1"><strong>Danh mục:</strong> <span th:text="${product.categoryName}">Category</span></p>
+                        <p class="mb-3"><strong>Thương hiệu:</strong> <span th:text="${product.brandName}">Brand</span></p>
 
                         <!-- Variant selection -->
                         <div class="variant-options mb-3">
                             <label><strong>Chọn biến thể:</strong></label>
 
-                            <div th:if="${product.productVariants == null or #lists.isEmpty(product.productVariants)}"
-                                 class="text-muted">
-                                Sản phẩm này không có biến thể, bạn có thể chọn số lượng và thanh toán.
+                            <div th:if="${product.productVariants == null or #lists.isEmpty(product.productVariants)}" class="text-muted">
+                                Sản phẩm này không có biến thể.
                             </div>
 
-                            <div th:if="${product.productVariants != null and !#lists.isEmpty(product.productVariants)}"
-                                 id="variantGroup">
+                            <div th:if="${product.productVariants != null and !#lists.isEmpty(product.productVariants)}" id="variantGroup">
                                 <button th:each="v, idx : ${product.productVariants}"
                                         type="button"
                                         class="variant-btn"
@@ -97,172 +104,165 @@
                                         th:attr="data-id=${v.id},
                                                  data-price=${v.price},
                                                  data-stock=${v.stock},
-                                                 data-image=${(v.image != null and v.image.url != null) ? v.image.url : ''},
+                                                 data-image=${v.image != null && v.image.url != null ? v.image.url : ''},
                                                  data-index=${idx.index}"
-                                        onclick="selectVariant(this)">
+                                        th:classappend="${idx.index == 0} ? ' active' : ''"
+                                        th:onclick="'selectVariantByIndex(' + ${idx.index} + ')'">
                                     Variant
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Add-to-cart / Buy-now / Checkout controls -->
+                        <!-- quantity & stock -->
                         <div class="mb-3">
-                            <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
                                 <label class="form-label mb-0 me-2">Số lượng:</label>
-                                <input id="qtyInput" name="quantity" type="number" min="1" value="1"
-                                       class="form-control" style="width:90px;" />
-                                <span id="stockHint" class="stock-info"></span>
+                                <input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control" style="width:90px;"/>
+                                <span id="stockHint" class="stock-info ms-2"></span>
                             </div>
 
                             <div class="d-flex gap-2">
                                 <!-- Add to Cart -->
                                 <form id="addToCartForm" th:action="@{/cart/add}" method="post" style="display:inline;">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                    <input type="hidden" id="variantIdInput2" name="variantId" value="" />
-                                    <!-- use product.id (not product.productId) -->
+                                    <input type="hidden" id="variantIdInput2" name="variantId" value=""/>
                                     <input type="hidden" name="productId" th:value="${product.productId}" />
-                                    <input type="hidden" name="qty" id="qtyInputForAdd" value="1" />
-                                    <button type="submit" class="btn btn-outline-success">Thêm vào giỏ</button>
+                                    <input type="hidden" id="qtyInputForAdd" name="qty" value="1" />
+                                    <button type="submit" class="btn btn-outline-success btn-view">Thêm vào giỏ</button>
                                 </form>
 
-                                <!-- Checkout single product (keeps existing behavior) -->
+                                <!-- Checkout -->
                                 <form id="checkoutForm" th:action="@{/checkout}" method="post" onsubmit="return validateCheckout();" style="display:inline;">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                    <input type="hidden" id="variantIdInput" name="product_variant_id" value="" />
+                                    <input type="hidden" id="variantIdInput" name="product_variant_id" value=""/>
                                     <input type="hidden" name="productId" th:value="${product.productId}" />
                                     <input type="hidden" id="qtyInputForCheckout" name="quantity" value="1" />
-                                    <button type="submit" class="btn btn-success">Thanh toán</button>
+                                    <button type="submit" class="btn btn-success btn-view">Thanh toán</button>
                                 </form>
 
-                                <a class="btn btn-outline-secondary" th:href="@{/}">Quay lại</a>
+                                <a class="btn btn-outline-secondary btn-view" th:href="@{/}">Quay lại</a>
                             </div>
                         </div>
-                        <!-- end controls -->
+
+                        <!-- extra info -->
+                        <div class="mt-3 small text-muted">
+                            <div>SKU: <span th:text="${product.productId}">-</span></div>
+                        </div>
 
                     </div>
+                    <!-- END RIGHT -->
                 </div>
             </div>
         </div>
+
     </div>
 </main>
 
-<!-- Footer -->
+<!-- footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- JS chọn variant & cập nhật giá; đồng bộ Add-to-cart / BuyNow / Checkout -->
 <script>
-    // DOM refs
+    // Refs
     const displayPrice = document.getElementById("displayPrice");
     const productImage = document.getElementById("productImage");
     const stockHint = document.getElementById("stockHint");
     const qtyInput = document.getElementById("qtyInput");
 
     const variantIdInput = document.getElementById("variantIdInput");         // checkout
-    const variantIdInput2 = document.getElementById("variantIdInput2");       // add to cart
-    const variantIdInputBuy = document.getElementById("variantIdInputBuy");   // buy now
-
+    const variantIdInput2 = document.getElementById("variantIdInput2");       // add-to-cart
     const qtyInputForAdd = document.getElementById("qtyInputForAdd");
-    const qtyInputForBuy = document.getElementById("qtyInputForBuy");
     const qtyInputForCheckout = document.getElementById("qtyInputForCheckout");
 
-    // format price helper
     function fmtPrice(v) {
         const n = Number(v);
         if (isNaN(n)) return v;
         return n.toLocaleString("vi-VN");
     }
 
-    // Helper to clear active and set button active
-    function setActiveVariantButton(btn) {
-        document.querySelectorAll(".variant-btn").forEach(b => b.classList.remove("active"));
-        if (btn) btn.classList.add("active");
+    function setActiveByIndex(idx) {
+        document.querySelectorAll(".variant-btn").forEach(b => {
+            if (b.getAttribute("data-index") === String(idx)) b.classList.add("active"); else b.classList.remove("active");
+        });
+        document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
+            if (tb.getAttribute("data-index") === String(idx)) tb.classList.add("active"); else tb.classList.remove("active");
+        });
     }
 
-    // When user selects variant
-    function selectVariant(btn) {
-        setActiveVariantButton(btn);
+    function selectVariantByIndex(index) {
+        const btn = document.querySelector(`.variant-btn[data-index="${index}"]`);
+        if (!btn) return;
 
         const id = btn.getAttribute("data-id");
         const price = btn.getAttribute("data-price");
         const stock = btn.getAttribute("data-stock");
         const image = btn.getAttribute("data-image");
 
-        // set hidden inputs for all forms
         if (variantIdInput) variantIdInput.value = id;
         if (variantIdInput2) variantIdInput2.value = id;
-        if (variantIdInputBuy) variantIdInputBuy.value = id;
 
-        // update price display
-        if (displayPrice) displayPrice.textContent = fmtPrice(price) + " ₫";
-
-        // stock handling
-        if (stockHint) stockHint.textContent = "(Còn " + stock + " sản phẩm)";
-        if (qtyInput) {
-            qtyInput.max = stock;
-            if (Number(qtyInput.value) > Number(stock)) qtyInput.value = stock;
+        if (displayPrice && price !== null && price !== undefined) {
+            displayPrice.textContent = fmtPrice(price);
         }
 
-        // sync qtys
-        if (qtyInputForAdd) qtyInputForAdd.value = qtyInput.value;
-        if (qtyInputForBuy) qtyInputForBuy.value = qtyInput.value;
-        if (qtyInputForCheckout) qtyInputForCheckout.value = qtyInput.value;
+        if (stockHint) stockHint.textContent = "(Còn " + (stock || 0) + " sản phẩm)";
+        if (qtyInput) {
+            if (!isNaN(Number(stock))) {
+                qtyInput.max = Number(stock);
+                if (Number(qtyInput.value) > Number(stock)) qtyInput.value = Number(stock);
+            }
+        }
+        if (qtyInputForAdd) qtyInputForAdd.value = qtyInput ? qtyInput.value : 1;
+        if (qtyInputForCheckout) qtyInputForCheckout.value = qtyInput ? qtyInput.value : 1;
 
-        // swap image if provided
         if (image && image.trim() !== "") productImage.src = image;
+
+        setActiveByIndex(index);
     }
 
-    // If product has variants and you want to preselect first variant on load:
+    // preselect first variant and wire events
     document.addEventListener('DOMContentLoaded', function () {
-        const first = document.querySelector("#variantGroup .variant-btn");
-        if (first) {
-            // simulate click so UI and hidden fields set
-            selectVariant(first);
-        }
+        // preselect first variant (index 0) if exists
+        const firstVariantBtn = document.querySelector(".variant-btn[data-index='0']");
+        if (firstVariantBtn) selectVariantByIndex(0);
 
-        // sync main qty changes to hidden qtys
+        // sync qty input to hidden fields
         if (qtyInput) {
-            qtyInput.addEventListener('input', () => {
+            qtyInput.addEventListener('input', function () {
                 const v = qtyInput.value || 1;
                 if (qtyInputForAdd) qtyInputForAdd.value = v;
-                if (qtyInputForBuy) qtyInputForBuy.value = v;
                 if (qtyInputForCheckout) qtyInputForCheckout.value = v;
             });
         }
+
+        // attach thumbnail clicks in case template didn't set onclick (safe double-bind)
+        document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
+            tb.addEventListener('click', function () {
+                const idx = this.getAttribute('data-index');
+                if (idx !== null) selectVariantByIndex(Number(idx));
+            });
+        });
     });
 
     function validateCheckout() {
-        const variantButtons = document.querySelectorAll(".variant-btn");
-        const hasVariants = variantButtons && variantButtons.length > 0;
-
+        const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
         if (hasVariants) {
             if (!variantIdInput || !variantIdInput.value) {
                 alert("Vui lòng chọn biến thể trước khi thanh toán!");
                 return false;
             }
         }
-
-        const qty = Number(qtyInput.value);
-        if (qty <= 0) {
-            alert("Số lượng không hợp lệ!");
-            return false;
-        }
-        if (qtyInput.max && qty > Number(qtyInput.max)) {
-            alert("Số lượng vượt quá tồn kho!");
-            return false;
-        }
-
+        const qty = Number(qtyInput.value || 0);
+        if (qty <= 0) { alert("Số lượng không hợp lệ!"); return false; }
+        if (qtyInput.max && qty > Number(qtyInput.max)) { alert("Số lượng vượt quá tồn kho!"); return false; }
         return true;
     }
 
-    // Prevent add-to-cart if variants exist and no variant selected
+    // guard add-to-cart if variants exist and none selected
     (function attachGuards() {
         const addForm = document.getElementById("addToCartForm");
-        const buyForm = document.getElementById("buyNowForm");
-        const variantButtons = document.querySelectorAll(".variant-btn");
-        const hasVariants = variantButtons && variantButtons.length > 0;
-
+        const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
         if (addForm && hasVariants) {
             addForm.addEventListener('submit', function (e) {
                 if (!variantIdInput2 || !variantIdInput2.value) {
@@ -271,15 +271,8 @@
                 }
             });
         }
-        if (buyForm && hasVariants) {
-            buyForm.addEventListener('submit', function (e) {
-                if (!variantIdInputBuy || !variantIdInputBuy.value) {
-                    e.preventDefault();
-                    alert("Vui lòng chọn biến thể trước khi mua ngay!");
-                }
-            });
-        }
     })();
 </script>
+
 </body>
 </html>
