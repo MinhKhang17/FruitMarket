@@ -67,14 +67,13 @@ public class BuyController {
                                   RedirectAttributes ra,
                                   Model model,
                                   HttpServletRequest request) {
-        // Kiểm tra đăng nhập
+
         if (session.getAttribute("loggedUser") == null) {
             ra.addFlashAttribute("message", "Bạn cần đăng nhập trước khi thanh toán.");
             ra.addFlashAttribute("type", "danger");
             return "redirect:/auth/login";
         }
 
-        // Lấy thông tin từ request
         Long variantId = checkoutRequest.getVariantId();
         Integer quantity = checkoutRequest.getQuantity();
         Long addressId = checkoutRequest.getAddressId();
@@ -105,7 +104,6 @@ public class BuyController {
             return "redirect:/checkout";
         }
 
-        // 👉 Tạo Order trong DB
         Order order = orderService.createOrder(session, variant, quantity, addressId, paymentMethod);
         productService.decreaseStock(variantId, quantity);
 
