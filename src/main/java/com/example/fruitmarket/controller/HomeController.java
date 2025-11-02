@@ -47,12 +47,12 @@ public class HomeController {
         }
 
 
-    @ModelAttribute("categories")
+    @ModelAttribute("headerCategories")
     public List<Categorys> categories() {
         return categorysService.findAll();
     }
 
-    @ModelAttribute("brands")
+    @ModelAttribute("headerBrands")
     public List<Brands> brands() {
         return brandsService.findAll();
     }

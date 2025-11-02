@@ -41,13 +41,13 @@
                             Danh mục
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
-                            <li th:if="${#lists.isEmpty(categories)}">
+                            <li th:if="${#lists.isEmpty(headerCategories)}">
                                 <span class="dropdown-item text-muted">Không có danh mục</span>
                             </li>
-                            <li th:each="c : ${categories}">
-                                <a class="dropdown-item" th:href="@{/products(category=${c.id})}" th:text="${c.name}">
-                                    Category
-                                </a>
+                            <li th:each="c : ${headerCategories}">
+                                <a class="dropdown-item"
+                                   th:href="@{/products(category=${c.id})}"
+                                   th:text="${c.name}">Category</a>
                             </li>
                         </ul>
                     </li>
@@ -59,13 +59,13 @@
                             Thương hiệu
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="brandsDropdown">
-                            <li th:if="${#lists.isEmpty(brands)}">
+                            <li th:if="${#lists.isEmpty(headerBrands)}">
                                 <span class="dropdown-item text-muted">Không có thương hiệu</span>
                             </li>
-                            <li th:each="b : ${brands}">
-                                <a class="dropdown-item" th:href="@{/products(brand=${b.id})}" th:text="${b.name}">
-                                    Brand
-                                </a>
+                            <li th:each="b : ${headerBrands}">
+                                <a class="dropdown-item"
+                                   th:href="@{/products(brand=${b.id})}"
+                                   th:text="${b.name}">Brand</a>
                             </li>
                         </ul>
                     </li>

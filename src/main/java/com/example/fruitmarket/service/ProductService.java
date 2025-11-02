@@ -30,4 +30,9 @@ public interface ProductService {
     Map<Long, List<Product>> findProductsGroupedByCategory(List<Categorys> categories, int i);
 
     Map<Long, List<Product>> findProductsGroupedByBrand(List<Brands> brands, int perBrand);
+
+    List<Product> findByCategory(Long categoryId);
+    List<Product> findByBrand(Long brandId);
+    List<Product> findByCategoryAndBrand(Long categoryId, Long brandId);
+    List<Product> search(String keyword);
 }
