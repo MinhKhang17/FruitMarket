@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Thanh toán VNPAY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: inline-block;
+        }
+        img {
+            margin: 20px 0;
+            width: 250px;
+            height: 250px;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #2196F3;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .btn:hover { background: #1976D2; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Quét mã QR để thanh toán qua VNPAY</h2>
+    <p><strong>Đơn hàng:</strong> #<span th:text="${order.id}"></span></p>
+    <p><strong>Số tiền:</strong> <span th:text="${amount}"></span> VND</p>
+    <img th:src="${qrBase64}" alt="QR Code">
+    <p>Hoặc <a th:href="${paymentUrl}" target="_blank">bấm vào đây</a> để mở cổng VNPAY.</p>
+    <a class="btn" href="/">Về trang chủ</a>
+</div>
+</body>
+</html>

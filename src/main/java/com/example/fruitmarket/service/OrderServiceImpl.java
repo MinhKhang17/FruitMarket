@@ -40,4 +40,14 @@ public class OrderServiceImpl implements OrderService{
         order.setOrderItemList(orderItems);
         return orderRepo.save(order);
     }
+
+    @Override
+    public Order getOrderById(Long Id) {
+        return orderRepo.findById(Id);
+    }
+
+    @Override
+    public void updateOrder(Order order) {
+        orderRepo.save(order);
+    }
 }

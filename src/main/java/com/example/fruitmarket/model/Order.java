@@ -37,4 +37,7 @@ public class Order {
     private String phoneNumber;
     @Column
     private BigDecimal totalPrice;
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
+
 }

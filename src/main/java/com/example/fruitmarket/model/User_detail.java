@@ -17,7 +17,7 @@ public class User_detail {
    @Column
     private String address;
 
-   @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
     private Users user;
-
 }

@@ -2,6 +2,7 @@ package com.example.fruitmarket.controller;
 
 import com.example.fruitmarket.model.Users;
 import com.example.fruitmarket.service.UserService;
+import com.example.fruitmarket.util.AuthUtils;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,7 @@ public class AuthController {
         session.setAttribute("loggedUser", user);
 
         ra.addFlashAttribute("success", "Đăng nhập thành công. Chào " + user.getUsername() + "!");
+        if (AuthUtils.isAdmin(session)) return "redirect:/admin/adminPage";
         return "redirect:/";
     }
 
