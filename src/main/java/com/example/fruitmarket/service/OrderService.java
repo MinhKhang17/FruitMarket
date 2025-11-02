@@ -8,4 +8,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface OrderService {
     Order createOrder(HttpSession session, ProductVariant variant, Integer quantity, Long addressId, String paymentMethod);
+    Order getOrderById(Long Id);
+    void updateOrder(Order order);
 }
