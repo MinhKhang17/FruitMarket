@@ -35,8 +35,8 @@ public class BuyController {
                            RedirectAttributes ra) {
 
         // 1. Kiểm tra login trước
-        Object logged = session.getAttribute("loggedUser");
-        if (logged == null) {
+
+        if (session.getAttribute("loggedUser")==null) {
             ra.addFlashAttribute("message","You should login first");
             ra.addFlashAttribute("type","danger");
             return "redirect:/auth/login";
@@ -48,7 +48,7 @@ public class BuyController {
 
         session.setAttribute("productVariant", productVariant);
         session.setAttribute("quantity", checkoutRequest.getQuantity());
-
+        List<User_detail> user = userService.getUserDetailFromSession(session);
         model.addAttribute("userDetail",user);
 
         return "home/checkout";
@@ -142,5 +142,20 @@ public class BuyController {
         // Quay lại checkout để hiển thị thông tin mới
         return "redirect:/checkout";
     }
+    @GetMapping("/checkout")
+    public String getCheckoutPage(HttpSession session, Model model) {
+        Users loggedUser = (Users) session.getAttribute("loggedUser");
+        if (loggedUser == null) return "redirect:/auth/login";
 
+        List<User_detail> userDetails = userService.getUserDetailFromSession(session);
+        model.addAttribute("userDetail", userDetails);
+
+        // nếu bạn có lưu productVariant, quantity trong session thì lấy lại
+        Object productVariant = session.getAttribute("productVariant");
+        Object quantity = session.getAttribute("quantity");
+        model.addAttribute("productVariant", productVariant);
+        model.addAttribute("quantity", quantity);
+
+        return "home/checkout";
+    }
 }

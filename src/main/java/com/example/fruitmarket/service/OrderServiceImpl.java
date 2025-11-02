@@ -9,6 +9,9 @@ import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class OrderServiceImpl implements OrderService{
     @Autowired UserService userService;
@@ -26,10 +29,15 @@ public class OrderServiceImpl implements OrderService{
         order.setPhoneNumber(userDetail.getPhone());
         order.setPricingMethod(PricingMethod.valueOf(paymentMethod));
         order.setOrderStauts(OrderStauts.PENDING);
+
         //xu lu order item
         OrderItem orderItem = new OrderItem();
         orderItem.setQuanity(quantity);
         orderItem.setProductVariant(productService.findProductVariantById(variant.getId()));
+        order.setTotalPrice(orderItem.getProductVariant().getPrice());
+        List<OrderItem> orderItems = order.getOrderItemList();
+        orderItems.add(orderItem);
+        order.setOrderItemList(orderItems);
         return orderRepo.save(order);
     }
 }

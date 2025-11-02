@@ -26,10 +26,10 @@
                 <!-- ✅ Ảnh sản phẩm: lấy từ Cloudinary (Image entity) -->
                 <img class="img-fluid rounded mb-2"
                      th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
-                     th:alt="${p.product_name}"
+                     th:alt="${p.productName}"
                      onerror="this.src='/images/placeholder.png'"/>
 
-                <h2 class="product-name" th:text="${p.product_name}">Product name</h2>
+                <h2 class="product-name" th:text="${p.productName}">Product name</h2>
                 <p class="product-text" th:text="${p.product_description}">Description</p>
 
                 <!-- ✅ Giá -->
