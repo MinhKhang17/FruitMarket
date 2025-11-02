@@ -89,7 +89,6 @@ public class AdminController {
         return "admin/createProduct";
     }
 
-    // ✅ POST mapping gọn gàng, thống nhất
     @PostMapping("/products/save")
     public String saveProduct(@ModelAttribute Product product) {
         productService.saveProduct(product);
@@ -113,7 +112,7 @@ public class AdminController {
 
     @GetMapping("/products/delete/{id}")
     public String deleteProduct(@PathVariable Long id) {
-        productService.deleteById(id);
+        productService.updateProductStatusToInactive(id);
         return "redirect:/admin/products";
     }
 
@@ -131,8 +130,24 @@ public class AdminController {
                               @RequestParam(value = "files", required = false) List<MultipartFile> files)
             throws IOException {
 
-        // Chỉ upload ảnh đầu tiên (One-to-One)
         variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
         return "redirect:/admin/products/" + productId + "/variants";
+    }
+
+    @GetMapping("/productVariant/delete/{id}")
+    public String deleteProductVariant(@PathVariable Long id) {
+        ProductVariant variant = variantService.findById(id);
+        Long productId = variant.getProduct().getId();
+
+        variantService.updateStatusToInactive(id);
+
+        return "redirect:/admin/products/" + productId + "/variants/list";
+    }
+
+    @GetMapping("/products/{id}/variants/list")
+    public String viewVariantList(@PathVariable Long id, Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "admin/variantList";
     }
 }

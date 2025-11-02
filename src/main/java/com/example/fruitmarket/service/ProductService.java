@@ -18,7 +18,6 @@ public interface ProductService {
     List<Product> findAll();
 
     Product findById(Long id);
-    void deleteById(Long id);
 
     ProductDTO findAllProductWithProductVariant(long id);
 
@@ -36,4 +35,5 @@ public interface ProductService {
     List<Product> findByBrand(Long brandId);
     List<Product> findByCategoryAndBrand(Long categoryId, Long brandId);
     List<Product> search(String keyword);
+    void updateProductStatusToInactive(Long productId);
 }
