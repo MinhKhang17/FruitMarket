@@ -1,64 +1,145 @@
-<!-- file: src/main/resources/templates/home/product.html -->
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8" />
-    <title>Products</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FruitMarket - Products</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-    <!-- CSS riêng của trang Products -->
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <!-- CSS riêng cho Products -->
     <link th:href="@{/product.css}" rel="stylesheet"/>
+
+    <style>
+        body {
+            background: linear-gradient(180deg, #ffffff 0%, #f8faf9 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+            color: #1a1a1a;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        .page-title {
+            font-weight: 700;
+            font-size: 1.8rem;
+            color: #2f9e44;
+            text-align: center;
+            margin: 2rem 0 1.5rem;
+        }
+        .product-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(30,30,30,0.06);
+            transition: all 0.2s ease;
+            padding: 1rem;
+            height: 100%;
+        }
+        .product-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 20px rgba(47,158,68,0.12);
+            border-color: #51cf66;
+        }
+        .product-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .product-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2f9e44;
+            margin-top: .75rem;
+        }
+        .product-text {
+            font-size: .9rem;
+            color: #4a5568;
+        }
+        .product-strong {
+            font-weight: 600;
+            color: #2b8a3e;
+        }
+        .btn-leaf {
+            background: #2f9e44;
+            color: white;
+            border: none;
+            transition: all 0.2s ease;
+        }
+        .btn-leaf:hover {
+            background: #2b8a3e;
+            transform: translateY(-2px);
+        }
+        .no-product {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            margin-top: 2rem;
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-    <h1 class="page-title">All Products</h1>
+<!-- ==================== HEADER ==================== -->
+<div th:replace="fragments/header :: header"></div>
 
-    <div th:if="${#lists.isEmpty(products)}" class="no-product">
-        <p>No products found.</p>
-    </div>
+<main class="page-wrap">
+    <div class="container py-4">
+        <h1 class="page-title">All Products</h1>
 
-    <div class="row g-4" th:if="${!#lists.isEmpty(products)}">
-        <div class="col-md-4" th:each="p : ${products}">
-            <div class="product-card h-100">
+        <div th:if="${#lists.isEmpty(products)}" class="no-product">
+            <p>No products found.</p>
+        </div>
 
-                <!-- ✅ Ảnh sản phẩm: lấy từ Cloudinary (Image entity) -->
-                <img class="img-fluid rounded mb-2"
-                     th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
-                     th:alt="${p.productName}"
-                     onerror="this.src='/images/placeholder.png'"/>
+        <div class="row g-4" th:if="${!#lists.isEmpty(products)}">
+            <div class="col-md-4" th:each="p : ${products}">
+                <div class="product-card h-100">
 
-                <h2 class="product-name" th:text="${p.productName}">Product name</h2>
-                <p class="product-text" th:text="${p.product_description}">Description</p>
+                    <!-- Ảnh sản phẩm -->
+                    <img class="img-fluid rounded mb-2"
+                         th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
+                         th:alt="${p.productName}"
+                         onerror="this.src='/images/placeholder.png'"/>
 
-                <!-- ✅ Giá -->
-                <p class="product-text">
-                    <span class="product-strong">Price:</span>
-                    <span th:text="${
-                        (p.variants != null && !p.variants.isEmpty())
-                        ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT')
-                        : (p.product_price != null ? #numbers.formatDecimal(p.product_price,0,'COMMA',2,'POINT') : '—')
-                    }">0.00</span>
-                </p>
+                    <h2 class="product-name" th:text="${p.productName}">Product name</h2>
+                    <p class="product-text" th:text="${p.product_description}">Description</p>
 
-                <p class="product-text">
-                    <span class="product-strong">Category:</span>
-                    <span th:text="${p.category != null ? p.category.name : '—'}">Category</span>
-                </p>
+                    <!-- Giá -->
+                    <p class="product-text">
+                        <span class="product-strong">Price:</span>
+                        <span th:text="${
+                            (p.variants != null && !p.variants.isEmpty())
+                            ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT')
+                            : (p.product_price != null ? #numbers.formatDecimal(p.product_price,0,'COMMA',2,'POINT') : '—')
+                        }">0.00</span> đ
+                    </p>
 
-                <p class="product-text">
-                    <span class="product-strong">Brand:</span>
-                    <span th:text="${p.brand != null ? p.brand.name : '—'}">Brand</span>
-                </p>
+                    <p class="product-text">
+                        <span class="product-strong">Category:</span>
+                        <span th:text="${p.category != null ? p.category.name : '—'}">Category</span>
+                    </p>
 
-                <div class="mt-3">
-                    <a class="btn btn-leaf btn-sm" th:href="@{|/products/${p.id}|}" target="_top">View</a>
+                    <p class="product-text">
+                        <span class="product-strong">Brand:</span>
+                        <span th:text="${p.brand != null ? p.brand.name : '—'}">Brand</span>
+                    </p>
+
+                    <div class="mt-3">
+                        <a class="btn btn-leaf btn-sm" th:href="@{|/products/${p.id}|}" target="_top">View</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</main>
+
+<!-- ==================== FOOTER ==================== -->
+<div th:replace="fragments/footer :: footer"></div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

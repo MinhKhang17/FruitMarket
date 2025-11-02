@@ -70,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
             Users u = new Users();
             u.setUsername(defaultUsername);
             u.setPassword(passwordEncoder.encode("password"));
-            u.setRole("CLIENT");
+            u.setRole("CUSTOMER");
             u.setPhone("0933456172");
             u.setEmail("user@gmail.com");
             u.setStatus("ACTIVE");

@@ -27,8 +27,6 @@ public class ProductController {
     private final ProductService productService;
 
 
-
-
     @GetMapping("/products/{id}")
     public String productDetail(@PathVariable Long id, Model model) {
         ProductDTO product = productService.findAllProductWithProductVariant(id);
@@ -36,10 +34,20 @@ public class ProductController {
         return "home/detail";
     }
 
-
     @GetMapping("/products")
-    public String listProducts(Model model, HttpSession session) {
-        model.addAttribute("products", productService.findAll());
+    public String viewProducts(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            Model model) {
+
+        List<Product> products;
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            products = productService.searchProducts(keyword);
+        } else {
+            products = productService.findAll();
+        }
+
+        model.addAttribute("products", products);
+        model.addAttribute("q", keyword);
         return "home/product";
     }
 

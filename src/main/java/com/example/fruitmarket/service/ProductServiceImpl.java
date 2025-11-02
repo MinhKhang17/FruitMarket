@@ -76,4 +76,16 @@ public class ProductServiceImpl implements ProductService {
         }
         return map;
     }
+
+    @Override
+    public List<Product> searchProducts(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return productRepo.findAll();
+        }
+        return productRepo.searchByName(keyword.trim());
+    }
+
+    public List<Product> getAllProducts() {
+        return productRepo.findAll();
+    }
 }
