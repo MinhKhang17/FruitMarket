@@ -139,6 +139,15 @@ a.nav-link.dropdown-toggle:focus .ava-ring{
     transform: translateY(-1px);
 }
 
+/* Làm dropdown cuộn khi nhiều mục */
+.dropdown-scroll{
+    max-height: 320px;
+    overflow: auto;
+}
+
+/* Boostrap sẽ đánh dấu .active; thêm chút nhấn màu */
+.navbar .nav-link.active{ font-weight: 700; }
+
 /* Giữ chip gọn khi màn hình nhỏ */
 @media (max-width:576px){
     .ava-ring{ width: 34px; height: 34px; }

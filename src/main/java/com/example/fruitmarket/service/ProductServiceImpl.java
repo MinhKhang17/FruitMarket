@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,5 +79,37 @@ public class ProductServiceImpl implements ProductService {
             map.put(b.getId(), list);
         }
         return map;
+    }
+
+    @Override
+    public List<Product> findByCategory(Long categoryId) {
+        if (categoryId == null) return Collections.emptyList();
+        return productRepo.findByCategory_Id(categoryId);
+    }
+
+    @Override
+    public List<Product> findByBrand(Long brandId) {
+        if (brandId == null) return Collections.emptyList();
+        return productRepo.findByBrand_Id(brandId);
+    }
+
+    @Override
+    public List<Product> findByCategoryAndBrand(Long categoryId, Long brandId) {
+        if (categoryId == null && brandId == null) return Collections.emptyList();
+        if (categoryId != null && brandId != null) {
+            return productRepo.findByCategory_IdAndBrand_Id(categoryId, brandId);
+        }
+        if (categoryId != null) {
+            return productRepo.findByCategory_Id(categoryId);
+        }
+        return productRepo.findByBrand_Id(brandId);
+    }
+
+    @Override
+    public List<Product> search(String keyword) {
+        if (keyword == null) return Collections.emptyList();
+        String q = keyword.trim();
+        if (q.isEmpty()) return Collections.emptyList();
+        return productRepo.search(q);
     }
 }

@@ -1,37 +1,81 @@
-<div class="col-md-4" th:each="p : ${products}">
-    <div class="card h-100 shadow-sm border-0 product-card">
-        <!-- ✅ Ảnh từ variant đầu tiên -->
-        <img class="card-img-top img-fluid rounded-top"
-             th:src="${!#lists.isEmpty(p.variants) && p.variants.get(0).image != null
-                        ? p.variants.get(0).image.url
-                        : '/images/placeholder.png'}"
-             th:alt="${p.productName}"
-             onerror="this.src='/images/placeholder.png'"/>
+<!-- file: src/main/resources/templates/home/product.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Products</title>
 
-        <div class="card-body">
-            <h5 class="card-title" th:text="${p.productName}">Product name</h5>
-            <p class="card-text text-muted small" th:text="${p.product_description}">Description...</p>
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-            <p class="mb-1">
-                <strong>Price:</strong>
-                <span th:text="${
-                    (p.variants != null && !p.variants.isEmpty() && p.variants.get(0).price != null)
-                    ? #numbers.formatDecimal(p.variants.get(0).price, 0, 'COMMA', 2, 'POINT')
-                    : '—'
-                }">0.00</span>
-            </p>
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
 
-            <p class="mb-1">
-                <strong>Category:</strong>
-                <span th:text="${p.category != null ? p.category.name : '—'}">Category</span>
-            </p>
+    <!-- Page CSS -->
+    <link th:href="@{/product.css}" rel="stylesheet"/>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
 
-            <p class="mb-3">
-                <strong>Brand:</strong>
-                <span th:text="${p.brand != null ? p.brand.name : '—'}">Brand</span>
-            </p>
-
-            <a class="btn btn-primary btn-sm w-100" th:href="@{|/products/${p.id}|}">View Details</a>
-        </div>
+<main class="container products-page">
+    <!-- Heading đơn giản -->
+    <div class="simple-heading">
+        <h1 class="page-title">All Products</h1>
+        <p class="page-subtitle">Bộ sưu tập sản phẩm mới nhất</p>
     </div>
-</div>
+
+    <!-- Empty state -->
+    <div th:if="${#lists.isEmpty(products)}" class="no-product">
+        <div class="empty-illustration"><i class="bi bi-emoji-frown"></i></div>
+        <p>Hiện chưa có sản phẩm để trưng bày.</p>
+    </div>
+
+    <!-- Product grid -->
+    <section class="products-wrapper" th:if="${!#lists.isEmpty(products)}">
+        <div class="row g-3 g-xl-4 justify-content-center">
+            <!-- 5 cột trên ≥1200px với .col-xl-2p4 -->
+            <div class="col-6 col-md-4 col-lg-3 col-xl-2p4" th:each="p : ${products}">
+                <article class="product-card h-100 d-flex flex-column">
+                    <!-- Ảnh -->
+                    <a class="thumb ratio ratio-4x3" th:href="@{|/products/${p.id}|}" target="_top" aria-label="Xem chi tiết">
+                        <img th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
+                             th:alt="${p.productName}"
+                             onerror="this.src='/images/placeholder.png'"/>
+                    </a>
+
+                    <!-- Nội dung -->
+                    <div class="content px-3 py-3 d-flex flex-column gap-2">
+                        <h2 class="product-name text-truncate" th:text="${p.productName}">Product name</h2>
+
+                        <div class="chips">
+                            <span class="chip" th:text="${p.category != null ? p.category.name : '—'}">Category</span>
+                            <span class="chip" th:text="${p.brand != null ? p.brand.name : '—'}">Brand</span>
+                        </div>
+
+                        <p class="product-desc clamp-2" th:text="${p.product_description}">Mô tả ngắn…</p>
+
+                        <div class="price-row mt-auto">
+              <span class="price"
+                    th:text="${
+                      (p.variants != null && !p.variants.isEmpty())
+                        ? '₫ ' + #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 0, 'POINT')
+                        : (p.product_price != null
+                            ? '₫ ' + #numbers.formatDecimal(p.product_price,0,'COMMA',0,'POINT')
+                            : 'Liên hệ')
+                    }">₫ 0</span>
+                        </div>
+
+                        <a class="btn btn-leaf w-100" th:href="@{|/products/${p.id}|}" target="_top">Xem chi tiết</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

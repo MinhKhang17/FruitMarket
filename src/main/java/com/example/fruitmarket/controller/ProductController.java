@@ -38,11 +38,46 @@ public class ProductController {
     }
 
 
+//    @GetMapping("/products")
+//    public String listProducts(Model model, HttpSession session) {
+//        model.addAttribute("products", productService.findAll());
+//        model.addAttribute("categories", categorysService.findAll());
+//        model.addAttribute("brands", brandsService.findAll());
+//        return "home/product";
+//    }
+
     @GetMapping("/products")
-    public String listProducts(Model model, HttpSession session) {
-        model.addAttribute("products", productService.findAll());
+    public String listProducts(@RequestParam(required = false) Long category,
+                               @RequestParam(required = false) Long brand,
+                               @RequestParam(required = false) String q,
+                               Model model) {
+
+        List<Product> products;
+
+        if (category != null && brand != null) {
+            products = productService.findByCategoryAndBrand(category, brand);
+        } else if (category != null) {
+            products = productService.findByCategory(category);
+        } else if (brand != null) {
+            products = productService.findByBrand(brand);
+        } else if (q != null && !q.isBlank()) {
+            products = productService.search(q.trim());
+        } else {
+            products = productService.findAll();
+        }
+
+        model.addAttribute("products", products);
+        model.addAttribute("headerCategories", categorysService.findAll());
+        model.addAttribute("headerBrands", brandsService.findAll());
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("selectedBrand", brand);
+        model.addAttribute("q", q);
+
         return "home/product";
     }
+
+
+
 
     @GetMapping("/products/home-component")
     public String productsComponent(Model model) {
