@@ -150,4 +150,13 @@ public class OrderServiceImpl implements OrderService{
 
         return saved.getId();
     }
+    @Override
+    public Order getOrderById(Long Id) {
+        return orderRepo.findById(Id);
+    }
+
+    @Override
+    public void updateOrder(Order order) {
+        orderRepo.save(order);
+    }
 }

@@ -11,4 +11,6 @@ public interface OrderService {
     Order createOrder(HttpSession session, ProductVariant variant, Integer quantity, Long addressId, String paymentMethod);
 
     Long createOrderFromCart(OrderRequest orderReq, HttpSession session);
+    Order getOrderById(Long Id);
+    void updateOrder(Order order);
 }
