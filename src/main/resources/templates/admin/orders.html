@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Đơn hàng</title>
+    <style>
+        :root {
+            --bg: #0b1222;
+            --card: #0f172a;
+            --muted: #94a3b8;
+            --accent: #2563eb;
+            --text: #e2e8f0;
+            --success: #16a34a;
+            --warning: #eab308;
+            --danger: #dc2626;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .card {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #1e293b;
+            font-size: 14px;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        tr:hover {
+            background: #1e293b;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-confirmed { background: #dbeafe; color: #1e40af; }
+        .status-shipping { background: #e0e7ff; color: #4338ca; }
+        .status-delivered { background: #d1fae5; color: #065f46; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+
+        .paid-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .paid-yes { background: var(--success); color: white; }
+        .paid-no { background: var(--danger); color: white; }
+
+        .btn-view {
+            padding: 6px 12px;
+            background: var(--accent);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-view:hover {
+            background: #1d4ed8;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        .price {
+            font-weight: 600;
+            color: var(--success);
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="top-row">
+        <h2>📦 Quản lý Đơn hàng</h2>
+    </div>
+
+    <div th:if="${message}" th:class="'alert alert-' + ${type}" style="padding: 12px; margin-bottom: 16px; border-radius: 6px;">
+        <span th:text="${message}"></span>
+    </div>
+
+    <table th:if="${orders != null and !orders.isEmpty()}">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Khách hàng</th>
+            <th>Số điện thoại</th>
+            <th>Địa chỉ</th>
+            <th>Tổng tiền</th>
+            <th>Số lượng</th>
+            <th>Thanh toán</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.id}"></td>
+            <td th:text="${order.users?.username ?: 'N/A'}"></td>
+            <td th:text="${order.phoneNumber}"></td>
+            <td th:text="${#strings.abbreviate(order.address, 30)}"></td>
+            <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
+            <td th:text="${order.totalQuantity}"></td>
+            <td>
+                <span th:class="${order.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
+                      th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}"></span>
+            </td>
+            <td>
+                <span th:class="'status-badge status-' + ${#strings.toLowerCase(order.orderStauts)}"
+                      th:text="${order.orderStauts}"></span>
+            </td>
+            <td>
+                <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn-view">Xem chi tiết</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${orders == null or orders.isEmpty()}" class="no-data">
+        <p>📭 Chưa có đơn hàng nào</p>
+    </div>
+</div>
+</body>
+</html>
