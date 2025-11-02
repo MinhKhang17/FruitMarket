@@ -1,97 +1,111 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Panel</title>
-    <link rel="stylesheet" href="admin.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin — FruitMarket</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        :root { --sidebar-w:260px; --accent:#198754; --muted:#6c757d; --card-radius:12px; }
+        body { background:#f6faf6; min-height:100vh; }
+        .admin-wrap { display:flex; gap:24px; padding:24px; }
+        aside.sidebar { width:var(--sidebar-w); background:#fff; border-radius:var(--card-radius); padding:18px; box-shadow:0 6px 18px rgba(0,0,0,0.06); height:calc(100vh - 48px); position:sticky; top:24px; display:flex; flex-direction:column; }
+        aside.sidebar header { font-weight:700; color:var(--accent); font-size:1.05rem; padding-bottom:6px; border-bottom:1px solid #f0f0f0; }
+        aside.sidebar nav { display:flex; flex-direction:column; gap:6px; margin-top:8px; }
+        .nav-link { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; color:#333; text-decoration:none; font-weight:600; }
+        .nav-link:hover { background:#f2fff5; color:var(--accent); }
+        .nav-link.active { background:rgba(25,135,84,0.08); color:var(--accent); box-shadow:inset 0 0 0 1px rgba(25,135,84,0.06); }
+        aside.sidebar footer { margin-top:auto; font-size:0.85rem; color:var(--muted); }
+        main.admin-main { flex:1; min-height:calc(100vh - 48px); }
+        .primary-frame { width:100%; height:calc(100vh - 220px); border:none; border-radius:10px; box-shadow:0 6px 18px rgba(7,7,7,0.06); }
+        .small-muted { color:var(--muted); font-size:.9rem; }
+        @media (max-width:980px) { .admin-wrap { padding:12px; flex-direction:column; } aside.sidebar { position:relative; width:100%; height:auto; top:unset; } .primary-frame { height:60vh; } }
+    </style>
 </head>
 <body>
-<aside class="sidebar">
-    <header>Admin Panel</header>
-    <nav>
-        <a href="#" class="nav-link active" data-page="welcome">🏠 Trang chào mừng</a>
-        <a href="#" class="nav-link" data-page="brands">🏷️ Brands</a>
-        <a href="#" class="nav-link" data-page="categories">📂 Categories</a>
-        <a href="#" class="nav-link" data-page="products">🧾 Products</a>
-        <a href="#" class="nav-link" data-page="create">➕ Tạo Product</a>
-    </nav>
-    <footer>© 2025 Admin System</footer>
-</aside>
 
-<main>
-    <header class="main-header">
-        <h1 id="pageTitle">Chào mừng đến Admin Panel 👋</h1>
-        <p id="pageDesc">Hệ thống quản lý gồm Brands và Categories.</p>
-    </header>
+<div th:replace="~{fragments/header :: header}"></div>
+<div th:replace="~{fragments/notification :: notification}"></div>
 
-    <div class="content" id="contentArea">
-        <div class="frame-wrap" id="frameWrap">
-            <!-- Lúc đầu: không hiển thị gì -->
-            <div id="welcomeMessage" class="welcome">
-                <h2>🎉 Xin chào Quản trị viên!</h2>
-                <p>Vui lòng chọn một mục trong menu bên trái để bắt đầu.</p>
+<div class="admin-wrap container-fluid">
+    <aside class="sidebar">
+        <header>FruitMarket — Admin</header>
+
+        <nav>
+            <a href="#" class="nav-link active" data-src="/admin/products" title="Danh sách sản phẩm">🧾 Products</a>
+            <a href="#" class="nav-link" data-src="/admin/product/create" title="Tạo product mới">➕ Create product</a>
+            <a href="#" class="nav-link" data-src="/admin/categories" title="Quản lý danh mục">📂 Categories</a>
+            <a href="#" class="nav-link" data-src="/admin/brands" title="Quản lý thương hiệu">🏷️ Brands</a>
+            <a href="#" class="nav-link" data-src="/admin/orders" title="Quản lý đơn hàng">🧾 Orders</a>
+        </nav>
+
+        <div class="small-muted" style="margin-top:12px;">
+            <div>Đăng nhập: <strong th:text="${loggedUserName != null ? loggedUserName : 'admin'}">admin</strong></div>
+            <div style="margin-top:8px;">
+                <a th:href="@{/}" class="small-muted">Xem website</a> • <a th:href="@{/auth/logout}" class="small-muted">Logout</a>
             </div>
         </div>
-    </div>
-</main>
 
+        <footer>© 2025 FruitMarket</footer>
+    </aside>
+
+    <main class="admin-main">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 id="pageTitle" class="m-0">Danh sách Products</h2>
+                <div id="pageDesc" class="small-muted">Quản lý sản phẩm: xem, sửa, tạo, xóa.</div>
+            </div>
+
+            <div>
+                <a id="btnCreate" class="btn btn-sm btn-success" href="#" role="button">➕ Tạo Product</a>
+                <a id="btnProducts" class="btn btn-sm btn-outline-primary" href="#" role="button">🧾 Danh sách Products</a>
+            </div>
+        </div>
+
+        <div id="frameWrap">
+            <iframe id="adminFrame" class="primary-frame" src="/admin/products"></iframe>
+        </div>
+    </main>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     (function () {
-        const links = document.querySelectorAll('.nav-link');
+        const links = Array.from(document.querySelectorAll('aside.sidebar .nav-link'));
+        const frame = document.getElementById('adminFrame');
         const pageTitle = document.getElementById('pageTitle');
         const pageDesc = document.getElementById('pageDesc');
-        const frameWrap = document.getElementById('frameWrap');
+
+        function setActive(el) { links.forEach(l=>l.classList.remove('active')); if(el) el.classList.add('active'); }
 
         links.forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
-                const page = this.getAttribute('data-page');
-                document.querySelectorAll('.nav-link').forEach(a => a.classList.remove('active'));
-                this.classList.add('active');
-                showPage(page);
+                const src = this.getAttribute('data-src');
+                if (!src) return;
+                setActive(this);
+                pageTitle.textContent = this.textContent.trim();
+                pageDesc.textContent = 'Quản lý ' + this.textContent.trim() + '.';
+                frame.src = src;
             });
         });
 
-        function showPage(page) {
-            frameWrap.innerHTML = ''; // xóa nội dung hiện có
+        document.getElementById('btnCreate').addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector('aside.sidebar .nav-link[data-src="/admin/product/create"]').click();
+        });
+        document.getElementById('btnProducts').addEventListener('click', function (e) { e.preventDefault(); document.querySelector('aside.sidebar .nav-link[data-src="/admin/products"]').click(); });
 
-            if (page === 'brands') {
-                pageTitle.textContent = 'Quản lý Brands';
-                pageDesc.textContent = 'Trang này hiển thị danh sách các thương hiệu.';
-                addFrame('/admin/brands');
-            } else if (page === 'categories') {
-                pageTitle.textContent = 'Quản lý Categories';
-                pageDesc.textContent = 'Trang này hiển thị danh mục sản phẩm.';
-                addFrame('/admin/categories');
-            } else if (page === 'create') {
-                pageTitle.textContent = 'Tạo Product mới';
-                pageDesc.textContent = 'Điền thông tin và upload ảnh cho product.';
-                addFrame('/admin/product/create');
-            } else if (page === 'products') {
-                pageTitle.textContent = 'Danh sách Products';
-                pageDesc.textContent = 'Xem, sửa, xoá các product hiện có.';
-                addFrame('/admin/products');
-            } else {
-                // Trang chào mừng
-                pageTitle.textContent = 'Chào mừng đến Admin Panel 👋';
-                pageDesc.textContent = 'Hệ thống quản lý gồm Brands và Categories.';
-                const welcome = document.createElement('div');
-                welcome.className = 'welcome';
-                welcome.innerHTML = `
-                <h2>🎉 Xin chào Quản trị viên!</h2>
-                <p>Vui lòng chọn một mục trong menu bên trái để bắt đầu quản lý dữ liệu.</p>
-            `;
-                frameWrap.appendChild(welcome);
-            }
+        function adjustFrameHeight() {
+            const available = window.innerHeight - 220;
+            frame.style.height = (available > 300 ? available : 400) + 'px';
         }
-
-        function addFrame(src) {
-            const f = document.createElement('iframe');
-            f.className = 'primary-frame';
-            f.src = src;
-            frameWrap.appendChild(f);
-        }
+        window.addEventListener('resize', adjustFrameHeight);
+        adjustFrameHeight();
     })();
 </script>
 </body>

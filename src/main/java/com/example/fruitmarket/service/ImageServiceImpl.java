@@ -52,7 +52,7 @@ public class ImageServiceImpl implements ImageService {
 
         for (MultipartFile file : files) {
             Image img = uploadImage(file, imageType);
-            product.getImages().add(img);
+//            product.getImages().add(img);
         }
 
         productRepository.save(product);
