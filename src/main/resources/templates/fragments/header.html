@@ -76,29 +76,31 @@
                         <a class="nav-link position-relative text-success fw-semibold" th:href="@{/cart}">
                             <i class="bi bi-basket-fill"></i>
                             <span class="ms-1">Giỏ hàng</span>
-                            <span th:if="${cartCount != null and cartCount > 0}"
+
+                            <!-- Badge lấy từ session: session.CART_SESSION.totalQuantity -->
+                            <span th:if="${session.CART_SESSION != null and session.CART_SESSION.totalQuantity > 0}"
                                   class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success"
-                                  th:text="${cartCount}">0</span>
+                                  th:text="${session.CART_SESSION.totalQuantity}">0</span>
                         </a>
                     </li>
 
                     <!-- 👤 Người dùng -->
                     <li class="nav-item dropdown ms-lg-3">
-                        <!-- Nếu đã đăng nhập -->
-                        <a th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}"
+                        <!-- Nếu đã đăng nhập (dùng implicit 'session' variable) -->
+                        <a th:if="${session != null and session.loggedUser != null}"
                            class="nav-link dropdown-toggle text-success fw-semibold d-flex align-items-center"
                            href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 
-                            <!-- Avatar mini -->
+                            <!-- Avatar mini (an toàn: chỉ truy xuất username khi loggedUser != null) -->
                             <div class="rounded-circle bg-success text-white d-flex justify-content-center align-items-center me-2"
                                  style="width: 30px; height: 30px; font-size: 0.9rem; font-weight: 600;"
-                                 th:text="${#strings.substring(#httpSession.getAttribute('loggedUser').username,0,1).toUpperCase()}">
+                                 th:text="${#strings.substring(session.loggedUser.username,0,1).toUpperCase()}">
                                 U
                             </div>
-                            <span th:text="${#httpSession.getAttribute('loggedUser').username}">User</span>
+                            <span th:text="${session.loggedUser.username}">User</span>
                         </a>
 
-                        <ul th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}"
+                        <ul th:if="${session != null and session.loggedUser != null}"
                             class="dropdown-menu dropdown-menu-end">
                             <li>
                                 <a class="dropdown-item" th:href="@{/user/profile}">
@@ -119,7 +121,7 @@
                         </ul>
 
                         <!-- Nếu chưa đăng nhập -->
-                        <div th:if="${#httpSession == null or #httpSession.getAttribute('loggedUser') == null}"
+                        <div th:if="${session == null or session.loggedUser == null}"
                              class="nav-link p-0">
                             <a class="btn btn-outline-success btn-sm me-2" th:href="@{/auth/login}">
                                 <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
@@ -139,6 +141,3 @@
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="mainHeader">
     <div th:replace="~{::header}"></div>
 </div>
-
-<!-- ✅ Gợi ý thêm vào layout: -->
-<!-- <div th:replace="~{fragments/header :: header}"></div> -->

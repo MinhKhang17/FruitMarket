@@ -125,15 +125,6 @@
                                     <button type="submit" class="btn btn-outline-success">Thêm vào giỏ</button>
                                 </form>
 
-                                <!-- Buy Now -->
-                                <form id="buyNowForm" th:action="@{/buy-now}" method="post" style="display:inline;">
-                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                    <input type="hidden" id="variantIdInputBuy" name="variantId" value="" />
-                                    <input type="hidden" name="productId" th:value="${product.productId}" />
-                                    <input type="hidden" name="qty" id="qtyInputForBuy" value="1" />
-                                    <button type="submit" class="btn btn-warning text-white">Mua ngay</button>
-                                </form>
-
                                 <!-- Checkout single product (keeps existing behavior) -->
                                 <form id="checkoutForm" th:action="@{/checkout}" method="post" onsubmit="return validateCheckout();" style="display:inline;">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
