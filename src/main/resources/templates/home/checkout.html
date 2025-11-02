@@ -1,3 +1,4 @@
+<!-- file: src/main/resources/templates/home/checkout.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
@@ -44,6 +45,7 @@
         <div class="form-section mb-4" th:object="${productVariant}">
             <div class="row align-items-center">
                 <div class="col-auto">
+                    <!-- image fallback: server image_url else placeholder; onerror fallback too -->
                     <img th:src="${#strings.isEmpty(productVariant.image_url) ? '/images/placeholder.png' : productVariant.image_url}"
                          alt="Ảnh sản phẩm"
                          class="thumb"
@@ -87,82 +89,81 @@
             <div th:if="${userDetail != null and !#lists.isEmpty(userDetail)}">
                 <p class="muted">Chọn địa chỉ giao hàng có sẵn hoặc thêm mới nếu cần.</p>
 
-                <!-- radios: ensure value is the userDetail id -->
-                <div class="list-group mb-3">
-                    <label th:each="addr, i : ${userDetail}"
-                           class="list-group-item d-flex justify-content-between align-items-start">
-                        <div>
-                            <input class="form-check-input me-2" type="radio" name="addressSelect"
-                                   th:id="${'addr_'+i.index}" th:value="${addr.id}"
-                                   th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
-                            <strong th:text="${addr.phone}">0123456789</strong>
-                            <div class="small text-muted" th:text="${addr.address}">Địa chỉ giao hàng</div>
-                        </div>
-                    </label>
-                </div>
+            <div class="list-group mb-3">
+                <label th:each="addr, i : ${userDetail}"
+                       class="list-group-item d-flex justify-content-between align-items-start">
+                    <div>
+                        <input class="form-check-input me-2" type="radio" name="addressSelect"
+                               th:id="${'addr_'+i.index}" th:value="${addr.id}"
+                               th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
+                        <strong th:text="${addr.phone}">0123456789</strong>
+                        <div class="small text-muted" th:text="${addr.address}">Địa chỉ giao hàng</div>
+                    </div>
+                </label>
+            </div>
 
-                <div class="text-end">
-                    <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleNewAddressForm()">
-                        <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
+            <div class="text-end">
+                <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleNewAddressForm()">
+                    <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
+                </button>
+            </div>
+
+            <!-- ✅ Form thêm mới -->
+            <form id="newAddressForm" class="mt-3 d-none" th:action="@{/checkout/save-address}" method="post">
+                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <label class="form-label">Địa chỉ mới</label>
+                        <input type="text" class="form-control" name="address"
+                               placeholder="Nhập địa chỉ cụ thể..." required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Số điện thoại</label>
+                        <input type="text" class="form-control" name="phone"
+                               placeholder="Nhập số điện thoại..." required />
+                    </div>
+                </div>
+                <div class="text-end mt-3">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-check2-circle"></i> Lưu địa chỉ mới
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">
+                        Hủy
                     </button>
                 </div>
-
-                <!-- Form thêm địa chỉ mới (POST riêng về /userDetail/create) -->
-                <form id="newAddressForm" class="mt-3 d-none" th:action="@{/userDetail/create}" method="post">
-                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                    <div class="row g-2">
-                        <div class="col-md-8">
-                            <label class="form-label">Địa chỉ mới</label>
-                            <input type="text" class="form-control" name="address"
-                                   placeholder="Nhập địa chỉ cụ thể..." required />
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Số điện thoại</label>
-                            <input type="text" class="form-control" name="phone"
-                                   placeholder="Nhập số điện thoại..." required />
-                        </div>
-                    </div>
-                    <div class="text-end mt-3">
-                        <button type="submit" class="btn btn-success btn-sm">
-                            <i class="bi bi-check2-circle"></i> Lưu địa chỉ mới
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">
-                            Hủy
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- Nếu chưa có userDetail -->
-            <div th:if="${userDetail == null or #lists.isEmpty(userDetail)}">
-                <div class="alert alert-warning">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                    Bạn chưa có thông tin giao hàng. Vui lòng nhập địa chỉ và số điện thoại bên dưới.
-                </div>
-
-                <!-- Khi chưa có địa chỉ, form thêm mới sẽ hiện và bắt submit tới /userDetail/create -->
-                <form id="newAddressFormSingle" th:action="@{/userDetail/create}" method="post">
-                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                    <div class="mb-2">
-                        <label class="form-label">Địa chỉ</label>
-                        <input type="text" class="form-control" name="address" placeholder="Nhập địa chỉ cụ thể..." required />
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Số điện thoại</label>
-                        <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
-                    </div>
-                    <div class="text-end">
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check2-circle"></i> Lưu địa chỉ và tiếp tục
-                        </button>
-                    </div>
-                </form>
-            </div>
+            </form>
         </div>
 
-        <div class="divider"></div>
+        <!-- ✅ Không có địa chỉ -->
+        <div th:if="${userDetail == null or #lists.isEmpty(userDetail)}">
+            <div class="alert alert-warning py-2 mb-3" role="alert">
+                ⚠️ Bạn chưa có thông tin giao hàng. Vui lòng nhập địa chỉ và số điện thoại bên dưới.
+            </div>
 
-        <!-- ================= PHƯƠNG THỨC THANH TOÁN ================= -->
+            <form th:action="@{/checkout/save-address}" method="post" class="mb-0">
+                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                <div class="mb-3">
+                    <label class="form-label">Địa chỉ</label>
+                    <input type="text" class="form-control" name="address"
+                           placeholder="Nhập địa chỉ cụ thể..." required />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Số điện thoại</label>
+                    <input type="text" class="form-control" name="phone"
+                           placeholder="Nhập số điện thoại..." required />
+                </div>
+                <button type="submit" class="btn btn-success w-100">
+                    <i class="bi bi-check-circle"></i> Lưu địa chỉ và tiếp tục
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div class="divider"></div>
+
+        <!-- ================= THANH TOÁN ================= -->
         <div class="form-section mb-4">
             <h5 class="mb-3"><i class="bi bi-credit-card text-success"></i> Phương thức thanh toán</h5>
             <div class="form-check">
@@ -170,16 +171,12 @@
                 <label class="form-check-label" for="cod"><i class="bi bi-cash-stack text-success"></i> Thanh toán khi nhận hàng</label>
             </div>
             <div class="form-check">
-                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="BANK">
-                <label class="form-check-label" for="bank"><i class="bi bi-bank text-primary"></i> Chuyển khoản ngân hàng</label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="paymentMethod" id="momo" value="MOMO">
-                <label class="form-check-label" for="momo"><i class="bi bi-phone text-danger"></i> Ví MoMo</label>
+                <input class="form-check-input" type="radio" name="paymentMethod" id="bank" value="VNPAY">
+                <label class="form-check-label" for="bank"><i class="bi bi-bank text-primary"></i> VNPAY</label>
             </div>
         </div>
 
-        <!-- ================= FORM XÁC NHẬN ĐƠN HÀNG ================= -->
+        <!-- ================= XÁC NHẬN ================= -->
         <form th:action="@{/checkout/process}" method="post" onsubmit="return finalizeAndSubmit(this);">
             <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
 
@@ -218,15 +215,11 @@
     const finalPayment = document.getElementById("finalPayment");
     const finalAddressId = document.getElementById("finalAddressId");
 
-    // read server-rendered unit price (as number)
-    const variantPrice = /*[[${productVariant != null && productVariant.product_price != null}]]*/ false
-        ? /*[[${productVariant.product_price}]]*/ 0
-        : 0;
+    const variantPrice = /*[[${productVariant.product_price}]]*/ 0;
 
     function fmt(num) {
-        try {
-            return Number(num).toLocaleString("vi-VN", {minimumFractionDigits: 0, maximumFractionDigits: 2}) + " ₫";
-        } catch(e) { return num; }
+        try { return Number(num).toLocaleString("vi-VN") + " ₫"; }
+        catch(e) { return num; }
     }
 
     function updateTotal() {
@@ -236,37 +229,35 @@
     }
 
     function toggleNewAddressForm() {
-        const frm1 = document.getElementById("newAddressForm");
-        const frm2 = document.getElementById("newAddressFormSingle");
-        if (frm1) frm1.classList.toggle("d-none");
-        if (frm2) frm2.classList.toggle("d-none");
+        const frm = document.getElementById("newAddressForm");
+        if (frm) frm.classList.toggle("d-none");
     }
 
     function selectExistingAddress(radio) {
         if (!radio) return;
+        const frm = document.getElementById("newAddressForm");
         if (radio.value === "new") {
-            const frm = document.getElementById("newAddressForm");
-            if (frm) frm.classList.remove("d-none");
+            frm?.classList.remove("d-none");
             finalAddressId.value = "";
         } else {
-            const frm = document.getElementById("newAddressForm");
-            if (frm) frm.classList.add("d-none");
+            frm?.classList.add("d-none");
             finalAddressId.value = radio.value;
         }
     }
 
+    paymentRadios.forEach(r => r.addEventListener("change", () => finalPayment.value = r.value));
     // listen payment radio changes -> update hidden input
     paymentRadios.forEach(r => r.addEventListener("change", (e) => finalPayment.value = e.target.value));
 
-    // finalize values then submit
     function finalizeAndSubmit(form) {
-        // ensure quantity valid
         const qty = Number(finalQty.value) || 1;
         if (qty <= 0) { alert("Số lượng không hợp lệ."); return false; }
 
         // if user selected an existing address, finalAddressId already set by selectExistingAddress
         const addr = finalAddressId.value;
         if (!addr) {
+            alert("Vui lòng chọn hoặc nhập địa chỉ giao hàng.");
+            return false;
             const newAddr = document.querySelector("#newAddressForm input[name='address'], #newAddressFormSingle input[name='address']");
             const newPhone = document.querySelector("#newAddressForm input[name='phone'], #newAddressFormSingle input[name='phone']");
             if (newAddr && newPhone) {
@@ -297,6 +288,8 @@
         if (qtyInput) qtyInput.addEventListener("input", updateTotal);
         updateTotal();
     });
+    if (qtyInput) qtyInput.addEventListener("input", updateTotal);
+    document.addEventListener("DOMContentLoaded", updateTotal);
     /*]]>*/
 </script>
 </body>

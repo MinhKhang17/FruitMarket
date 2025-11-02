@@ -21,4 +21,5 @@ public interface ProductService {
     ProductVariant findProductVariantById(long productVariantId);
 
     void decreaseStock(Long variantId, Integer quantity);
+
 }

@@ -3,6 +3,8 @@ package com.example.fruitmarket.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Table
 @Data
 @Entity
@@ -16,5 +18,7 @@ public class OrderItem {
 
     @ManyToOne
     private ProductVariant productVariant;
+    @Column
+    private BigDecimal price;
 
 }

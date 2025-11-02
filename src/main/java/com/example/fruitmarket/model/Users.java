@@ -54,8 +54,8 @@ public class Users {
 
     private LocalDateTime updatedDate=LocalDateTime.now();
 
-    @OneToMany
-    private List<User_detail> userDetail = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<User_detail> userDetails = new ArrayList<>();
 
     @PrePersist
     public void prePersist() {

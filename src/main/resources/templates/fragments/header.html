@@ -1,17 +1,17 @@
 <!-- file: src/main/resources/templates/fragments/header.html -->
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="header">
-    <!-- CSS riêng cho header -->
-    <link th:href="@{/header.css}" rel="stylesheet"/>
+    <!-- 🌿 CSS riêng cho header -->
+    <link th:href="@{/css/header.css}" rel="stylesheet"/>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg shadow-sm header-bar navbar-light">
+    <!-- 🍃 Navbar chính -->
+    <nav class="navbar navbar-expand-lg shadow-sm" style="background-color: #e8f9e9;">
         <div class="container">
             <!-- Logo -->
             <a class="navbar-brand fw-bold text-success" th:href="@{/}">
                 🍃 FruitMarket
             </a>
 
-            <!-- Toggler (mobile) -->
+            <!-- Nút thu gọn (Mobile) -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu"
                     aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -19,20 +19,18 @@
 
             <!-- Nội dung -->
             <div class="collapse navbar-collapse" id="navMenu">
-                <!-- Search -->
-                <form class="d-flex me-3 search-form" th:action="@{/products}" method="get">
+                <!-- Thanh tìm kiếm -->
+                <form class="d-flex me-3" th:action="@{/products}" method="get">
                     <input class="form-control me-2" type="search" name="q" placeholder="Tìm sản phẩm..."
                            th:value="${param.q}" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit" aria-label="Tìm kiếm">
-                        <span class="search-icon">🔍</span>
+                    <button class="btn btn-outline-success" type="submit">
+                        <i class="bi bi-search"></i>
                     </button>
                 </form>
 
-                <!-- Menu -->
+                <!-- Menu chính -->
                 <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold text-success" th:href="@{/}">Trang chủ</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link fw-semibold text-success" th:href="@{/}">Trang chủ</a></li>
 
                     <!-- Danh mục -->
                     <li class="nav-item dropdown">
@@ -45,7 +43,9 @@
                                 <span class="dropdown-item text-muted">Không có danh mục</span>
                             </li>
                             <li th:each="c : ${categories}">
-                                <a class="dropdown-item" th:href="@{/products(category=${c.id})}" th:text="${c.name}">Category</a>
+                                <a class="dropdown-item" th:href="@{/products(category=${c.id})}" th:text="${c.name}">
+                                    Category
+                                </a>
                             </li>
                         </ul>
                     </li>
@@ -61,15 +61,15 @@
                                 <span class="dropdown-item text-muted">Không có thương hiệu</span>
                             </li>
                             <li th:each="b : ${brands}">
-                                <a class="dropdown-item" th:href="@{/products(brand=${b.id})}" th:text="${b.name}">Brand</a>
+                                <a class="dropdown-item" th:href="@{/products(brand=${b.id})}" th:text="${b.name}">
+                                    Brand
+                                </a>
                             </li>
                         </ul>
                     </li>
 
                     <!-- Sản phẩm -->
-                    <li class="nav-item">
-                        <a class="nav-link fw-semibold text-success" th:href="@{/products}">Sản phẩm</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link fw-semibold text-success" th:href="@{/products}">Sản phẩm</a></li>
 
                     <!-- Giỏ hàng -->
                     <li class="nav-item">
@@ -82,27 +82,24 @@
                         </a>
                     </li>
 
-                    <!-- User -->
-                    <li class="nav-item dropdown ms-lg-3" th:with="user=${session.loggedUser}">
-                        <!-- ĐÃ đăng nhập -->
-                        <a th:if="${user != null}"
-                           class="nav-link dropdown-toggle p-0" href="#" id="userDropdown"
-                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <!-- 👤 Người dùng -->
+                    <li class="nav-item dropdown ms-lg-3">
+                        <!-- Nếu đã đăng nhập -->
+                        <a th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}"
+                           class="nav-link dropdown-toggle text-success fw-semibold d-flex align-items-center"
+                           href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 
-                            <span class="user-chip">
-                              <span class="ava-ring">
-                                <!-- chữ cái đầu của username -->
-                                <span class="ava-initial"
-                                      th:text="${#strings.substring(user.username,0,1).toUpperCase()}">U</span>
-                              </span>
-
-                              <span class="greet">
-                                Xin chào, <strong th:text="${user.username}">User</strong>
-                              </span>
-                            </span>
+                            <!-- Avatar mini -->
+                            <div class="rounded-circle bg-success text-white d-flex justify-content-center align-items-center me-2"
+                                 style="width: 30px; height: 30px; font-size: 0.9rem; font-weight: 600;"
+                                 th:text="${#strings.substring(#httpSession.getAttribute('loggedUser').username,0,1).toUpperCase()}">
+                                U
+                            </div>
+                            <span th:text="${#httpSession.getAttribute('loggedUser').username}">User</span>
                         </a>
 
-                        <ul th:if="${user != null}" class="dropdown-menu dropdown-menu-end">
+                        <ul th:if="${#httpSession != null and #httpSession.getAttribute('loggedUser') != null}"
+                            class="dropdown-menu dropdown-menu-end">
                             <li>
                                 <a class="dropdown-item" th:href="@{/user/profile}">
                                     <i class="bi bi-person-lines-fill text-success me-2"></i> Hồ sơ cá nhân
@@ -121,8 +118,9 @@
                             </li>
                         </ul>
 
-                        <!-- CHƯA đăng nhập -->
-                        <div th:if="${user == null}" class="nav-link p-0">
+                        <!-- Nếu chưa đăng nhập -->
+                        <div th:if="${#httpSession == null or #httpSession.getAttribute('loggedUser') == null}"
+                             class="nav-link p-0">
                             <a class="btn btn-outline-success btn-sm me-2" th:href="@{/auth/login}">
                                 <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
                             </a>
@@ -137,7 +135,10 @@
     </nav>
 </div>
 
-<!-- Alias tương thích tên 'mainHeader' cũ -->
+<!-- ✅ Alias để tương thích với tên 'mainHeader' cũ -->
 <div xmlns:th="http://www.thymeleaf.org" th:fragment="mainHeader">
     <div th:replace="~{::header}"></div>
 </div>
+
+<!-- ✅ Gợi ý thêm vào layout: -->
+<!-- <div th:replace="~{fragments/header :: header}"></div> -->

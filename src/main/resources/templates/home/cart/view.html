@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Giỏ hàng của bạn - FruitMarket</title>
+
+    <!-- CSRF token available to JS -->
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}" />
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : 'X-CSRF-TOKEN'}" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .cart-table img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; }
+        .cart-summary { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); }
+        .btn-update { padding: 4px 10px; }
+        .empty-cart { text-align: center; padding: 50px 0; color: #6c757d; }
+        .muted { color: #6c757d; }
+        .small-muted { color: #95a49a; font-size: 0.85rem; }
+        .checkbox-col { width: 48px; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<main class="py-4">
+    <div class="container">
+
+        <h2 class="mb-4 fw-bold text-success text-center">🛒 Giỏ hàng của bạn</h2>
+
+        <div th:if="${cart == null or #lists.isEmpty(cart.items)}" class="empty-cart">
+            <p>Giỏ hàng của bạn hiện đang trống.</p>
+            <a class="btn btn-success" th:href="@{/products}">Tiếp tục mua sắm</a>
+        </div>
+
+        <div th:if="${cart != null and !#lists.isEmpty(cart.items)}" class="row g-4">
+            <div class="col-lg-8">
+                <div class="table-responsive shadow-sm rounded">
+                    <table class="table align-middle cart-table bg-white mb-0">
+                        <thead class="table-light">
+                        <tr>
+                            <th class="checkbox-col text-center">
+                                <input id="selectAll" type="checkbox" title="Chọn tất cả">
+                            </th>
+                            <th scope="col">Sản phẩm</th>
+                            <th scope="col">Giá</th>
+                            <th scope="col" style="width: 150px;">Số lượng</th>
+                            <th scope="col">Thành tiền</th>
+                            <th scope="col" class="text-center">Hành động</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="item, iterStat : ${cart.items}">
+                            <!-- Checkbox với data attributes từ CartItem - dùng variantId làm chính -->
+                            <td class="text-center">
+                                <input type="checkbox" class="select-item"
+                                       th:attr="data-index=${iterStat.index},
+                                                data-variantid=${item.variantId != null ? item.variantId : ''},
+                                                data-price=${item.price != null ? item.price : 0},
+                                                data-qty=${item.quantity != null ? item.quantity : 1},
+                                                data-subtotal=${item.subTotal != null ? item.subTotal : 0}"
+                                />
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img th:src="${item.imageUrl != null ? item.imageUrl : '/images/placeholder.png'}"
+                                         alt="Ảnh sản phẩm"
+                                         onerror="this.src='/images/placeholder.png'">
+                                    <div class="ms-3">
+                                        <div class="fw-semibold" th:text="${item.name != null ? item.name : 'Không rõ tên'}">Tên sản phẩm</div>
+                                        <small class="text-muted" th:if="${item.variantName != null}">
+                                            Biến thể: <span th:text="${item.variantName}">Variant</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="align-middle" th:text="${item.price != null ? #numbers.formatDecimal(item.price,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫</td>
+
+                            <td>
+                                <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center" th:id="${'updateForm_' + iterStat.index}">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                                    <input type="hidden" name="productId" th:value="${item.productId != null ? item.productId : ''}" />
+                                    <input type="hidden" name="variantId" th:value="${item.variantId != null ? item.variantId : ''}" />
+                                    <input type="number" class="form-control form-control-sm me-1 text-center qty-input"
+                                           name="qty" min="1"
+                                           th:value="${item.quantity}"
+                                           th:attr="data-index=${iterStat.index}"
+                                           style="width:80px;">
+                                    <button class="btn btn-outline-success btn-sm btn-update" type="submit" title="Cập nhật">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                </form>
+                            </td>
+
+                            <td class="align-middle sub-total-cell"
+                                th:text="${item.subTotal != null ? #numbers.formatDecimal(item.subTotal,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫</td>
+
+                            <td class="align-middle text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <form th:action="@{/buy-now}" method="post">
+                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="productId" th:value="${item.productId}" />
+                                        <input type="hidden" name="variantId" th:value="${item.variantId}" />
+                                        <input type="hidden" name="qty" th:value="${item.quantity}" />
+                                        <button type="submit" class="btn btn-warning btn-sm text-white" title="Mua ngay">
+                                            <i class="bi bi-bag-check"></i>
+                                        </button>
+                                    </form>
+
+                                    <form th:action="@{/cart/remove}" method="post">
+                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                                        <input type="hidden" name="productId" th:value="${item.productId}" />
+                                        <input type="hidden" name="variantId" th:value="${item.variantId}" />
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-3 d-flex justify-content-between">
+                    <form th:action="@{/cart/clear}" method="post">
+                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-outline-danger btn-sm"><i class="bi bi-trash3"></i> Xóa toàn bộ</button>
+                    </form>
+
+                    <a class="btn btn-outline-success btn-sm" th:href="@{/products}"><i class="bi bi-arrow-left"></i> Tiếp tục mua sắm</a>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="cart-summary">
+                    <h5 class="fw-bold mb-3">Tổng kết giỏ hàng</h5>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tổng số lượng (tất cả):</span>
+                        <strong th:text="${cart.totalQuantity}">0</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Tổng cộng (tất cả):</span>
+                        <strong class="text-success fs-5"
+                                th:text="${#numbers.formatDecimal(cart.totalPrice, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</strong>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <div class="small-muted">Đã chọn</div>
+                                <div><strong id="selectedQuantity">0</strong> sản phẩm</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="small-muted">Tổng tiền mục đã chọn</div>
+                                <div class="text-success fs-5" id="selectedTotal">0 ₫</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Checkout selected items -->
+                    <div class="d-grid gap-2 mb-2">
+                        <button id="checkoutSelectedBtn" class="btn btn-success" disabled>Thanh toán mục đã chọn</button>
+                    </div>
+
+                    <!-- Checkout whole cart (original behavior) -->
+                    <form th:action="@{/cart/checkout}" method="post">
+                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                        <button type="submit" class="btn btn-outline-success w-100"><i class="bi bi-credit-card-2-front"></i> Thanh toán toàn bộ giỏ</button>
+                    </form>
+
+                    <div class="mt-3 text-center">
+                        <small class="muted">Bạn có thể cập nhật số lượng, chọn mục rồi thanh toán.</small>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS: tính toán selected total, tạo form POST động gửi selected items -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    (function () {
+        // lấy CSRF từ meta tags (nếu có)
+        function getCsrf() {
+            var tokenMeta = document.querySelector('meta[name="_csrf"]');
+            var headerMeta = document.querySelector('meta[name="_csrf_header"]');
+            return {
+                token: tokenMeta ? tokenMeta.getAttribute('content') : '',
+                header: headerMeta ? headerMeta.getAttribute('content') : 'X-CSRF-TOKEN'
+            };
+        }
+
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const selectedTotalEl = document.getElementById('selectedTotal');
+        const selectedQtyEl = document.getElementById('selectedQuantity');
+        const checkoutBtn = document.getElementById('checkoutSelectedBtn');
+
+        // helper parse number safe
+        function parseNumber(s) {
+            var n = Number(s);
+            return isNaN(n) ? 0 : n;
+        }
+
+        function formatVND(n) {
+            if (isNaN(n)) return '0 ₫';
+            return Number(n).toLocaleString('vi-VN') + ' ₫';
+        }
+
+        function getItemCheckboxes() {
+            return Array.from(document.querySelectorAll('.select-item'));
+        }
+
+        function updateSelectedSummary() {
+            const itemCheckboxes = getItemCheckboxes();
+            const checked = itemCheckboxes.filter(cb => cb.checked);
+            let total = 0;
+            let qtySum = 0;
+            checked.forEach(cb => {
+                const price = parseNumber(cb.getAttribute('data-price') || '0');
+                let qty = parseInt(cb.getAttribute('data-qty') || '1', 10);
+                const idx = cb.getAttribute('data-index');
+                if (idx !== null) {
+                    const qInput = document.querySelector('.qty-input[data-index="'+idx+'"]');
+                    if (qInput) qty = Math.max(1, parseInt(qInput.value || '1', 10));
+                }
+                qtySum += qty;
+                total += (price * qty);
+            });
+            selectedTotalEl.textContent = formatVND(total);
+            selectedQtyEl.textContent = qtySum;
+            checkoutBtn.disabled = checked.length === 0;
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
+                const checked = this.checked;
+                const itemCheckboxes = getItemCheckboxes();
+                itemCheckboxes.forEach(cb => cb.checked = checked);
+                updateSelectedSummary();
+            });
+        }
+
+        // delegate change events
+        document.addEventListener('change', function (e) {
+            if (e.target && e.target.classList && e.target.classList.contains('select-item')) {
+                updateSelectedSummary();
+            }
+        });
+
+        // qty input updates
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.classList && e.target.classList.contains('qty-input')) {
+                const idx = e.target.getAttribute('data-index');
+                if (idx !== null) {
+                    const cb = document.querySelector('.select-item[data-index="'+idx+'"]');
+                    if (cb) cb.setAttribute('data-qty', e.target.value);
+                }
+                const row = e.target.closest('tr');
+                if (row) {
+                    const cb = row.querySelector('.select-item');
+                    const price = parseNumber(cb ? (cb.getAttribute('data-price') || '0') : '0');
+                    const q = Math.max(1, parseInt(e.target.value || '1', 10));
+                    const subCell = row.querySelector('.sub-total-cell');
+                    if (subCell) {
+                        subCell.textContent = formatVND(price * q);
+                    }
+                }
+                updateSelectedSummary();
+            }
+        });
+
+        // Checkout selected items handler (only send selected items by variantId)
+        checkoutBtn.addEventListener('click', function () {
+            const itemCheckboxes = getItemCheckboxes();
+            const checked = itemCheckboxes.filter(cb => cb.checked);
+
+            console.log('[DEBUG] checked checkboxes count:', checked.length);
+
+            if (checked.length === 0) {
+                alert('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.');
+                return;
+            }
+
+            const variantIds = [];
+            const quantities = [];
+
+            checked.forEach(cb => {
+                let varId = cb.getAttribute('data-variantid');
+                let qty = parseInt(cb.getAttribute('data-qty') || '1', 10);
+                const idx = cb.getAttribute('data-index');
+
+                console.log('[DEBUG] Processing item:', {
+                    varId: varId,
+                    qty: qty,
+                    idx: idx,
+                    element: cb
+                });
+
+                if (idx !== null) {
+                    const qInput = document.querySelector('.qty-input[data-index="'+idx+'"]');
+                    if (qInput) {
+                        const parsed = parseInt(qInput.value || '1', 10);
+                        if (!isNaN(parsed) && parsed > 0) qty = parsed;
+                    }
+                }
+
+                // Chuyển đổi và validate variantId
+                varId = (varId === null || varId === undefined) ? '' : String(varId).trim();
+
+                // Chỉ skip nếu variantId thực sự rỗng HOẶC là string "null"/"undefined"
+                if (varId === '' || varId === 'null' || varId === 'undefined') {
+                    console.warn('[DEBUG] Skipping invalid variantId:', varId, cb);
+                    return;
+                }
+
+                console.log('[DEBUG] Adding valid item:', { varId, qty });
+
+                variantIds.push(varId);
+                quantities.push(String(Math.max(1, isNaN(qty) ? 1 : qty)));
+            });
+
+            console.log('[DEBUG] payload to send', { variantIds, quantities });
+
+            if (variantIds.length === 0) {
+                alert('Không có mục hợp lệ để thanh toán. Vui lòng thử lại.');
+                return;
+            }
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = /*[[ @{/cart/checkout} ]]*/ '/cart/checkout';
+
+            const csrf = getCsrf();
+            if (csrf && csrf.token) {
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = '_csrf';
+                csrfInput.value = csrf.token;
+                form.appendChild(csrfInput);
+            }
+
+            variantIds.forEach(vid => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'variantIds';
+                inp.value = vid;
+                form.appendChild(inp);
+            });
+
+            quantities.forEach(q => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'quantities';
+                inp.value = q;
+                form.appendChild(inp);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // init
+        updateSelectedSummary();
+    })();
+    /*]]>*/
+</script>
+</body>
+</html>

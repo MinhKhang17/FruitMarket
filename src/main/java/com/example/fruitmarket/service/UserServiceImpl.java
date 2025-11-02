@@ -128,5 +128,11 @@ public class UserServiceImpl implements UserService {
         return userDetailRepo.findById(addressId).orElseThrow();
     }
 
+    @Override
+    public User_detail saveUserDetail(User_detail userDetail) {
+        return userDetailRepo.save(userDetail);
+
+    }
+
 
 }
