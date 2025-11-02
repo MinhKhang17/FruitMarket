@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -21,47 +19,36 @@ import java.util.Map;
 public class ImageServiceImpl implements ImageService {
 
     private final ImageRepository imageRepository;
-    private final ProductVariantRepository variantRepository; // dùng variant repo
+    private final ProductVariantRepository variantRepository;
 
-    private final Cloudinary cloudinary = new Cloudinary(ObjectUtils.asMap(
-            "cloud_name", "dtlvxcxdw",
-            "api_key", "687268262255632",
-            "api_secret", "q4hktNoHjL8GOAkHO-MKJS8GeIg",
-            "secure", true
-    ));
+    // ✅ inject từ CloudinaryConfig.java
+    private final Cloudinary cloudinary;
 
     @Override
-    public Image uploadImage(MultipartFile file, ImageType imageType) {
-        try {
-            Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                    ObjectUtils.asMap("folder", "fruitmarket_uploads"));
-            String url = uploadResult.get("secure_url").toString();
+    public Image uploadImage(MultipartFile file, ImageType imageType) throws IOException {
+        // upload lên cloudinary (sử dụng folder riêng)
+        Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
+                ObjectUtils.asMap("folder", "fruitmarket_uploads"));
 
-            Image image = new Image();
-            image.setUrl(url);
-            image.setImageType(imageType);
+        String url = uploadResult.get("secure_url").toString();
 
-            return imageRepository.save(image);
-        } catch (IOException e) {
-            throw new RuntimeException("Lỗi khi upload ảnh lên Cloudinary", e);
-        }
+        Image image = new Image();
+        image.setUrl(url);
+        image.setImageType(imageType);
+
+        return imageRepository.save(image);
     }
 
     @Override
-    public void uploadImagesForVariant(Long variantId, List<MultipartFile> files, ImageType imageType) {
+    public void uploadImageForVariant(Long variantId, MultipartFile file, ImageType imageType) throws IOException {
         ProductVariant variant = variantRepository.findById(variantId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể"));
 
-        List<Image> uploadedImages = new ArrayList<>();
+        // Upload ảnh lên Cloudinary
+        Image image = uploadImage(file, imageType);
 
-        for (MultipartFile file : files) {
-            Image img = uploadImage(file, imageType);
-            img.setVariant(variant);              // Gắn variant
-            uploadedImages.add(imageRepository.save(img));
-        }
-
-        // Cập nhật list images cho variant (nếu bạn có mappedBy = "variant")
-        variant.getImages().addAll(uploadedImages);
+        // Gắn ảnh với variant (1-1)
+        variant.setImage(image);
         variantRepository.save(variant);
     }
 }

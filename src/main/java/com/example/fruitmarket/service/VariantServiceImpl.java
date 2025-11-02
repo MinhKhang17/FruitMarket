@@ -1,6 +1,5 @@
 package com.example.fruitmarket.service;
 
-import com.example.fruitmarket.dto.ProductVariantDTO;
 import com.example.fruitmarket.enums.ImageType;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
@@ -15,7 +14,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class VariantServiceImpl implements VariantService{
+public class VariantServiceImpl implements VariantService {
+
     private final ProductVariantRepository productVariantRepository;
     private final ProductRepository productRepository;
     private final ImageService imageService;
@@ -29,10 +29,12 @@ public class VariantServiceImpl implements VariantService{
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + productId));
 
         variant.setProduct(product);
+
         ProductVariant savedVariant = productVariantRepository.save(variant);
 
         if (files != null && !files.isEmpty()) {
-            imageService.uploadImagesForVariant(savedVariant.getId(), files, imageType);
+            MultipartFile firstFile = files.get(0);
+            imageService.uploadImageForVariant(savedVariant.getId(), firstFile, imageType);
         }
 
         return savedVariant;

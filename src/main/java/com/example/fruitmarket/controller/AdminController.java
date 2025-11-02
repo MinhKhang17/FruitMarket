@@ -16,28 +16,26 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-@Controller()
+@Controller
 @RequestMapping("/admin")
 public class AdminController {
+
     @Autowired private ProductService productService;
     @Autowired private BrandsService brandsService;
     @Autowired private CategorysService categorysService;
-    @Autowired private ImageService imageService;
     @Autowired private VariantService variantService;
+    @Autowired private ImageService imageService;
+
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
 
-    @GetMapping({"/adminPage", ""})
-    public String adminPage(Model model, HttpSession session){
+    @GetMapping({"", "/adminPage"})
+    public String adminPage(Model model, HttpSession session) {
         Object logged = (session != null) ? session.getAttribute("loggedUser") : null;
-        if (logged instanceof com.example.fruitmarket.model.Users) {
-            try {
-                model.addAttribute("loggedUserName", ((com.example.fruitmarket.model.Users) logged).getUsername());
-            } catch (Exception e) {
-                model.addAttribute("loggedUserName", "admin");
-            }
-        } else {
-            model.addAttribute("loggedUserName", "admin");
+        String username = "admin";
+        if (logged instanceof com.example.fruitmarket.model.Users user) {
+            username = user.getUsername();
         }
+        model.addAttribute("loggedUserName", username);
         return "admin/adminPage";
     }
 
@@ -47,10 +45,34 @@ public class AdminController {
         return "admin/categories";
     }
 
+    @GetMapping("/categories/create")
+    public String createCategoryForm(Model model) {
+        model.addAttribute("category", new Categorys());
+        return "admin/createCategory";
+    }
+
+    @PostMapping("/categories/save")
+    public String saveCategory(@ModelAttribute Categorys category) {
+        categorysService.addCategorys(category);
+        return "redirect:/admin/categories";
+    }
+
     @GetMapping("/brands")
     public String brands(Model model) {
         model.addAttribute("brands", brandsService.findAll());
         return "admin/brands";
+    }
+
+    @GetMapping("/brands/create")
+    public String createBrandForm(Model model) {
+        model.addAttribute("brand", new Brands());
+        return "admin/createBrand";
+    }
+
+    @PostMapping("/brands/save")
+    public String saveBrand(@ModelAttribute Brands brand) {
+        brandsService.addBrand(brand);
+        return "redirect:/admin/brands";
     }
 
     @GetMapping("/products")
@@ -60,33 +82,17 @@ public class AdminController {
     }
 
     @GetMapping("/products/create")
-    public String createProduct(Model model){
-        try {
-            // always put a Product instance in model (avoids template needing to create one)
-            model.addAttribute("product", new Product());
-            model.addAttribute("categories", categorysService.findAll());
-            model.addAttribute("brands", brandsService.findAll());
-            return "admin/createProduct";
-        } catch (Exception ex) {
-            log.error("Error preparing create product page", ex);
-            // optional: pass a friendly message to a general error page or redirect back
-            model.addAttribute("errorMessage", "Có lỗi khi tải trang tạo sản phẩm: " + ex.getMessage());
-            return "admin/createProduct"; // vẫn trả template nhưng bạn sẽ thấy errorMessage nếu cần
-        }
+    public String createProduct(Model model) {
+        model.addAttribute("product", new Product());
+        model.addAttribute("categories", categorysService.findAll());
+        model.addAttribute("brands", brandsService.findAll());
+        return "admin/createProduct";
     }
 
-
+    // ✅ POST mapping gọn gàng, thống nhất
     @PostMapping("/products/save")
-    public String saveProduct(@ModelAttribute Product product,
-                              @RequestParam(value = "productImage", required = false) List<MultipartFile> files)
-            throws IOException {
-        Product saved = productService.saveProduct(product);
-        return "redirect:/admin/products";
-    }
-
-    @GetMapping("/products/delete/{id}")
-    public String deleteProduct(@PathVariable Long id) {
-        productService.deleteById(id);
+    public String saveProduct(@ModelAttribute Product product) {
+        productService.saveProduct(product);
         return "redirect:/admin/products";
     }
 
@@ -105,36 +111,18 @@ public class AdminController {
         return "redirect:/admin/products";
     }
 
-    // Brands & Categories handling (kept minimal)
-    @GetMapping("/brands/create")
-    public String createBrandForm(Model model) {
-        model.addAttribute("brand", new Brands());
-        return "admin/createBrand";
+    @GetMapping("/products/delete/{id}")
+    public String deleteProduct(@PathVariable Long id) {
+        productService.deleteById(id);
+        return "redirect:/admin/products";
     }
 
-    @PostMapping("/brands/save")
-    public String saveBrand(@ModelAttribute Brands brand) {
-        brandsService.addBrand(brand);
-        return "redirect:/admin/brands";
-    }
-
-    @GetMapping("/categories/create")
-    public String createCategoryForm(Model model) {
-        model.addAttribute("category", new Categorys());
-        return "admin/createCategory";
-    }
-
-    @PostMapping("/categories/save")
-    public String saveCategory(@ModelAttribute Categorys category) {
-        categorysService.addCategorys(category);
-        return "redirect:/admin/categories";
-    }
-
+    /* ---------------------------- VARIANTS ---------------------------- */
     @GetMapping("/products/{id}/variants")
     public String showVariantPage(@PathVariable Long id, Model model) {
         Product product = productService.findById(id);
         model.addAttribute("product", product);
-        return "admin/productVariants";
+        return "admin/productVariant";
     }
 
     @PostMapping("/products/{productId}/variant/save")
@@ -143,6 +131,7 @@ public class AdminController {
                               @RequestParam(value = "files", required = false) List<MultipartFile> files)
             throws IOException {
 
+        // Chỉ upload ảnh đầu tiên (One-to-One)
         variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
         return "redirect:/admin/products/" + productId + "/variants";
     }

@@ -13,5 +13,4 @@ public interface VariantService {
                                  ProductVariant variant,
                                  List<MultipartFile> files,
                                  ImageType imageType) throws IOException;
-
 }

@@ -18,8 +18,4 @@ public class Image {
 
     @Enumerated(EnumType.STRING)
     private ImageType imageType;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "variant_id")
-    private ProductVariant variant;
 }
