@@ -1,4 +1,3 @@
-<!-- file: src/main/resources/templates/home/product.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
@@ -18,29 +17,84 @@
 <div th:replace="fragments/header :: header"></div>
 
 <main class="container products-page">
-    <!-- Heading đơn giản -->
+    <!-- Heading -->
     <div class="simple-heading">
         <h1 class="page-title">All Products</h1>
         <p class="page-subtitle">Bộ sưu tập sản phẩm mới nhất</p>
     </div>
 
     <!-- Empty state -->
-    <div th:if="${#lists.isEmpty(products)}" class="no-product">
-        <div class="empty-illustration"><i class="bi bi-emoji-frown"></i></div>
+    <div th:if="${#lists.isEmpty(products)}" class="no-product text-center py-5">
+        <div class="empty-illustration display-4 mb-2"><i class="bi bi-emoji-frown"></i></div>
         <p>Hiện chưa có sản phẩm để trưng bày.</p>
     </div>
 
+    <!-- Toolbar: Filters + Sort + Page size -->
+    <section class="toolbar" th:if="${!#lists.isEmpty(products)}">
+        <div class="row g-2 g-md-3 align-items-stretch">
+            <!-- Category -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <select id="cat" class="form-select">
+                    <option value="">Tất cả danh mục</option>
+                </select>
+            </div>
+
+            <!-- Brand -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <select id="brand" class="form-select">
+                    <option value="">Tất cả thương hiệu</option>
+                </select>
+            </div>
+
+            <!-- Sort -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <select id="sort" class="form-select">
+                    <option value="default">Sắp xếp: Mặc định</option>
+                    <option value="priceAsc">Giá: thấp → cao</option>
+                    <option value="priceDesc">Giá: cao → thấp</option>
+                    <option value="nameAsc">Tên: A → Z</option>
+                    <option value="nameDesc">Tên: Z → A</option>
+                </select>
+            </div>
+
+            <!-- Page size (mặc định chọn 20 khi load) -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <select id="size" class="form-select">
+                    <option value="10">10 / trang</option>
+                    <option value="20">20 / trang</option>
+                    <option value="40">40 / trang</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Active filter chips + Reset -->
+        <div class="active-filters d-flex flex-wrap align-items-center gap-2 mt-3">
+            <div id="chips" class="chips"></div>
+            <button id="resetAll" type="button" class="btn btn-outline-leaf btn-sm d-none">
+                <i class="bi bi-x-circle me-1"></i>Reset
+            </button>
+            <div class="ms-auto small text-muted" id="resultCount"></div>
+        </div>
+    </section>
+
     <!-- Product grid -->
     <section class="products-wrapper" th:if="${!#lists.isEmpty(products)}">
-        <div class="row g-3 g-xl-4 justify-content-center">
-            <!-- 5 cột trên ≥1200px với .col-xl-2p4 -->
+        <div class="row g-3 g-xl-4 justify-content-center" id="grid">
+            <!-- 5 cột/hàng ở ≥1200px nhờ .col-xl-2p4 -->
             <div class="col-6 col-md-4 col-lg-3 col-xl-2p4" th:each="p : ${products}">
-                <article class="product-card h-100 d-flex flex-column">
+                <article class="product-card h-100 d-flex flex-column"
+                         th:attr="data-price=${
+                    (p.variants != null && !p.variants.isEmpty())
+                      ? p.variants[0].price
+                      : (p.product_price != null ? p.product_price : null)
+                 }"
+                         th:data-name="${#strings.toLowerCase(p.productName)}"
+                         th:data-cat="${p.category != null ? p.category.name : ''}"
+                         th:data-brand="${p.brand != null ? p.brand.name : ''}">
                     <!-- Ảnh -->
                     <a class="thumb ratio ratio-4x3" th:href="@{|/products/${p.id}|}" target="_top" aria-label="Xem chi tiết">
                         <img th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
-                             th:alt="${p.productName}"
-                             onerror="this.src='/images/placeholder.png'"/>
+                             th:alt="${p.productName}" onerror="this.src='/images/placeholder.png'"/>
                     </a>
 
                     <!-- Nội dung -->
@@ -71,11 +125,167 @@
             </div>
         </div>
     </section>
+
+    <!-- Pagination -->
+    <nav id="pager" class="d-flex justify-content-center mt-3" aria-label="Pagination"
+         th:if="${!#lists.isEmpty(products)}"></nav>
 </main>
 
 <div th:replace="fragments/footer :: footer"></div>
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Filter + Sort + Pagination (no search) -->
+<script>
+    (function () {
+        const grid   = document.getElementById('grid');
+        const pager  = document.getElementById('pager');
+        const $cat   = document.getElementById('cat');
+        const $brand = document.getElementById('brand');
+        const $sort  = document.getElementById('sort');
+        const $size  = document.getElementById('size');
+        const $chips = document.getElementById('chips');
+        const $reset = document.getElementById('resetAll');
+        const $count = document.getElementById('resultCount');
+
+        if (!grid || !pager) return;
+
+        let items = Array.from(grid.children).filter(el => el.matches('[class*="col-"]'));
+        items.forEach((col, i) => col.dataset.initialIndex = String(i));
+
+        // Build sets for Category / Brand
+        const cats = new Set(), brands = new Set();
+        items.forEach(col => {
+            const card = col.querySelector('.product-card');
+            const c = (card?.dataset.cat || '').trim();
+            const b = (card?.dataset.brand || '').trim();
+            if (c) cats.add(c);
+            if (b) brands.add(b);
+        });
+        [...cats].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
+            const opt=document.createElement('option');opt.value=v;opt.textContent=v;$cat.appendChild(opt);
+        });
+        [...brands].sort((a,b)=>a.localeCompare(b)).forEach(v=>{
+            const opt=document.createElement('option');opt.value=v;opt.textContent=v;$brand.appendChild(opt);
+        });
+
+        // Mặc định 20 / trang
+        const state = { cat:'', brand:'', sort:'default', size:20, page:1 };
+        $size.value = String(state.size); // chọn "20 / trang" trong dropdown
+
+        function getPrice(col){
+            const card = col.querySelector('.product-card');
+            let v = card?.dataset.price ?? '';
+            if (v === '' || v === 'null' || v === 'undefined') {
+                const txt = col.querySelector('.price')?.textContent || '';
+                const digits = txt.replace(/[^\d]/g,'');
+                if (digits) v = Number(digits);
+            }
+            const num = Number(v);
+            return Number.isFinite(num) ? num : Infinity;
+        }
+
+        function getName(col){
+            const d = col.querySelector('.product-card')?.dataset.name || '';
+            const h2 = col.querySelector('.product-name')?.textContent || '';
+            return (d || h2).toLowerCase();
+        }
+
+        function apply() {
+            let filtered = items.filter(col=>{
+                const card = col.querySelector('.product-card');
+                const c = (card?.dataset.cat || '').trim();
+                const b = (card?.dataset.brand || '').trim();
+                const inC = state.cat ? c === state.cat : true;
+                const inB = state.brand ? b === state.brand : true;
+                return inC && inB;
+            });
+
+            const sorted = filtered.slice().sort((a,b)=>{
+                switch(state.sort){
+                    case 'priceAsc': return getPrice(a) - getPrice(b);
+                    case 'priceDesc': return getPrice(b) - getPrice(a);
+                    case 'nameAsc': return getName(a).localeCompare(getName(b));
+                    case 'nameDesc': return getName(b).localeCompare(getName(a));
+                    default: return Number(a.dataset.initialIndex) - Number(b.dataset.initialIndex);
+                }
+            });
+
+            const total = sorted.length;
+            const pages = Math.max(1, Math.ceil(total / state.size));
+            if (state.page > pages) state.page = pages;
+            const start = (state.page - 1) * state.size;
+            const end   = start + state.size;
+
+            items.forEach(el => el.style.display='none');
+            sorted.slice(start,end).forEach(el => el.style.display='');
+            renderPager(pages);
+            renderChips(total);
+            $count.textContent = total ?
+                `Hiển thị ${Math.min(total,end)-start} / ${total} sản phẩm` :
+                'Không có sản phẩm phù hợp';
+        }
+
+        function renderPager(pages){
+            if (pages <= 1) { pager.innerHTML=''; return; }
+            const ul=document.createElement('ul');
+            ul.className='pagination pagination-soft';
+            ul.appendChild(pageLi('«', state.page===1, ()=>{state.page--;apply();}));
+            for(let i=1;i<=pages;i++){
+                ul.appendChild(pageLi(String(i), false, ()=>{state.page=i;apply();}, i===state.page));
+            }
+            ul.appendChild(pageLi('»', state.page===pages, ()=>{state.page++;apply();}));
+            pager.innerHTML='';pager.appendChild(ul);
+        }
+        function pageLi(text, disabled, onClick, active=false){
+            const li=document.createElement('li');
+            li.className='page-item'+(disabled?' disabled':'')+(active?' active':'');
+            const a=document.createElement('a');
+            a.className='page-link';a.href='#';a.textContent=text;
+            a.addEventListener('click',e=>{e.preventDefault();if(!disabled)onClick();});
+            li.appendChild(a);return li;
+        }
+
+        function renderChips(total){
+            $chips.innerHTML='';
+            const defs=[];
+            if(state.cat) defs.push({k:'cat',label:`Danh mục: ${state.cat}`});
+            if(state.brand) defs.push({k:'brand',label:`Thương hiệu: ${state.brand}`});
+            if(state.sort!=='default'){
+                const map={priceAsc:'Giá ↑',priceDesc:'Giá ↓',nameAsc:'Tên A→Z',nameDesc:'Tên Z→A'};
+                defs.push({k:'sort',label:`Sắp xếp: ${map[state.sort]}`});
+            }
+            if(state.size!==20) defs.push({k:'size',label:`${state.size}/trang`});
+
+            defs.forEach(def=>{
+                const b=document.createElement('button');
+                b.type='button';b.className='chip chip-dismiss';
+                b.innerHTML=`<i class="bi bi-x"></i> ${def.label}`;
+                b.addEventListener('click',()=>{
+                    if(def.k==='cat'){state.cat='';$cat.value='';}
+                    if(def.k==='brand'){state.brand='';$brand.value='';}
+                    if(def.k==='sort'){state.sort='default';$sort.value='default';}
+                    if(def.k==='size'){state.size=20;$size.value='20';}
+                    state.page=1;apply();
+                });
+                $chips.appendChild(b);
+            });
+
+            $reset.classList.toggle('d-none', defs.length===0 && total===items.length);
+            $reset.onclick=()=>{
+                state.cat='';state.brand='';state.sort='default';state.size=20;state.page=1;
+                $cat.value='';$brand.value='';$sort.value='default';$size.value='20';
+                apply();
+            };
+        }
+
+        $cat.addEventListener('change',()=>{state.cat=$cat.value;state.page=1;apply();});
+        $brand.addEventListener('change',()=>{state.brand=$brand.value;state.page=1;apply();});
+        $sort.addEventListener('change',()=>{state.sort=$sort.value;state.page=1;apply();});
+        $size.addEventListener('change',()=>{state.size=parseInt($size.value,10);state.page=1;apply();});
+        apply();
+    })();
+</script>
 </body>
 </html>
