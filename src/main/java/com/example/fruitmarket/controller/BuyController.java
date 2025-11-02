@@ -42,19 +42,18 @@ public class BuyController {
             return "redirect:/auth/login";
         }
 
-        // 2. Lấy productVariant an toàn (không null)
-        var variant = productService.findProductVariantById(checkoutRequest.getProduct_variant_id());
-        model.addAttribute("productVariant", FruitMapper.toProductCheckout(variant));
+        var productVariant = FruitMapper.toProductCheckout(productService.findProductVariantById(checkoutRequest.getProduct_variant_id()));
+        model.addAttribute("productVariant", productVariant);
         model.addAttribute("quantity", checkoutRequest.getQuantity());
 
-        // 3. Lấy danh sách địa chỉ của user (trả List<User_detail>, có thể rỗng)
-        List<User_detail> userDetails = userService.getUserDetailFromSession(session); // đảm bảo trả List
-        if (userDetails == null) userDetails = Collections.emptyList();
-        model.addAttribute("userDetail", userDetails);
+        session.setAttribute("productVariant", productVariant);
+        session.setAttribute("quantity", checkoutRequest.getQuantity());
 
-        // 4. Trả view
+        model.addAttribute("userDetail",user);
+
         return "home/checkout";
     }
+
     @PostMapping("/checkout/process")
     public String processCheckout(@ModelAttribute CheckoutProcessRequest checkoutRequest,
                                   HttpSession session,
@@ -119,6 +118,29 @@ public class BuyController {
         return "redirect:/";
     }
 
+    @PostMapping("/checkout/save-address")
+    public String saveAddress(@RequestParam String phone,
+                              @RequestParam String address,
+                              HttpSession session,
+                              RedirectAttributes ra) {
+        Users loggedUser = (Users) session.getAttribute("loggedUser");
+        if (loggedUser == null) {
+            ra.addFlashAttribute("message", "Please login first");
+            return "redirect:/auth/login";
+        }
 
+        User_detail detail = new User_detail();
+        detail.setPhone(phone);
+        detail.setAddress(address);
+        detail.setUser(loggedUser);
+
+        userService.saveUserDetail(detail);
+
+        ra.addFlashAttribute("message", "Đã thêm địa chỉ giao hàng mới!");
+        ra.addFlashAttribute("type", "success");
+
+        // Quay lại checkout để hiển thị thông tin mới
+        return "redirect:/checkout";
+    }
 
 }

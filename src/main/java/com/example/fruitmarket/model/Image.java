@@ -13,7 +13,7 @@ public class Image {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, length = 1000)
+    @Column(length = 1000)
     private String url;
 
     @Enumerated(EnumType.STRING)

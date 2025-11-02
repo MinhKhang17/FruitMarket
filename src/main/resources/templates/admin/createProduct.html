@@ -7,10 +7,11 @@
 <body>
 <h1 th:text="${product.id} != null ? 'Edit Product' : 'Create Product'">Product Form</h1>
 
+<!-- ✅ thêm enctype multipart/form-data -->
 <form th:action="${product.id} != null ? @{/admin/product/update} : @{/admin/product/save}"
-      th:object="${product}" method="post">
-<!--    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
+      th:object="${product}" method="post" enctype="multipart/form-data">
 
+    <!-- Hidden field id (chỉ khi edit) -->
     <div th:if="${product.id != null}">
         <label for="id">Product Id</label>
         <input type="text" id="id" th:field="*{id}" readonly/>
@@ -23,7 +24,7 @@
 
     <div>
         <label for="product_description">Product Description</label>
-        <input type="text" id="product_description" th:field="*{product_description}"/>
+        <textarea id="product_description" th:field="*{product_description}" rows="3"></textarea>
     </div>
 
     <div>
@@ -40,6 +41,21 @@
             <option value="" th:if="${product.brand == null}">-- Select brand --</option>
             <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
         </select>
+    </div>
+
+    <!-- ✅ Upload nhiều ảnh -->
+    <div>
+        <label for="productImage">Product Images</label>
+        <input type="file" id="productImage" name="productImage" multiple accept="image/*"/>
+        <small>Chọn 1 hoặc nhiều ảnh (tự động upload lên Cloudinary)</small>
+    </div>
+
+    <!-- ✅ Nếu đang edit: hiển thị ảnh hiện có -->
+    <div th:if="${product.images != null and !#lists.isEmpty(product.images)}">
+        <p>Existing Images:</p>
+        <div th:each="img : ${product.images}">
+            <img th:src="${img.url}" alt="product image" width="100" style="margin:5px;border-radius:8px;"/>
+        </div>
     </div>
 
     <div>

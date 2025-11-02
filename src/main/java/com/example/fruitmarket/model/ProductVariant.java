@@ -37,4 +37,5 @@ public class ProductVariant {
             foreignKey = @ForeignKey(name = "FK_product_image"))
     private Image image;
 
+
 }

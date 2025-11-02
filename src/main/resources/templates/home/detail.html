@@ -40,18 +40,24 @@
             <div class="card-body">
                 <div class="row g-4 align-items-start">
 
-                    <!-- Left: Image -->
+                    <!-- ✅ Left: Image -->
                     <div class="col-lg-6 text-center">
                         <div class="img-wrap mb-3">
+                            <!-- ✅ Ưu tiên ảnh variant đầu tiên, nếu không thì ảnh sản phẩm, nếu không thì placeholder -->
                             <img id="productImage"
-                                 th:src="${#strings.isEmpty(product.imageUrl) ? '/images/placeholder.jpg' : product.imageUrl}"
+                                 th:src="${
+                                     (product.productVariants != null and !#lists.isEmpty(product.productVariants)
+                                      and product.productVariants.get(0).image != null)
+                                     ? product.productVariants.get(0).image.url
+                                     : (#strings.isEmpty(product.imageUrl) ? '/images/placeholder.jpg' : product.imageUrl)
+                                 }"
                                  th:alt="${product.productName}"
                                  class="img-fluid rounded"
                                  onerror="this.src='/images/placeholder.jpg'"/>
                         </div>
                     </div>
 
-                    <!-- Right: Product Info -->
+                    <!-- ✅ Right: Product Info -->
                     <div class="col-lg-6">
                         <h2 class="mb-2" th:text="${product.productName}">Tên sản phẩm</h2>
 
@@ -80,13 +86,11 @@
                         <div class="variant-options mb-3">
                             <label><strong>Chọn biến thể:</strong></label>
 
-                            <!-- Nếu không có variant -->
                             <div th:if="${product.productVariants == null or #lists.isEmpty(product.productVariants)}"
                                  class="text-muted">
                                 Sản phẩm này không có biến thể, bạn có thể chọn số lượng và thanh toán.
                             </div>
 
-                            <!-- Nếu có variant -->
                             <div th:if="${product.productVariants != null and !#lists.isEmpty(product.productVariants)}"
                                  id="variantGroup">
                                 <button th:each="v : ${product.productVariants}"
@@ -140,14 +144,12 @@
     const stockHint = document.getElementById("stockHint");
     const qtyInput = document.getElementById("qtyInput");
 
-    // Format giá kiểu VNĐ
     function fmtPrice(v) {
         const n = Number(v);
         if (isNaN(n)) return v;
         return n.toLocaleString("vi-VN") + " ₫";
     }
 
-    // Khi chọn biến thể
     function selectVariant(btn) {
         document.querySelectorAll(".variant-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
@@ -163,11 +165,9 @@
         qtyInput.max = stock;
 
         if (Number(qtyInput.value) > Number(stock)) qtyInput.value = stock;
-
         if (image && image.trim() !== "") productImage.src = image;
     }
 
-    // Validate trước khi submit
     function validateCheckout() {
         if (!variantIdInput.value) {
             alert("Vui lòng chọn biến thể trước khi thanh toán!");

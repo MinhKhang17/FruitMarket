@@ -17,4 +17,5 @@ public interface UserService {
     List<User_detail> getUserDetailFromSession(HttpSession session);
 
     User_detail findUserDetalById(Long addressId);
+    User_detail saveUserDetail(User_detail userDetail);
 }
