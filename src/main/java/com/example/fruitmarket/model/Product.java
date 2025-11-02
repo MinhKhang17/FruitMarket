@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,4 +41,6 @@ public class Product {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "product_id") // foreign key ở bảng images
     private List<Image> images = new ArrayList<>();
+    @Column
+    private LocalDateTime createdAt;
 }

@@ -1,98 +1,173 @@
-/* ===== Reset cơ bản ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* page.css — modern clean styles for FruitMarket home */
 
-/* ===== Biến màu (lấy cảm hứng từ login) ===== */
+/* Base / typography */
 :root{
-    --leaf-50:#e8f5e9;
-    --leaf-100:#c8e6c9;
-    --leaf-300:#81c784;
-    --leaf-400:#66bb6a;
-    --leaf-500:#43a047;
-    --leaf-600:#388e3c;
-    --leaf-700:#2e7d32;
-    --leaf-900:#1b5e20;
-
-    --ink:#333;
-    --muted:#5f6b6b;
-
-    --card-bg:#fff;
-    --ring:#cfe8cf;
-    --shadow:0 6px 20px rgba(0,0,0,.08);
+    --leaf: #2f9e44;
+    --muted: #6c757d;
+    --card-bg: #ffffff;
+    --surface: #f8faf9;
+    --radius: 12px;
+    --gap: 1rem;
+    --shadow-sm: 0 6px 18px rgba(30,30,30,0.06);
 }
 
-/* ===== Nền trang (đồng bộ vibe login) ===== */
-body{
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
-    min-height: 100vh;
+html,body {
+    height: 100%;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfdfc 100%);
+    font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #222;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+}
+
+/* Page container */
+.page-wrap .container {
+    padding-top: 28px;
+    padding-bottom: 32px;
+}
+
+/* Hero */
+.hero-card {
+    background: linear-gradient(90deg, rgba(47,158,68,0.06), rgba(47,158,68,0.03));
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(47,158,68,0.06);
+}
+.page-title { font-weight: 700; letter-spacing: -0.2px; }
+.page-subtitle { color: var(--muted); }
+
+/* Buttons */
+.btn-outline-sky {
+    border-color: #6aa8ff;
+    color: #0b66ff;
+}
+.btn-outline-leaf {
+    border-color: var(--leaf);
+    color: var(--leaf);
+}
+.btn-leaf {
+    background-color: var(--leaf);
+    color: #fff;
+    border: none;
+}
+
+/* Card grid */
+.card {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+    background: var(--card-bg);
+}
+.card.h-100 {
     display: flex;
     flex-direction: column;
-    color: var(--ink);
+    height: 100%;
+}
+.card .card-body {
+    padding: 12px 14px;
 }
 
-/* ===== Khung nội dung chính ===== */
-.page-wrap{ flex:1; padding:24px 0; }
-
-/* ===== Card hero ===== */
-.hero-card{
-    background: var(--card-bg);
-    border: 1px solid var(--leaf-100);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    padding: 24px;
+/* Image ratio + object fit */
+.ratio.ratio-4x3 {
+    background: linear-gradient(90deg,#f3f7f3,#ffffff);
 }
-
-/* ===== Tiêu đề & mô tả ===== */
-.page-title{
-    color: var(--leaf-500);
-    font-weight: 800;
-    letter-spacing: .2px;
-    text-shadow: 0 1px 2px rgba(0,0,0,.06);
-}
-.page-subtitle{
-    color: var(--leaf-700);
-    opacity: .9;
-}
-
-/* ===== Nút hành động ===== */
-.btn-outline-sky{ /* giữ nguyên class cũ cho đỡ sửa HTML */
-    border-color: var(--leaf-500);
-    color: var(--leaf-500);
-    font-weight: 700;
-    border-radius: 10px;
-    transition: all .25s ease;
-}
-.btn-outline-sky:hover{
-    background: var(--leaf-500);
-    color: #fff;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(67,160,71,.25);
-}
-
-/* ===== Khung “iframe card” + responsive ===== */
-.frame-wrap{
-    background: var(--card-bg);
-    border: 1px solid var(--leaf-100);
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    overflow: hidden;
-}
-.frame{
+.card-img-top.object-fit-cover {
     width: 100%;
-    height: 70vh;   /* desktop mặc định */
-    border: 0;
-    display: block;
-}
-@media (max-width: 992px){
-    .frame{ height: 62vh; }
-}
-@media (max-width: 576px){
-    .frame{ height: 58vh; }
+    height: 100%;
+    object-fit: cover;
 }
 
-/* ===== Hiệu ứng vào trang (mềm) ===== */
-@keyframes fadeIn{
-    from{ opacity:0; transform: translateY(10px); }
-    to{ opacity:1; transform: translateY(0); }
+/* Product title / meta */
+.card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+.small.text-muted { color: var(--muted); font-size: .82rem; }
+
+/* Price */
+.fw-semibold { font-weight:700; color: #111; font-size: .95rem; }
+
+/* Hover / interactions */
+.card.shadow-sm {
+    transition: transform .18s cubic-bezier(.2,.9,.3,1), box-shadow .18s;
+    box-shadow: 0 6px 18px rgba(30,30,30,0.04);
 }
-.hero-card, .frame-wrap{ animation: fadeIn .6s ease; }
+.card.shadow-sm:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 18px 40px rgba(30,30,30,0.08);
+}
+
+/* Truncated description */
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: #444;
+    font-size: .90rem;
+}
+
+/* Tabs / Pills for Category */
+.nav-pills .nav-link {
+    border-radius: 999px;
+    padding: 6px 12px;
+    margin-right: 6px;
+    color: #3b3b3b;
+    border: 1px solid transparent;
+    background: rgba(255,255,255,0.6);
+    transition: all .12s;
+}
+.nav-pills .nav-link.active {
+    background: linear-gradient(90deg,var(--leaf), #2aa64a);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(47,158,68,0.12);
+    border: 1px solid rgba(0,0,0,0.03);
+}
+
+/* Brand section (vertical list) */
+.brand-block {
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fff, #fbfffb);
+    padding: 16px;
+    border: 1px solid rgba(47,158,68,0.04);
+}
+.brand-header {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom: 12px;
+}
+.brand-header h5 {
+    margin:0;
+    font-size:1rem;
+    color: var(--leaf);
+    letter-spacing: -0.2px;
+}
+
+/* product list inside brand */
+.brand-block .card {
+    border-radius: 10px;
+}
+
+/* Small product list (thumbnail + text) */
+.brand-item {
+    display:flex;
+    gap:10px;
+    align-items:center;
+}
+.brand-item img {
+    width:56px;
+    height:56px;
+    border-radius:8px;
+    object-fit:cover;
+    flex-shrink:0;
+}
+
+/* Responsive tweaks */
+@media (max-width: 767px) {
+    .hero-card { padding: 12px; }
+    .card .card-body { padding: 10px; }
+    .brand-item img { width:48px; height:48px; }
+}
+
+/* Utility */
+.muted-italic { color:var(--muted); font-style:italic; font-size:.9rem; }
