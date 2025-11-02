@@ -1,7 +1,7 @@
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.Dto.CheckoutProcessRequest;
-import com.example.fruitmarket.Dto.CheckoutRequest;
+import com.example.fruitmarket.dto.CheckoutProcessRequest;
+import com.example.fruitmarket.dto.CheckoutRequest;
 import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.User_detail;
@@ -22,10 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 public class BuyController {

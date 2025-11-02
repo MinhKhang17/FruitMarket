@@ -1,7 +1,6 @@
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.Dto.ProductDTO;
-import com.example.fruitmarket.model.Product;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.service.BrandsService;
 import com.example.fruitmarket.service.CategorysService;
 import com.example.fruitmarket.service.ProductService;
@@ -9,7 +8,6 @@ import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller

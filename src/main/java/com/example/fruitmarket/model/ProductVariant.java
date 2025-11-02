@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "product_variant")
@@ -15,27 +17,19 @@ public class ProductVariant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Variant thuộc product
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private Product product;
 
-    // Ví dụ: "1kg", "500g", "Red / Large" (tuỳ model)
     @Column
     private String variant_name;
 
     @Column
     private long stock;
 
-
-    // Dùng BigDecimal cho money
     @Column(precision = 15, scale = 2)
     private BigDecimal price;
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "image_id", referencedColumnName = "id",
-            foreignKey = @ForeignKey(name = "FK_product_image"))
-    private Image image;
-
-
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Image> images = new ArrayList<>();
 }

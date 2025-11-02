@@ -1,11 +1,9 @@
 package com.example.fruitmarket.mapper;
 
-import com.example.fruitmarket.Dto.ProductCheckoutResponse;
-import com.example.fruitmarket.Dto.ProductDTO;
+import com.example.fruitmarket.dto.ProductCheckoutResponse;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
-
-import java.math.BigDecimal;
 
 public class FruitMapper {
     public static ProductDTO toProductDTO(Product product) {

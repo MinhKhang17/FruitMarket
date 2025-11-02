@@ -1,9 +1,7 @@
 package com.example.fruitmarket.service;
 
-import com.example.fruitmarket.Dto.CheckoutForm;
-import com.example.fruitmarket.Dto.ProductDTO;
+import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.mapper.FruitMapper;
-import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.repository.ProductRepository;

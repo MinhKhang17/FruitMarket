@@ -1,13 +1,12 @@
 package com.example.fruitmarket.service;
 
-import com.example.fruitmarket.Dto.OrderRequest;
-import com.example.fruitmarket.Enums.OrderStauts;
-import com.example.fruitmarket.Enums.PricingMethod;
+import com.example.fruitmarket.dto.OrderRequest;
+import com.example.fruitmarket.enums.OrderStauts;
+import com.example.fruitmarket.enums.PricingMethod;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.OrderRepo;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

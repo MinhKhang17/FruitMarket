@@ -1,4 +1,4 @@
-package com.example.fruitmarket.Dto;
+package com.example.fruitmarket.dto;
 
 import lombok.Data;
 

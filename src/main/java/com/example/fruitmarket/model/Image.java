@@ -1,12 +1,12 @@
 package com.example.fruitmarket.model;
 
-import com.example.fruitmarket.Enums.ImageType;
+import com.example.fruitmarket.enums.ImageType;
 import jakarta.persistence.*;
 import lombok.Data;
 
 // Image.java
 @Entity
-@Table(name = "images")   // <-- chọn "images" và dùng nhất quán
+@Table(name = "images")
 @Data
 public class Image {
     @Id
@@ -18,4 +18,8 @@ public class Image {
 
     @Enumerated(EnumType.STRING)
     private ImageType imageType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id")
+    private ProductVariant variant;
 }

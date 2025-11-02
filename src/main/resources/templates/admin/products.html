@@ -123,6 +123,8 @@
                     <a th:href="@{'/admin/products/delete/' + ${p.id}}"
                        onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">Delete</a>
                     <a th:href="@{'/admin/products/view/' + ${p.id}}">View</a>
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}"
+                       class="btn" style="background:#16a34a;padding:6px 10px;">Tạo Variant</a>
                 </td>
             </tr>
             </tbody>

@@ -1,18 +1,15 @@
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.Enums.ImageType;
+import com.example.fruitmarket.enums.ImageType;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
-import com.example.fruitmarket.service.BrandsService;
-import com.example.fruitmarket.service.CategorysService;
-import com.example.fruitmarket.service.ImageService;
-import com.example.fruitmarket.service.ProductService;
+import com.example.fruitmarket.model.ProductVariant;
+import com.example.fruitmarket.service.*;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +23,7 @@ public class AdminController {
     @Autowired private BrandsService brandsService;
     @Autowired private CategorysService categorysService;
     @Autowired private ImageService imageService;
+    @Autowired private VariantService variantService;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
 
     @GetMapping({"/adminPage", ""})
@@ -61,7 +59,7 @@ public class AdminController {
         return "admin/products";
     }
 
-    @GetMapping("/product/create")
+    @GetMapping("/products/create")
     public String createProduct(Model model){
         try {
             // always put a Product instance in model (avoids template needing to create one)
@@ -78,14 +76,11 @@ public class AdminController {
     }
 
 
-    @PostMapping("/product/save")
+    @PostMapping("/products/save")
     public String saveProduct(@ModelAttribute Product product,
                               @RequestParam(value = "productImage", required = false) List<MultipartFile> files)
             throws IOException {
         Product saved = productService.saveProduct(product);
-        if (files != null && !files.isEmpty()) {
-            imageService.uploadImagesForProduct(saved.getId(), files, ImageType.PRODUCT);
-        }
         return "redirect:/admin/products";
     }
 
@@ -104,7 +99,7 @@ public class AdminController {
         return "admin/createProduct";
     }
 
-    @PostMapping("/product/update")
+    @PostMapping("/products/update")
     public String updateProduct(@ModelAttribute Product product) {
         productService.saveProduct(product);
         return "redirect:/admin/products";
@@ -135,4 +130,20 @@ public class AdminController {
         return "redirect:/admin/categories";
     }
 
+    @GetMapping("/products/{id}/variants")
+    public String showVariantPage(@PathVariable Long id, Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "admin/productVariants";
+    }
+
+    @PostMapping("/products/{productId}/variant/save")
+    public String saveVariant(@PathVariable Long productId,
+                              @ModelAttribute ProductVariant variant,
+                              @RequestParam(value = "files", required = false) List<MultipartFile> files)
+            throws IOException {
+
+        variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
+        return "redirect:/admin/products/" + productId + "/variants";
+    }
 }

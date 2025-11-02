@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin - Product Variants</title>
+
+    <!-- Giao diện admin -->
+    <link th:href="@{/admin/admin.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="card">
+    <div class="top-row">
+        <div>
+            <h2 th:text="'Biến thể của: ' + ${product.productName}"></h2>
+            <p style="color:#94a3b8;font-size:13px"
+               th:text="'ID sản phẩm: ' + ${product.id}"></p>
+        </div>
+        <a th:href="@{/admin/products}" class="btn">← Quay lại danh sách sản phẩm</a>
+    </div>
+
+    <!-- Form tạo variant -->
+    <form th:action="@{'/admin/products/' + ${product.id} + '/variant/save'}"
+          method="post" enctype="multipart/form-data" style="margin-top:16px">
+        <div>
+            <label>Tên biến thể</label>
+            <input type="text" name="variant_name" placeholder="VD: 500g, 1kg..." required/>
+        </div>
+
+        <div>
+            <label>Giá</label>
+            <input type="number" name="price" step="0.01" placeholder="VD: 45000" required/>
+        </div>
+
+        <div>
+            <label>Tồn kho</label>
+            <input type="number" name="stock" placeholder="VD: 100" required/>
+        </div>
+
+        <div>
+            <label>Ảnh biến thể</label>
+            <input type="file" name="files" multiple accept="image/*"/>
+            <small style="color:#94a3b8;">(Bạn có thể chọn nhiều ảnh cùng lúc)</small>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="margin-top:16px;">Thêm biến thể</button>
+    </form>
+</div>
+
+<!-- Danh sách biến thể -->
+<div class="card">
+    <h3>Danh sách biến thể</h3>
+    <div th:if="${#lists.isEmpty(product.variants)}" style="color:#94a3b8;padding:10px;">
+        Chưa có biến thể nào.
+    </div>
+
+    <table th:if="${!#lists.isEmpty(product.variants)}" style="width:100%;margin-top:10px;">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Tên biến thể</th>
+            <th>Giá</th>
+            <th>Tồn kho</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="v,iter : ${product.variants}">
+            <td th:text="${iter.index + 1}"></td>
+            <td th:text="${v.variant_name}"></td>
+            <td th:text="${v.price}"></td>
+            <td th:text="${v.stock}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

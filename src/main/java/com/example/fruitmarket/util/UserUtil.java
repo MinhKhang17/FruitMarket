@@ -1,9 +1,6 @@
-package com.example.fruitmarket.Util;
+package com.example.fruitmarket.util;
 
-import com.example.fruitmarket.model.Cart;
 import com.example.fruitmarket.model.Users;
-import com.example.fruitmarket.service.UserService;
-import com.example.fruitmarket.service.UserServiceImpl;
 import jakarta.servlet.http.HttpSession;
 
 public class UserUtil {
