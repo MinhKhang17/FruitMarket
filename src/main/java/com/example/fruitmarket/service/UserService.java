@@ -18,4 +18,7 @@ public interface UserService {
 
     User_detail findUserDetalById(Long addressId);
     User_detail saveUserDetail(User_detail userDetail);
+
+    Users updateProfile(int userId, String email, String phone);
+    void changePassword(int userId, String oldPassword, String newPassword);
 }

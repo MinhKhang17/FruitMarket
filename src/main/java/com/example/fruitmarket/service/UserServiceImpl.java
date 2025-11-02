@@ -134,5 +134,36 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public Users updateProfile(int userId, String email, String phone) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
 
+        // Kiểm tra trùng email/phone của user khác
+        userRepository.findByEmail(email).ifPresent(u -> {
+            if (u.getId() != userId) throw new IllegalArgumentException("Email này đã được sử dụng.");
+        });
+        userRepository.findByPhone(phone).ifPresent(u -> {
+            if (u.getId() != userId) throw new IllegalArgumentException("Số điện thoại này đã tồn tại.");
+        });
+
+        user.setEmail(email);
+        user.setPhone(phone);
+        Users saved = userRepository.save(user);
+        return saved;
+    }
+
+    @Override
+    public void changePassword(int userId, String oldPassword, String newPassword) {
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Mật khẩu cũ không chính xác.");
+        }
+        if (oldPassword.equals(newPassword)) {
+            throw new IllegalArgumentException("Mật khẩu mới phải khác mật khẩu cũ.");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

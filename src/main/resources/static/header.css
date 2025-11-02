@@ -1,96 +1,163 @@
 /* ===== Theme (match Home/Product/Detail/Footer) ===== */
 :root{
-    --leaf-50:#e8f5e9;
-    --leaf-100:#c8e6c9;
-    --leaf-300:#81c784;
-    --leaf-400:#66bb6a;
-    --leaf-500:#43a047;
-    --leaf-600:#388e3c;
-    --leaf-700:#2e7d32;
-
-    --ink:#333;
-    --ring:#cfe8cf;
-    --shadow:0 2px 8px rgba(0,0,0,.05);
+    --leaf-50:#e8f5e9; --leaf-100:#c8e6c9; --leaf-300:#81c784; --leaf-400:#66bb6a;
+    --leaf-500:#43a047; --leaf-600:#388e3c; --leaf-700:#2e7d32;
+    --ink:#333; --ring:#cfe8cf; --shadow:0 2px 8px rgba(0,0,0,.05);
 }
 
-/* ===== Navbar ===== */
-.navbar-custom{
+/* ===== Navbar wrapper ===== */
+.navbar-custom,
+.header-bar{
     background: linear-gradient(135deg, #f1f8e9, #fff8e1);
     box-shadow: var(--shadow);
     border-bottom: 1px solid var(--leaf-100);
 }
+.header-bar .container{ padding-top:6px; padding-bottom:6px; }
 
+/* ===== Brand ===== */
 .navbar-brand{
-    font-weight: 800;
-    color: var(--leaf-600) !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,.08);
-    font-size: 1.3rem;
-    letter-spacing: .3px;
-    transition: transform .2s ease, color .3s ease;
+    font-weight:800; color:var(--leaf-600)!important;
+    text-shadow:0 1px 2px rgba(0,0,0,.08);
+    font-size:1.3rem; letter-spacing:.3px;
+    transition:transform .2s ease, color .3s ease;
 }
-.navbar-brand:hover{
-    transform: scale(1.05);
-    color: var(--leaf-700) !important;
-}
+.navbar-brand:hover{ transform:scale(1.05); color:var(--leaf-700)!important; }
 
-/* Links */
+/* ===== Nav links ===== */
 .nav-link{
-    color: var(--leaf-700) !important;
-    font-weight: 600;
-    border-radius: 8px;
-    padding: 6px 12px !important;
-    transition: color .2s ease, background .2s ease;
+    color:var(--leaf-700)!important; font-weight:600;
+    border-radius:8px; padding:6px 12px!important;
+    transition:color .2s ease, background .2s ease;
 }
-.nav-link:hover,
-.nav-link:focus{
-    color: #1b5e20 !important; /* darker leaf */
-    background: rgba(67,160,71,.10);
+.nav-link:hover,.nav-link:focus{
+    color:#1b5e20!important; background:rgba(67,160,71,.10);
 }
+.nav-link.active{ color:#1b5e20!important; background:rgba(67,160,71,.14); }
 
-/* Dropdown */
+/* ===== Dropdown ===== */
 .dropdown-menu{
-    border-radius: 10px;
-    border: 1px solid var(--leaf-100);
-    box-shadow: 0 4px 12px rgba(0,0,0,.06);
-    background: #fff;
+    border-radius:10px; border:1px solid var(--leaf-100);
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+    background:#fff; overflow:hidden;
 }
-.dropdown-item{
-    color: var(--leaf-700);
-    font-weight: 600;
-    transition: background .2s ease, color .2s ease;
-}
-.dropdown-item:hover{
-    background: var(--leaf-50);
-    color: var(--leaf-700);
+.dropdown-item{ color:var(--leaf-700); font-weight:600; }
+.dropdown-item:hover{ background:var(--leaf-50); }
+
+/* Desktop hover-open */
+@media (min-width:992px){
+    .navbar .dropdown:hover > .dropdown-menu{ display:block; margin-top:0; }
 }
 
-/* Form controls */
-.form-control{
-    border-radius: 8px;
-    border: 1px solid var(--ring);
+/* ===== Search form ===== */
+.search-form .form-control{
+    border-radius:8px; border:1px solid var(--ring); min-width:260px;
 }
-.form-control:focus{
-    border-color: var(--leaf-400);
-    box-shadow: 0 0 0 0.15rem rgba(102,187,106,.25);
+.search-form .form-control:focus{
+    border-color:var(--leaf-400); box-shadow:0 0 0 0.15rem rgba(102,187,106,.25);
+}
+.search-form .btn{ border-radius:8px!important; }
+/* Icon kính lúp: đen khi bình thường, trắng khi hover nút */
+.search-form .btn i {
+    color: #000 !important;         /* 🔹 ép màu đen */
+    transition: color .2s ease;
 }
 
-/* Buttons */
+.search-form .btn:hover i {
+    color: #fff !important;         /* 🔹 trắng khi hover */
+}
+
+/* ===== Buttons ===== */
 .btn-outline-success{
-    border-color: var(--leaf-500);
-    color: var(--leaf-500);
-    font-weight: 600;
-    border-radius: 8px;
-    transition: all .25s ease;
+    border-color:var(--leaf-500); color:var(--leaf-500);
+    font-weight:600; border-radius:8px; transition:all .25s ease;
 }
-.btn-outline-success:hover{
-    background: var(--leaf-500);
-    color: #fff;
+.btn-outline-success:hover{ background:var(--leaf-500); color:#fff; }
+.btn-success{
+    background:var(--leaf-500); border-color:var(--leaf-500);
+    border-radius:8px; font-weight:700;
+}
+.btn-success:hover{ background:var(--leaf-600); border-color:var(--leaf-600); }
+
+/* ===== Cart badge ===== */
+.nav-link .badge.bg-success{
+    box-shadow:0 2px 8px rgba(67,160,71,.25);
+    border:1px solid rgba(67,160,71,.35);
 }
 
-/* Desktop: show dropdown on hover */
-@media (min-width: 992px){
-    .navbar .dropdown:hover > .dropdown-menu{
-        display: block;
-        margin-top: 0;
-    }
+/* ===== User chip (avatar tròn + “Xin chào, username”) ===== */
+.user-chip{
+    display:inline-flex; align-items:center; gap:10px;
+    padding:6px 12px; border-radius:999px;
+    background:#eaf7ee; border:1px solid #cfeadb;
+    color:#2e7d32; font-weight:600;
+}
+.ava-img{
+    width:32px; height:32px; border-radius:50%;
+    object-fit:cover; border:2px solid #c8e6c9;
+}
+.ava-fallback{
+    width:32px; height:32px; border-radius:50%;
+    display:inline-flex; align-items:center; justify-content:center;
+    background:#2e7d32; color:#fff; font-weight:700;
+}
+.user-chip .greet{ white-space:nowrap; }
+a.nav-link.dropdown-toggle:hover .user-chip{ filter:brightness(.98); }
+
+/* ===== Toggler ===== */
+.navbar-toggler{ border-color:var(--leaf-100); border-radius:8px; }
+.navbar-toggler:focus{ box-shadow:0 0 0 0.2rem rgba(102,187,106,.25); }
+
+/* ===== Utilities ===== */
+.text-success{ color:var(--leaf-600)!important; }
+.bg-success{ background-color:var(--leaf-600)!important; }
+
+/* ===== Avatar with outer ring ===== */
+.ava-ring{
+    position: relative;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    box-shadow: 0 0 0 2px #cfeadb;     /* vòng tròn bên ngoài */
+    background: transparent;
+    transition: box-shadow .2s ease, transform .15s ease;
+    margin-right: 8px;                 /* khoảng cách với text */
+}
+
+.ava-initial{
+    width: 28px; height: 28px;         /* nhỏ hơn để lộ “vòng” */
+    border-radius: 50%;
+    display: grid; place-items: center;
+    background: #2e7d32; color: #fff;
+    font-weight: 700; line-height: 1;
+    user-select: none;
+}
+
+/* Hover/focus trên toàn chip hoặc trigger */
+a.nav-link.dropdown-toggle:hover .ava-ring,
+a.nav-link.dropdown-toggle:focus .ava-ring{
+    box-shadow: 0 0 0 3px var(--leaf-300);
+    transform: translateY(-1px);
+}
+
+/* Giữ chip gọn khi màn hình nhỏ */
+@media (max-width:576px){
+    .ava-ring{ width: 34px; height: 34px; }
+    .ava-initial{ width: 26px; height: 26px; }
+}
+
+/* ===== Responsive ===== */
+@media (max-width:991.98px){
+    .search-form .form-control{ min-width:0; }
+    .navbar-collapse{ padding-top:8px; }
+    .dropdown-menu{ margin-top:.5rem; }
+}
+@media (max-width:576px){
+    .user-chip{ padding:6px 10px; }
+    .user-chip .greet{ font-size:.92rem; }
+}
+
+/* ===== Focus ring cho link ===== */
+.nav-link:focus{
+    box-shadow:0 0 0 0.15rem rgba(102,187,106,.25);
+    outline:none; border-radius:8px;
 }

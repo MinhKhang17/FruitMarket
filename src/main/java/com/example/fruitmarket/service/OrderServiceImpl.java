@@ -7,7 +7,6 @@ import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.OrderRepo;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -152,11 +151,30 @@ public class OrderServiceImpl implements OrderService{
     }
     @Override
     public Order getOrderById(Long Id) {
-        return orderRepo.findById(Id);
+        return orderRepo.findOrderById(Id);
     }
 
     @Override
     public void updateOrder(Order order) {
         orderRepo.save(order);
+    }
+
+    @Override
+    public List<Order> getOrdersOfUser(HttpSession session) {
+        Users user = (Users) session.getAttribute("loggedUser");
+        if (user == null) throw new IllegalStateException("Bạn cần đăng nhập trước.");
+        return orderRepo.findAllByUsersOrderByIdDesc(user);
+    }
+
+    @Override
+    public Order getOrderDetailForUser(Long orderId, HttpSession session) {
+        Users user = (Users) session.getAttribute("loggedUser");
+        if (user == null) throw new IllegalStateException("Bạn cần đăng nhập trước.");
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng #" + orderId));
+        if (order.getUsers() == null || order.getUsers().getId() != user.getId()) {
+            throw new IllegalStateException("Bạn không có quyền xem đơn hàng này.");
+        }
+        return order; // đã fetch đủ items/variant/product nhờ @EntityGraph
     }
 }

@@ -1,0 +1,213 @@
+<!-- src/main/resources/templates/user/order-detail.html -->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết đơn hàng | FruitMarket</title>
+    <link th:href="@{/header.css}" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root{ --brand:#198754; --muted:#6c757d; --soft:#f5f8f6; --line:#e8efe9; }
+        body{ background:var(--soft); }
+        .wrap{ max-width:1100px; margin:auto; }
+        .cardx{ border:none; border-radius:18px; box-shadow:0 10px 22px rgba(0,0,0,.08); overflow:hidden; background:#fff; }
+        .head{ padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:16px; }
+        .order-id{ font-weight:800; font-size:1.15rem; color:#2b2f2d }
+        .chip{ background:#eef8f1; color:#276f4a; border-radius:999px; padding:4px 10px; font-size:.85rem; }
+        .badge-status{ font-size:.85rem; border-radius:999px; padding:.45rem .8rem; }
+        .badge-PENDING{ background:#fff3cd; color:#9a7b00 }
+        .badge-COMPLETED{ background:#d1e7dd; color:#0f5132 }
+        .badge-CANCELED{ background:#f8d7da; color:#842029 }
+        .body{ padding:20px; }
+        .summary{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+        .sum-item{ background:#fbfdfc; border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+        .sum-item .label{ color:var(--muted); font-size:.9rem; }
+        .sum-item .value{ font-weight:700; color:#2b2f2d }
+        .progress-wrap{ background:#fbfdfc; border:1px dashed var(--line); border-radius:14px; padding:14px }
+        .progress-steps{ display:flex; gap:14px; align-items:center; }
+        .step{ display:flex; align-items:center; gap:8px; color:var(--muted); }
+        .dot{ width:10px; height:10px; border-radius:50%; background:#cfd8d3 }
+        .step.active .dot{ background:var(--brand) }
+        .step.active{ color:#1f5e43; font-weight:600 }
+        .step-line{ flex:1; height:2px; background:#dfe7e1 }
+        .step-line.active{ background:var(--brand) }
+        .section-title{ color:var(--brand); font-weight:700; margin:10px 0 8px }
+        .items-table th,.items-table td{ vertical-align:middle }
+        .items-table th{ color:var(--muted); font-weight:600 }
+        .hint{ color:var(--muted); font-size:.9rem }
+        .total-row{ display:flex; justify-content:space-between; align-items:center; margin-top:8px }
+        .grand{ font-size:1.25rem; font-weight:800; color:var(--brand) }
+        .block{ background:#ffffff; border:1px solid var(--line); border-radius:16px; padding:16px }
+        .divider{ border-top:1px dashed var(--line); margin:10px 0 }
+        @media (max-width: 992px){
+            .summary{ grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+
+<div class="container py-4 wrap" th:with="o=${order}">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a th:href="@{/orders}" class="btn btn-outline-success btn-sm"><i class="bi bi-arrow-left"></i> Trở lại</a>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
+                <i class="bi bi-printer"></i> In hoá đơn
+            </button>
+            <a class="btn btn-success btn-sm" th:href="@{/products}">
+                <i class="bi bi-bag"></i> Mua thêm
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div th:if="${o != null}" class="cardx">
+        <!-- Header -->
+        <div class="head">
+            <div class="d-flex flex-column">
+                <div class="order-id">Đơn hàng #<span th:text="${o.id}">1001</span></div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="chip" th:text="${o.pricingMethod}">COD</span>
+                    <span class="text-muted small">Tổng SL: <b th:text="${o.totalQuantity}">1</b></span>
+                </div>
+            </div>
+            <span class="badge badge-status" th:classappend="'badge-' + ${o.orderStauts}" th:text="${o.orderStauts}">PENDING</span>
+        </div>
+
+        <div class="body">
+            <!-- Summary + Progress -->
+            <div class="row g-3 mb-3">
+                <div class="col-lg-8">
+                    <div class="progress-wrap">
+                        <div class="d-flex justify-content-between">
+                            <div class="section-title m-0">Trạng thái đơn</div>
+                            <span class="hint">Cập nhật theo hệ thống</span>
+                        </div>
+                        <div class="progress-steps mt-2"
+                             th:with="isPending=${o.orderStauts?.name()=='PENDING'},
+                          isCompleted=${o.orderStauts?.name()=='COMPLETED'},
+                          isCanceled=${o.orderStauts?.name()=='CANCELED'}">
+                            <div class="step" th:classappend="${isPending or isCompleted} ? ' active'">
+                                <span class="dot"></span><span>Đã tạo</span>
+                            </div>
+                            <div class="step-line" th:classappend="${isCompleted} ? ' active'"></div>
+                            <div class="step" th:classappend="${isCompleted} ? ' active'">
+                                <span class="dot"></span><span>Hoàn tất</span>
+                            </div>
+                            <div class="step-line" th:if="${isCanceled}"></div>
+                            <div class="step" th:if="${isCanceled}" th:classappend="' active'">
+                                <span class="dot"></span><span>Đã hủy</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="summary">
+                        <div class="sum-item">
+                            <div class="label">Thanh toán</div>
+                            <div class="value" th:text="${o.pricingMethod}">COD</div>
+                        </div>
+                        <div class="sum-item">
+                            <div class="label">Tổng tiền</div>
+                            <div class="value">
+                                <span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ
+                            </div>
+                        </div>
+                        <div class="sum-item">
+                            <div class="label">Trạng thái</div>
+                            <div class="value" th:text="${o.orderStauts}">PENDING</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items + Shipping -->
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="block">
+                        <div class="section-title">Sản phẩm</div>
+                        <div class="table-responsive">
+                            <table class="table table-sm items-table">
+                                <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center" style="width:90px">SL</th>
+                                    <th class="text-end" style="width:140px">Đơn giá</th>
+                                    <th class="text-end" style="width:160px">Tạm tính</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr th:each="item : ${o.orderItemList}"
+                                    th:with="unitPrice=${(item.price != null) ? item.price : (item.productVariant != null ? item.productVariant.price : 0)},
+                             subTotal=${unitPrice * item.quanity}">
+                                    <td>
+                                        <div class="fw-semibold"
+                                             th:text="${item.productVariant != null and item.productVariant.product != null} ?
+                                   ${item.productVariant.product.productName} : 'Sản phẩm'">Tên SP</div>
+                                        <div class="text-muted small"
+                                             th:if="${item.productVariant != null and item.productVariant.variant_name != null}"
+                                             th:text="${item.productVariant.variant_name}">Biến thể</div>
+                                    </td>
+                                    <td class="text-center" th:text="${item.quanity}">1</td>
+                                    <td class="text-end"
+                                        th:text="${#numbers.formatDecimal(unitPrice,0,'POINT',0,'COMMA')}">0</td>
+                                    <td class="text-end"
+                                        th:text="${#numbers.formatDecimal(subTotal,0,'POINT',0,'COMMA')}">0</td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="hint"><i class="bi bi-info-circle"></i> Giá tại thời điểm đặt có thể khác hiện tại.</div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="block mb-3">
+                        <div class="section-title">Thông tin giao hàng</div>
+                        <div class="mb-2"><i class="bi bi-geo-alt text-success me-1"></i>
+                            <span th:text="${o.address}">Địa chỉ</span>
+                        </div>
+                        <div><i class="bi bi-telephone text-success me-1"></i>
+                            <span th:text="${o.phoneNumber}">SĐT</span>
+                        </div>
+                    </div>
+
+                    <div class="block">
+                        <div class="section-title">Tổng thanh toán</div>
+                        <div class="total-row">
+                            <span class="text-muted">Tổng tiền hàng</span>
+                            <span><span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ</span>
+                        </div>
+                        <div class="total-row">
+                            <span class="text-muted">Phí vận chuyển</span>
+                            <span>0đ</span>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="total-row">
+                            <span class="fw-semibold">Thành tiền</span>
+                            <span class="grand"><span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <a class="btn btn-outline-success btn-sm" th:if="${o.orderStauts?.name()=='PENDING'}">
+                                <i class="bi bi-cash-coin"></i> Thanh toán lại
+                            </a>
+                            <a class="btn btn-outline-secondary btn-sm" th:href="@{/orders}">
+                                <i class="bi bi-list-ul"></i> Danh sách đơn
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div th:replace="fragments/footer :: footer"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
