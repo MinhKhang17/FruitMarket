@@ -116,4 +116,9 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(ProductStatus.INACTIVE);
         productRepo.save(product);
     }
+
+    @Override
+    public void deleteById(Long id) {
+        productRepo.deleteById(id);
+    }
 }

@@ -11,277 +11,115 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-    <!-- CSS trang Home -->
-    <link th:href="@{/page.css}" rel="stylesheet"/>
-
     <style>
-        /* ==================== CSS Variables ==================== */
         :root {
             --primary-leaf: #2f9e44;
-            --primary-leaf-dark: #2b8a3e;
-            --primary-leaf-light: #51cf66;
-            --accent-sky: #0b66ff;
-            --accent-sky-light: #6aa8ff;
-
-            --color-text-primary: #1a1a1a;
-            --color-text-secondary: #4a5568;
-            --color-text-muted: #6c757d;
             --color-border: #e2e8f0;
-
-            --surface-base: #ffffff;
-            --surface-elevated: #f8faf9;
-
             --radius-md: 12px;
-            --radius-lg: 16px;
-            --shadow-sm: 0 4px 12px rgba(30, 30, 30, 0.06);
-            --shadow-md: 0 8px 24px rgba(30, 30, 30, 0.08);
-            --shadow-leaf: 0 8px 24px rgba(47, 158, 68, 0.15);
-            --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
-        /* ==================== Base ==================== */
         body {
             background: linear-gradient(180deg, #ffffff 0%, #f8faf9 100%);
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-            color: var(--color-text-primary);
+            color: #1a1a1a;
         }
-
-        /* ==================== Hero Banner (updated - show true image colors) ==================== */
-        .hero-banner {
-            position: relative;
-            border-radius: var(--radius-lg);
-            overflow: hidden;
-            margin-bottom: 2.5rem;
-            box-shadow: var(--shadow-md);
-            height: 400px;
-        }
-
-        /* show image true color (no heavy dark filter) */
-        .hero-banner-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: none;
-            transition: transform .6s ease;
-        }
-        .hero-banner-img:hover { transform: scale(1.02); }
-
-        /* overlay is now subtle / transparent so image colors remain visible */
-        .hero-banner-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(0,0,0,0.15), rgba(0,0,0,0.06)); /* subtle darken */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 2rem;
-            pointer-events: none;
-        }
-
-        /* wrap text in a semi-transparent panel for readability */
-        .hero-banner-content .text-bg {
-            display: inline-block;
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(4px);
-            padding: 18px 26px;
-            border-radius: 12px;
-            color: #fff;
-        }
-
-        .hero-banner-content h1 {
-            color: white;
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-            text-shadow: 0 6px 26px rgba(0, 0, 0, 0.45);
-        }
-
-        .hero-banner-content p {
-            color: white;
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-            text-shadow: 0 4px 18px rgba(0, 0, 0, 0.36);
-        }
-
-        .hero-banner-cta { display: inline-flex; gap: 1rem; margin-top: 6px; }
-
-        .btn-hero { padding: 0.75rem 1.75rem; font-weight: 600; border-radius: 50px; transition: all var(--transition-base); }
-        .btn-hero-primary { background: white; color: var(--primary-leaf); border: none; }
-        .btn-hero-secondary { background: transparent; color: white; border: 2px solid rgba(255,255,255,0.18); }
-
-        .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
-        .btn-hero-secondary:hover { background:white; color:var(--primary-leaf); }
-
-        /* rest of styles unchanged... (kept original, omitted here for brevity) */
-        /* ==================== Section Headers ==================== */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 2px solid var(--color-border);
-        }
-        .section-title { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); display:flex; align-items:center; gap:.75rem; }
-        .section-link { color: var(--color-text-secondary); text-decoration:none; font-weight:600; font-size:.95rem; transition:color var(--transition-base); }
-        .section-link:hover{ color:var(--primary-leaf); }
-        /* product card styles kept (copying rest from your previous style block) */
-        .product-card { border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; background:var(--surface-base); transition: all var(--transition-base); height:100%; display:flex; flex-direction:column; }
-        .product-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-md); border-color: var(--primary-leaf-light); }
-        .product-image-wrapper{ position: relative; overflow:hidden; background: linear-gradient(135deg, #f3f7f3, #ffffff); }
-        .product-image { width:100%; height:100%; object-fit:cover; transition: transform .4s cubic-bezier(.4,0,.2,1); }
-        .product-card:hover .product-image { transform: scale(1.08); }
-        .product-badge{ position:absolute; top:.75rem; right:.75rem; background:var(--primary-leaf); color:#fff; padding:.25rem .75rem; border-radius:20px; font-size:.75rem; font-weight:600; box-shadow:0 2px 8px rgba(47,158,68,0.3);}
-        .product-body{ padding:1.25rem; display:flex; flex-direction:column; gap:.5rem; flex-grow:1; }
-        .product-brand{ color:var(--color-text-muted); font-size:.8rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
-        .product-name{ font-size:1rem; font-weight:700; color:var(--color-text-primary); margin:0; line-height:1.4; min-height:2.8em;}
-        .product-description{ color:var(--color-text-secondary); font-size:.875rem; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; flex-grow:1;}
-        .product-footer{ display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:1rem; border-top:1px solid var(--color-border); }
-        .product-price{ font-weight:800; color:var(--primary-leaf); font-size:1.25rem; }
-        .btn-view-product{ padding:.5rem 1.25rem; border-radius:8px; border:2px solid var(--primary-leaf); background:transparent; color:var(--primary-leaf); font-weight:600; text-decoration:none; transition: all var(--transition-base); }
-        .btn-view-product:hover{ background:var(--primary-leaf); color:#fff; transform: translateY(-2px); box-shadow: var(--shadow-leaf); }
-
-        /* category tabs + brand section kept (omitted for brevity) */
-
-        @media (max-width:768px) { .hero-banner{ height:300px; } .hero-banner-content h1{ font-size:2rem; } .hero-banner-content p{ font-size:1rem; } }
-        @media (max-width:576px) { .hero-banner{ height:250px; } .hero-banner-content h1{ font-size:1.5rem; } .section-header{ flex-direction:column; align-items:flex-start; gap:.5rem; } }
+        .hero-banner { position: relative; border-radius: 16px; overflow: hidden; height: 400px; margin-bottom: 2rem; }
+        .hero-banner-img { width:100%; height:100%; object-fit:cover; display:block; }
+        .hero-banner-overlay { position:absolute; inset:0; background: rgba(0,0,0,0.18); display:flex; align-items:center; justify-content:center; color:#fff; text-align:center; }
+        .product-card { border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; background:#fff; display:flex; flex-direction:column; height:100%; }
+        .product-image { width:100%; height:100%; object-fit:cover; display:block; }
+        .product-body { padding:1rem; display:flex; flex-direction:column; gap:.5rem; flex-grow:1; }
+        .product-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px solid var(--color-border); padding-top:.75rem; }
+        .btn-view-product { color:var(--primary-leaf); border:2px solid var(--primary-leaf); padding:.35rem .9rem; border-radius:8px; text-decoration:none; font-weight:600; transition:all 0.2s ease; }
+        .btn-view-product:hover { background:var(--primary-leaf); color:white; transform:translateY(-2px); }
     </style>
 </head>
 <body>
-<!-- header -->
-<div th:replace="fragments/header :: header"></div>
 
-<!-- notification -->
+<!-- Header -->
+<div th:replace="fragments/header :: header"></div>
 <div th:replace="~{fragments/notification :: notification}"></div>
 
 <main class="page-wrap">
     <div class="container py-4">
 
-        <!-- ==================== Hero Carousel (3 images, auto slide) ==================== -->
-        <section class="hero-banner">
-            <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4500" data-bs-wrap="true" aria-label="Hero carousel">
-                <!-- Indicators -->
-                <div class="carousel-indicators">
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                    <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
-                </div>
-
-                <!-- Slides -->
+        <!-- HERO -->
+        <section class="hero-banner mb-5">
+            <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="4500">
                 <div class="carousel-inner">
-                    <!-- Slide 1 -->
                     <div class="carousel-item active">
-                        <img th:src="@{/images/heroBanner.jpg}" class="d-block w-100 hero-banner-img" alt="Fresh fruits 1"
-                             onerror="this.src='/images/placeholder-banner.jpg'">
+                        <img th:src="@{/images/heroBanner.jpg}" class="hero-banner-img" alt="Banner 1" onerror="this.src='/images/placeholder-banner.jpg'">
                         <div class="hero-banner-overlay">
-                            <div class="hero-banner-content">
-                                <div class="text-bg">
-                                    <h1>Fresh & Organic Fruits</h1>
-                                    <p>Discover the finest selection of premium quality fruits</p>
-                                    <div class="hero-banner-cta">
-                                        <a href="#latest-products" class="btn btn-hero btn-hero-primary">
-                                            Shop Now <i class="fas fa-arrow-right ms-2"></i>
-                                        </a>
-                                        <a th:href="@{/products}" class="btn btn-hero btn-hero-secondary">
-                                            Browse All
-                                        </a>
-                                    </div>
-                                </div>
+                            <div>
+                                <h1>Fresh & Organic Fruits</h1>
+                                <p>Discover the finest selection of premium quality fruits</p>
+                                <a href="#latest-products" class="btn btn-light">Shop Now</a>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Slide 2 -->
                     <div class="carousel-item">
-                        <img th:src="@{/images/heroBanner1.jpg}" class="d-block w-100 hero-banner-img" alt="Fresh fruits 2"
-                             onerror="this.src='/images/placeholder-banner.jpg'">
+                        <img th:src="@{/images/heroBanner1.jpg}" class="hero-banner-img" alt="Banner 2" onerror="this.src='/images/placeholder-banner.jpg'">
                         <div class="hero-banner-overlay">
-                            <div class="hero-banner-content">
-                                <div class="text-bg">
-                                    <h1>Seasonal Specials</h1>
-                                    <p>Hand-picked fruits at the best prices — limited time only</p>
-                                    <div class="hero-banner-cta">
-                                        <a href="#latest-products" class="btn btn-hero btn-hero-primary">
-                                            Shop Now <i class="fas fa-arrow-right ms-2"></i>
-                                        </a>
-                                        <a th:href="@{/products}" class="btn btn-hero btn-hero-secondary">
-                                            Browse All
-                                        </a>
-                                    </div>
-                                </div>
+                            <div>
+                                <h1>Seasonal Specials</h1>
+                                <p>Hand-picked fruits at the best prices</p>
+                                <a href="#latest-products" class="btn btn-light">Shop Now</a>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Slide 3 -->
                     <div class="carousel-item">
-                        <img th:src="@{/images/heroBanner3.jpg}" class="d-block w-100 hero-banner-img" alt="Fresh fruits 3"
-                             onerror="this.src='/images/placeholder-banner.jpg'">
+                        <img th:src="@{/images/heroBanner3.jpg}" class="hero-banner-img" alt="Banner 3" onerror="this.src='/images/placeholder-banner.jpg'">
                         <div class="hero-banner-overlay">
-                            <div class="hero-banner-content">
-                                <div class="text-bg">
-                                    <h1>Farm-to-Table Quality</h1>
-                                    <p>From local farms straight to your table — freshness guaranteed</p>
-                                    <div class="hero-banner-cta">
-                                        <a href="#latest-products" class="btn btn-hero btn-hero-primary">
-                                            Shop Now <i class="fas fa-arrow-right ms-2"></i>
-                                        </a>
-                                        <a th:href="@{/products}" class="btn btn-hero btn-hero-secondary">
-                                            Browse All
-                                        </a>
-                                    </div>
-                                </div>
+                            <div>
+                                <h1>Farm-to-Table Quality</h1>
+                                <p>From local farms straight to your table</p>
+                                <a href="#latest-products" class="btn btn-light">Shop Now</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Controls -->
-                <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">
-                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
                 </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Next slide">
-                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
                 </button>
             </div>
         </section>
-        <!-- ============================================================================== -->
 
-        <!-- ==================== Latest Products ==================== -->
+        <!-- LATEST PRODUCTS -->
         <section id="latest-products" class="mb-5">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-star"></i>
-                    Latest Products
-                </h2>
-                <a th:href="@{/products}" class="section-link">
-                    View all <i class="fas fa-arrow-right"></i>
-                </a>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h4 mb-0 text-success"><i class="fas fa-star me-2"></i>Latest Products</h2>
+                <a th:href="@{/products}" class="text-decoration-none fw-semibold text-success">View all →</a>
             </div>
 
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
                 <div class="col" th:each="p : ${latestProducts}">
                     <div class="product-card">
-                        <div class="product-image-wrapper ratio ratio-1x1">
-                            <img th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
+                        <div class="ratio ratio-1x1">
+                            <img class="product-image"
+                                 th:src="${
+                                     (p.variants != null and !#lists.isEmpty(p.variants)
+                                      and p.variants[0].image != null
+                                      and p.variants[0].image.url != null)
+                                     ? p.variants[0].image.url
+                                     : '/images/placeholder.png'
+                                 }"
                                  th:alt="${p.productName}"
-                                 onerror="this.src='/images/placeholder.png'"
-                                 class="product-image">
-                            <span class="product-badge">New</span>
+                                 onerror="this.src='/images/placeholder.png'">
                         </div>
                         <div class="product-body">
-                            <div class="product-brand" th:text="${p.brand != null ? p.brand.name : 'No Brand'}">Brand</div>
-                            <h6 class="product-name" th:text="${p.productName}">Product Name</h6>
-                            <p class="product-description" th:text="${p.product_description}">Description</p>
+                            <div class="text-muted small text-uppercase" th:text="${p.brand != null ? p.brand.name : 'No Brand'}"></div>
+                            <h6 class="mb-1" th:text="${p.productName}">Product name</h6>
+                            <p class="text-secondary small mb-2" th:text="${p.product_description}"></p>
                             <div class="product-footer">
-                                <div class="product-price">
-                                    <span th:text="${(p.variants != null && !p.variants.isEmpty()) ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT') : (p.product_price != null ? #numbers.formatDecimal(p.product_price, 0, 'COMMA', 2, 'POINT') : '0')}">0</span>
-                                    <span class="product-price-currency">đ</span>
+                                <div class="fw-bold text-success">
+                                    <span th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
+                                        ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT')
+                                        : '0'}"></span> đ
                                 </div>
-                                <a th:href="@{|/products/${p.id}|}" class="btn-view-product">
-                                    View
-                                </a>
+                                <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
                             </div>
                         </div>
                     </div>
@@ -289,130 +127,111 @@
             </div>
         </section>
 
-        <!-- ==================== By Category ==================== -->
+        <!-- CATEGORY -->
         <section class="mb-5">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-th-large"></i>
-                    Shop by Category
-                </h2>
-                <a th:href="@{/categories}" class="section-link">
-                    All categories <i class="fas fa-arrow-right"></i>
-                </a>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h4 mb-0 text-success"><i class="fas fa-th-large me-2"></i>Shop by Category</h2>
+                <a th:href="@{/categories}" class="text-decoration-none fw-semibold text-success">All categories →</a>
             </div>
 
-            <div class="category-tabs-wrapper">
-                <!-- Category tabs -->
-                <ul class="nav nav-pills justify-content-center mb-4" id="categoryTabs" role="tablist">
-                    <li class="nav-item" th:each="c, idx : ${categories}">
-                        <button class="nav-link"
-                                th:classappend="${idx.index == 0} ? 'active'"
-                                th:id="'cat-' + ${c.id} + '-tab'"
-                                type="button"
-                                role="tab"
-                                th:attr="data-bs-toggle='pill', data-bs-target=${'#cat-' + c.id}, aria-controls=${'cat-' + c.id}, aria-selected=${idx.index == 0}">
-                            <span th:text="${c.name}">Category</span>
-                        </button>
-                    </li>
-                </ul>
+            <ul class="nav nav-pills justify-content-center mb-4" id="categoryTabs" role="tablist">
+                <li class="nav-item" th:each="c, stat : ${categories}">
+                    <button class="nav-link"
+                            th:classappend="${stat.index == 0} ? 'active'"
+                            th:id="${'cat-' + c.id + '-tab'}"
+                            type="button"
+                            data-bs-toggle="pill"
+                            th:data-bs-target="${'#cat-' + c.id}"
+                            th:attr="aria-controls=${'cat-' + c.id}, aria-selected=${stat.index == 0}">
+                        <span th:text="${c.name}">Category</span>
+                    </button>
+                </li>
+            </ul>
 
-                <!-- Tab content -->
-                <div class="tab-content">
-                    <div class="tab-pane fade"
-                         th:each="c, idx : ${categories}"
-                         th:classappend="${idx.index == 0} ? 'active show'"
-                         th:id="${'cat-' + c.id}"
-                         role="tabpanel"
-                         th:attr="aria-labelledby=${'cat-' + c.id + '-tab'}">
+            <div class="tab-content">
+                <div class="tab-pane fade"
+                     th:each="c, stat : ${categories}"
+                     th:classappend="${stat.index == 0} ? 'active show'"
+                     th:id="${'cat-' + c.id}"
+                     th:attr="aria-labelledby=${'cat-' + c.id + '-tab'}">
 
-                        <div th:if="${categoryProducts[c.id] == null or #lists.isEmpty(categoryProducts[c.id])}"
-                             class="empty-state">
-                            <i class="fas fa-box-open"></i>
-                            <p>No products available in this category</p>
-                        </div>
-
-                        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
-                             th:if="${categoryProducts[c.id] != null and !#lists.isEmpty(categoryProducts[c.id])}">
-                            <div class="col" th:each="p : ${categoryProducts[c.id]}">
-                                <div class="product-card">
-                                    <div class="product-image-wrapper ratio ratio-1x1">
-                                        <img th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
-                                             th:alt="${p.productName}"
-                                             onerror="this.src='/images/placeholder.png'"
-                                             class="product-image">
-                                    </div>
-                                    <div class="product-body">
-                                        <div class="product-brand" th:text="${p.brand != null ? p.brand.name : 'No Brand'}">Brand</div>
-                                        <h6 class="product-name" th:text="${p.productName}">Name</h6>
-                                        <p class="product-description" th:text="${p.product_description}">Description</p>
-                                        <div class="product-footer">
-                                            <div class="product-price">
-                                                <span th:text="${(p.variants != null && !p.variants.isEmpty()) ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT') : (p.product_price != null ? #numbers.formatDecimal(p.product_price, 0, 'COMMA', 2, 'POINT') : '0')}">0</span>
-                                                <span class="product-price-currency">đ</span>
-                                            </div>
-                                            <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==================== By Brand ==================== -->
-        <section class="mb-5">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-certificate"></i>
-                    Shop by Brand
-                </h2>
-                <a th:href="@{/brands}" class="section-link">
-                    All brands <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-
-            <div th:each="b : ${brands}" class="brand-card">
-                <!-- Brand header -->
-                <div class="brand-header">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="brand-icon" th:text="${#strings.substring(b.name, 0, 1)}">B</div>
-                        <h5 class="brand-name mb-0" th:text="${b.name}">Brand name</h5>
-                    </div>
-                    <a th:href="@{|/brands/${b.id}|}" class="btn btn-view-product">
-                        View All
-                    </a>
-                </div>
-
-                <!-- Product list for brand -->
-                <div th:with="plist=${brandProducts != null ? brandProducts[b.id] : null}">
-                    <div th:if="${plist == null or #lists.isEmpty(plist)}" class="empty-state">
-                        <i class="fas fa-shopping-basket"></i>
-                        <p>No products available for this brand</p>
+                    <div th:if="${categoryProducts[c.id] == null or #lists.isEmpty(categoryProducts[c.id])}" class="text-center text-muted py-4">
+                        <i class="fas fa-box-open fa-2x mb-2"></i>
+                        <p>No products available in this category</p>
                     </div>
 
                     <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4"
-                         th:if="${plist != null and !#lists.isEmpty(plist)}">
-                        <div class="col" th:each="p : ${plist}">
+                         th:if="${categoryProducts[c.id] != null and !#lists.isEmpty(categoryProducts[c.id])}">
+                        <div class="col" th:each="p : ${categoryProducts[c.id]}">
                             <div class="product-card">
-                                <div class="product-image-wrapper ratio ratio-1x1">
-                                    <img th:src="${!#lists.isEmpty(p.images) ? p.images.get(0).url : '/images/placeholder.png'}"
+                                <div class="ratio ratio-1x1">
+                                    <img class="product-image"
+                                         th:src="${
+                                             (p.variants != null and !#lists.isEmpty(p.variants)
+                                              and p.variants[0].image != null
+                                              and p.variants[0].image.url != null)
+                                             ? p.variants[0].image.url
+                                             : '/images/placeholder.png'
+                                         }"
                                          th:alt="${p.productName}"
-                                         onerror="this.src='/images/placeholder.png'"
-                                         class="product-image">
+                                         onerror="this.src='/images/placeholder.png'">
                                 </div>
                                 <div class="product-body">
-                                    <div class="product-brand" th:text="${p.brand != null ? p.brand.name : 'No Brand'}">Brand</div>
-                                    <h6 class="product-name" th:text="${p.productName}">Name</h6>
-                                    <p class="product-description" th:text="${p.product_description}">Description</p>
+                                    <div class="text-muted small text-uppercase" th:text="${p.brand != null ? p.brand.name : 'No Brand'}"></div>
+                                    <h6 class="mb-1" th:text="${p.productName}">Name</h6>
+                                    <p class="text-secondary small mb-2" th:text="${p.product_description}">Description</p>
                                     <div class="product-footer">
-                                        <div class="product-price">
-                                            <span th:text="${(p.variants != null && !p.variants.isEmpty()) ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT') : (p.product_price != null ? #numbers.formatDecimal(p.product_price, 0, 'COMMA', 2, 'POINT') : '0')}">0</span>
-                                            <span class="product-price-currency">đ</span>
+                                        <div class="fw-bold text-success">
+                                            <span th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
+                                                ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT')
+                                                : '0'}"></span> đ
                                         </div>
                                         <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- BRAND -->
+        <section class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="h4 mb-0 text-success"><i class="fas fa-certificate me-2"></i>Shop by Brand</h2>
+                <a th:href="@{/brands}" class="text-decoration-none fw-semibold text-success">All brands →</a>
+            </div>
+
+            <div th:each="b : ${brands}" class="mb-4">
+                <h4 class="mb-3" th:text="${b.name}">Brand Name</h4>
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" th:if="${brandProducts[b.id] != null}">
+                    <div class="col" th:each="p : ${brandProducts[b.id]}">
+                        <div class="product-card">
+                            <div class="ratio ratio-1x1">
+                                <img class="product-image"
+                                     th:src="${
+                                         (p.variants != null and !#lists.isEmpty(p.variants)
+                                          and p.variants[0].image != null
+                                          and p.variants[0].image.url != null)
+                                         ? p.variants[0].image.url
+                                         : '/images/placeholder.png'
+                                     }"
+                                     th:alt="${p.productName}"
+                                     onerror="this.src='/images/placeholder.png'">
+                            </div>
+                            <div class="product-body">
+                                <div class="text-muted small text-uppercase" th:text="${p.brand != null ? p.brand.name : 'No Brand'}"></div>
+                                <h6 class="mb-1" th:text="${p.productName}">Product</h6>
+                                <p class="text-secondary small mb-2" th:text="${p.product_description}"></p>
+                                <div class="product-footer">
+                                    <div class="fw-bold text-success">
+                                        <span th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
+                                            ? #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 2, 'POINT')
+                                            : '0'}"></span> đ
+                                    </div>
+                                    <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
                                 </div>
                             </div>
                         </div>
@@ -424,53 +243,14 @@
     </div>
 </main>
 
-<!-- footer -->
+<!-- Footer -->
 <div th:replace="fragments/footer :: footer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Smooth scroll cho hero CTA
-        const heroLinks = document.querySelectorAll('a[href^="#"]');
-        heroLinks.forEach(link => {
-            link.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href && href.startsWith('#')) {
-                    e.preventDefault();
-                    const target = document.querySelector(href);
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                }
-            });
-        });
-
-        // Ensure category first tab is shown
-        try {
-            const firstPill = document.querySelector('#categoryTabs .nav-link');
-            if (firstPill && typeof bootstrap !== 'undefined') {
-                const tab = new bootstrap.Tab(firstPill);
-                tab.show();
-            }
-        } catch (e) {
-            console.error('Category tab activation failed', e);
-        }
-
-        // Lazy loading: observe images (keeps previous behavior)
-        if ('IntersectionObserver' in window) {
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const img = entry.target;
-                        img.classList.add('loaded');
-                        observer.unobserve(img);
-                    }
-                });
-            });
-            document.querySelectorAll('.product-image').forEach(img => {
-                imageObserver.observe(img);
-            });
-        }
+        const first = document.querySelector('#categoryTabs .nav-link.active') || document.querySelector('#categoryTabs .nav-link');
+        if (first && typeof bootstrap !== 'undefined') new bootstrap.Tab(first).show();
     });
 </script>
 
