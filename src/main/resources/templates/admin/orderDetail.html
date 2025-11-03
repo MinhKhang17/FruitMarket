@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết đơn hàng</title>
+    <style>
+        :root {
+            --bg: #0b1222;
+            --card: #0f172a;
+            --muted: #94a3b8;
+            --accent: #2563eb;
+            --text: #e2e8f0;
+            --success: #16a34a;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #1e293b;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .btn-back {
+            padding: 8px 16px;
+            background: #374151;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover {
+            background: #4b5563;
+        }
+
+        .info-section {
+            margin-bottom: 24px;
+        }
+
+        .info-section h3 {
+            font-size: 16px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .info-item {
+            padding: 12px;
+            background: #1e293b;
+            border-radius: 6px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .status-form {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+
+        .status-form select {
+            width: 100%;
+            padding: 10px;
+            background: var(--card);
+            border: 1px solid #374151;
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .btn-update {
+            width: 100%;
+            padding: 10px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-update:hover {
+            background: #15803d;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .price {
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .total-row {
+            font-weight: 700;
+            font-size: 16px;
+            background: #1e293b;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h2>📋 Chi tiết đơn hàng #<span th:text="${order.id}"></span></h2>
+        <a th:href="@{/admin/orders}" class="btn-back">← Quay lại</a>
+    </div>
+
+    <div th:if="${message}" th:class="'alert alert-' + ${type}">
+        <span th:text="${message}"></span>
+    </div>
+
+    <!-- Thông tin khách hàng -->
+    <div class="info-section">
+        <h3>👤 Thông tin khách hàng</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Tên khách hàng</div>
+                <div class="info-value" th:text="${order.users?.username ?: 'N/A'}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value" th:text="${order.users?.email ?: 'N/A'}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Số điện thoại</div>
+                <div class="info-value" th:text="${order.phoneNumber}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Địa chỉ giao hàng</div>
+                <div class="info-value" th:text="${order.address}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin đơn hàng -->
+    <div class="info-section">
+        <h3>📦 Thông tin đơn hàng</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Phương thức thanh toán</div>
+                <div class="info-value" th:text="${order.pricingMethod}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Trạng thái thanh toán</div>
+                <div class="info-value" th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Trạng thái đơn hàng</div>
+                <div class="info-value" th:text="${order.orderStauts}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Tổng số lượng</div>
+                <div class="info-value" th:text="${order.totalQuantity}"></div>
+            </div>
+        </div>
+
+        <!-- Form cập nhật trạng thái -->
+        <div class="status-form">
+            <h4 style="margin-top: 0;">🔄 Cập nhật trạng thái</h4>
+            <form th:action="@{'/admin/orders/' + ${order.id} + '/updateStatus'}" method="post">
+                <select name="status" required>
+                    <option value="">-- Chọn trạng thái --</option>
+                    <option th:each="status : ${orderStatuses}"
+                            th:value="${status}"
+                            th:text="${status}"
+                            th:selected="${status == order.orderStauts}"></option>
+                </select>
+                <button type="submit" class="btn-update">✓ Cập nhật trạng thái</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chi tiết sản phẩm -->
+    <div class="info-section">
+        <h3>🛍️ Sản phẩm trong đơn hàng</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Đơn giá</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${order.orderItemList}">
+                <td>
+                    <div class="product-info">
+                        <img th:if="${item.productVariant?.image != null}"
+                             th:src="${item.productVariant.image.url}"
+                             alt="Product"
+                             class="product-img"
+                             onerror="this.src='https://via.placeholder.com/60'"/>
+                        <img th:unless="${item.productVariant?.image != null}"
+                             src="https://via.placeholder.com/60"
+                             alt="No image"
+                             class="product-img"/>
+                        <div>
+                            <div th:text="${item.productVariant?.product?.productName ?: 'N/A'}"></div>
+                            <div style="font-size: 12px; color: var(--muted);"
+                                 th:if="${item.productVariant?.variant_name != null}"
+                                 th:text="'Phân loại: ' + ${item.productVariant.variant_name}"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
+                <td th:text="${item.quanity}"></td>
+                <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price * item.quanity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3" style="text-align: right;">Tổng cộng:</td>
+                <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
