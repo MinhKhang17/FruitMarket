@@ -1,136 +1,236 @@
-/* ===== Reset & Theme (giữ tone lá xanh) ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root{
-    --leaf-50:#e8f5e9; --leaf-100:#c8e6c9; --leaf-300:#81c784; --leaf-400:#66bb6a;
-    --leaf-500:#43a047; --leaf-600:#388e3c; --leaf-700:#2e7d32;
-    --ink:#333; --card:#fff; --shadow:0 6px 14px rgba(0,0,0,.06);
-    --danger-50:#ffebee; --danger-500:#e53935; --danger-600:#c62828;
-    --muted-50:#eef2f3; --muted-400:#90a4ae;
+/* ===== Tone màu xanh lá dịu ===== */
+:root {
+    --green-50:#f4faef;
+    --green-100:#e8f5e9;
+    --green-500:#43a047;
+    --green-600:#388e3c;
+    --red-500:#e53935;
+    --red-600:#c62828;
+    --purple-500:#7e57c2;
+    --white:#fff;
+    --shadow:0 4px 10px rgba(0,0,0,.06);
 }
 
-/* ===== Page (KHÔNG dùng grid/center để khỏi bị “một nhúm” trong iframe) ===== */
-html, body{
-    font-family:'Segoe UI', Tahoma, sans-serif;
-    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
-    min-height: 100vh;
-    color: var(--ink);
+/* ===== Tổng thể ===== */
+body {
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    background: var(--green-50);
+    color: #2e7d32;
+    padding: 30px;
 }
-body{ padding: 20px; }
 
-/* Khung rộng hơn, canh giữa nội dung */
-.container{
-    width: 100%;
-    max-width: 1120px;       /* tăng độ rộng hơn bản cũ */
+/* ===== Container chính ===== */
+.container {
+    max-width: 1200px;
     margin: 0 auto;
-}
-
-/* ===== Title ===== */
-h2{
-    color: var(--leaf-500);
-    font-weight: 800;
-    letter-spacing:.3px;
-    text-align: center;
-    margin: 0 0 18px 0;
-    text-shadow: 0 1px 2px rgba(0,0,0,.05);
-}
-
-/* ===== Table Card ===== */
-table{
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    background: var(--card);
-    border: 1px solid var(--leaf-100);
-    border-radius: 14px;
+    background: var(--white);
+    border-radius: 16px;
     box-shadow: var(--shadow);
-    overflow: hidden;
-    animation: fadeIn .45s ease;
+    padding: 25px 30px 40px;
 }
 
-/* Header */
-thead th{
-    background: linear-gradient(0deg, var(--leaf-50), #ffffff);
-    color: var(--leaf-700);
+/* ===== Tiêu đề ===== */
+h2 {
     font-weight: 800;
-    text-align: left;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--leaf-100);
-    font-size: .95rem;
+    color: var(--green-600);
+    margin-bottom: 6px;
+}
+.container p {
+    color: #666;
+    margin-bottom: 20px;
 }
 
-/* Cells */
-tbody td{
-    padding: 14px 16px;
-    border-bottom: 1px solid #f2f4f5;
-    font-size: .95rem;
+/* ===== Nút thêm mới ===== */
+.add-btn {
+    background: var(--green-500);
+    color: #fff;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    box-shadow: var(--shadow);
+    transition: all 0.25s;
 }
-tbody tr{ transition: background .2s ease; }
-tbody tr:hover{ background: #fbfff7; }
-tbody tr:last-child td{ border-bottom: none; }
-
-/* ===== Status pill (Thymeleaf đã gán class active/inactive) ===== */
-tbody td:nth-child(3){ font-weight:700; letter-spacing:.2px; }
-tbody td.active, tbody td.inactive{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:6px 12px; border-radius:999px; font-size:.9rem; line-height:1;
-    border:1px solid transparent;
+.add-btn:hover {
+    background: var(--green-600);
+    transform: translateY(-1px);
 }
-tbody td.active{ color:var(--leaf-700); background:#edf7ee; border-color:var(--leaf-100); }
-tbody td.active::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--leaf-500); }
-tbody td.inactive{ color:var(--danger-600); background:var(--danger-50); border-color:#ffcdd2; }
-tbody td.inactive::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--danger-500); }
-
-/* ===== Actions: biến link thành button, ẩn dấu “|” ===== */
-tbody td:last-child{
-    white-space: nowrap;
-    display: flex; align-items: center; gap: 10px;
-    font-size: 0; /* ẩn ký tự '|' trong HTML */
-}
-tbody td:last-child a{
-    font-size: .95rem; /* khôi phục cỡ chữ cho link */
-    display:inline-block; background:var(--leaf-500); color:#fff; text-decoration:none;
-    border-radius:10px; font-weight:600; padding:6px 12px; line-height:1;
-    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
-    box-shadow:0 4px 10px rgba(67,160,71,.18);
-}
-tbody td:last-child a:hover{
-    background:var(--leaf-600); transform:translateY(-1px);
-    box-shadow:0 6px 14px rgba(67,160,71,.25);
-}
-tbody td:last-child a:nth-of-type(2){
-    background: var(--danger-500);
-    box-shadow: 0 4px 10px rgba(229,57,53,.18);
-}
-tbody td:last-child a:nth-of-type(2):hover{
-    background: var(--danger-600);
-    box-shadow: 0 6px 14px rgba(198,40,40,.25);
+.actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
 }
 
-/* Giữ cột ổn định, đỡ “trượt” theo nội dung dài */
-table{ table-layout: fixed; width:100%; }
-
-/* Canh giữa header của 2 cột cuối */
-thead th:nth-child(3),
-thead th:nth-child(4){ text-align:center; }
-
-/* Canh giữa nội dung cột Status */
-tbody td:nth-child(3){ text-align:center; }
-
-/* Ô Actions: canh giữa hàng nút */
-tbody td:last-child{
-    justify-content: center;   /* thêm dòng này */
+/* ===== Bảng ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+thead th {
+    background: var(--green-100);
+    color: var(--green-600);
+    padding: 14px;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: center;
+}
+tbody td {
+    padding: 16px;
+    border-bottom: 1px solid #f2f2f2;
+    text-align: center;
+    vertical-align: middle;
+}
+tbody tr:last-child td {
+    border-bottom: none;
+}
+tbody tr:hover {
+    background: #f9fff5;
 }
 
-/* ===== A11y ===== */
-a:focus{ outline:3px solid rgba(102,187,106,.35); outline-offset:2px; border-radius:10px; }
+/* ===== Trạng thái ===== */
+.status span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+.status .active {
+    color: var(--green-600);
+    background: #e8f5e9;
+}
+.status .active::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--green-500);
+    border-radius: 50%;
+}
+.status .inactive {
+    color: var(--red-600);
+    background: #ffebee;
+}
+.status .inactive::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: var(--red-500);
+    border-radius: 50%;
+}
+
+/* ===== Nút hành động ===== */
+.actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.actions a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    transition: 0.25s;
+}
+.edit-btn {
+    background: var(--green-500);
+}
+.edit-btn:hover {
+    background: var(--green-600);
+    transform: translateY(-1px);
+}
+.delete-btn {
+    background: var(--red-500);
+}
+.delete-btn:hover {
+    background: var(--red-600);
+    transform: translateY(-1px);
+}
 
 /* ===== Responsive ===== */
-@media (max-width: 720px){
-    .container{ max-width: 100%; }
-    thead th, tbody td{ padding:12px 14px; font-size:.92rem; }
-    h2{ font-size:1.25rem; }
+@media (max-width: 768px) {
+    body { padding: 16px; }
+    table, th, td { font-size: 0.9rem; }
+    .add-btn { padding: 8px 14px; font-size: 0.9rem; }
+}
+/* ===== Scroll riêng cho bảng ===== */
+.table-wrapper {
+    max-height: 450px; /* bạn có thể chỉnh tùy ý, ví dụ 400–600px */
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
 }
 
-/* ===== Fade-in ===== */
-@keyframes fadeIn{ from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+/* Thanh cuộn nhẹ nhàng, chỉ hiện trong bảng */
+.table-wrapper::-webkit-scrollbar {
+    width: 8px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+    background-color: var(--green-500);
+    border-radius: 10px;
+}
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+    background-color: var(--green-600);
+}
+.table-wrapper::-webkit-scrollbar-track {
+    background: var(--green-100);
+}
+/* ===== Giữ cố định hàng tiêu đề khi cuộn ===== */
+.table-wrapper {
+    position: relative;
+    max-height: 450px;
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+.table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    background: var(--green-100);
+    z-index: 2;
+}
+/* Fix sticky header không hoạt động trong Chrome/Edge */
+.table-wrapper table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+/* ===== Header cố định và body cuộn (tách riêng) ===== */
+.table-header table,
+.table-wrapper table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table-header th,
+.table-wrapper td {
+    text-align: center;
+    padding: 14px;
+}
+
+/* Header giữ nguyên màu */
+.table-header th {
+    background: var(--green-100);
+    color: var(--green-600);
+    font-weight: 600;
+}
+
+/* Body cuộn */
+.table-wrapper {
+    max-height: 450px;
+    overflow-y: auto;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border-top: none;
+}

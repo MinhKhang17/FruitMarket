@@ -9,17 +9,20 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CategorysServiceImpl implements  CategorysService {
+public class CategorysServiceImpl implements CategorysService {
 
     private final CategorysRepository categorysRepository;
 
     @Override
-    public Categorys findById(long id) {
-        return categorysRepository.findById(id);
+    public Categorys getById(long id) {
+        return categorysRepository.findById(id).orElse(null);
     }
 
     @Override
     public Categorys addCategorys(Categorys categorys) {
+        if (categorys.getId() == null) {
+            categorys.setStatus(true);
+        }
         return categorysRepository.save(categorys);
     }
 
@@ -30,10 +33,10 @@ public class CategorysServiceImpl implements  CategorysService {
 
     @Override
     public void deleteById(Long id) {
-        Categorys brand = categorysRepository.findById(id).orElse(null);
-        if (brand != null) {
-            brand.setStatus(true);
-            categorysRepository.save(brand);
+        Categorys category = categorysRepository.findById(id).orElse(null);
+        if (category != null) {
+            category.setStatus(false);
+            categorysRepository.save(category);
         }
     }
 }

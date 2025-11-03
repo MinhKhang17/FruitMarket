@@ -48,7 +48,7 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Số điện thoại này đã tồn tại.");
         }
 
-        user.setRole("CUSTOMER");
+        user.setRole("CLIENT");
         user.setStatus("PENDING");
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 

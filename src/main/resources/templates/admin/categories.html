@@ -1,39 +1,70 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" th:href="@{/category.css}" />
-    <title>Categories</title>
+    <title>Danh sách danh mục</title>
+    <link rel="stylesheet" th:href="@{/category.css}">
 </head>
 <body>
 <div class="container">
-    <h2>Category List</h2>
+    <h2>Danh sách danh mục</h2>
+    <p>Quản lý danh mục — xem, sửa, xóa hoặc tạo mới.</p>
 
-    <table>
-        <thead>
-        <tr>
-            <th>Category ID</th>
-            <th>Category Name</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="c : ${categories}">
-            <td th:text="${c.id}"></td>
-            <td th:text="${c.name}"></td>
-            <td th:text="${c.status ? 'Inactive' : 'Active'}"></td>
-            <td class="actions">
-                <a th:href="@{'/admin/categories/edit/' + ${c.id}}">Edit</a>
-                |
-                <a th:href="@{'/admin/categories/delete/' + ${c.id}}"
-                   onclick="return confirm('Are you sure you want to delete this category?');">
-                    Delete
-                </a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- Thông báo flash -->
+    <div th:if="${message}"
+         th:classappend="'alert ' + (${type} == 'success' ? 'alert-success'
+                        : (${type} == 'danger' ? 'alert-danger'
+                        : (${type} == 'warning' ? 'alert-warning' : 'alert-info')))">
+        <span th:text="${message}"></span>
+    </div>
+
+    <!-- Nút thêm mới -->
+    <div class="actions-bar">
+        <a th:href="@{/admin/categories/create}" class="add-btn">Thêm danh mục mới</a>
+    </div>
+
+    <!-- Header cố định: chỉ chứa THEAD -->
+    <div class="table-header">
+        <table class="header-table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Tên danh mục</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
+        </table>
+    </div>
+
+    <!-- Body cuộn: chỉ chứa TBODY -->
+    <div class="table-wrapper">
+        <table class="body-table">
+            <tbody>
+            <tr th:each="c, iterStat : ${categories}">
+                <td th:text="${iterStat.count}">1</td>
+                <td th:text="${c.name}">Fruits</td>
+                <td class="status">
+                <span th:class="${c.status ? 'active' : 'inactive'}"
+                      th:text="${c.status ? 'Active' : 'Inactive'}"></span>
+                </td>
+                <td class="actions">
+                    <a th:href="@{'/admin/categories/edit/' + ${c.id}}" class="edit-btn">Sửa</a>
+                    <a th:href="@{'/admin/categories/delete/' + ${c.id}}"
+                       class="delete-btn"
+                       onclick="return confirm('Bạn có chắc muốn xóa danh mục này?');">
+                        Xóa
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Khi không có danh mục -->
+    <p th:if="${#lists.isEmpty(categories)}" class="empty-msg">
+        Hiện chưa có danh mục nào.
+    </p>
 </div>
 </body>
 </html>

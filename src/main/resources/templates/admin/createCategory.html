@@ -9,11 +9,17 @@
 <div class="container">
     <h2 th:text="${category.id} != null ? 'Edit Category' : 'Create New Category'"></h2>
 
+    <!-- Hiển thị thông báo nếu có -->
+    <div th:if="${message}" th:class="'alert alert-' + ${type}" th:text="${message}"></div>
+
     <form th:action="@{/admin/categories/save}" th:object="${category}" method="post">
         <input type="hidden" th:field="*{id}" />
 
         <label for="name">Category Name:</label>
         <input type="text" id="name" th:field="*{name}" placeholder="Enter category name" required />
+
+        <label for="status">Active:</label>
+        <input type="checkbox" id="status" th:field="*{status}" />
 
         <div class="actions">
             <button type="submit" th:text="${category.id} != null ? 'Update' : 'Save'">Save</button>

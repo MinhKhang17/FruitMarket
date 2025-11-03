@@ -111,7 +111,7 @@
                             <hr>
                             <p class="section-title mt-3 mb-2">Cập nhật liên hệ</p>
 
-                            <form th:action="@{/user/profile}" th:object="${profileForm}" method="post">
+                            <form th:action="@{/client/profile}" th:object="${profileForm}" method="post">
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Email</label>
                                     <input th:field="*{email}" type="email" class="form-control" placeholder="Nhập email của bạn">
@@ -138,7 +138,7 @@
                         </div>
                         <div class="card-body">
                             <p class="text-muted mb-3">Thay đổi mật khẩu để bảo vệ tài khoản của bạn.</p>
-                            <form th:action="@{/user/change-password}" th:object="${pwdForm}" method="post">
+                            <form th:action="@{/client/change-password}" th:object="${pwdForm}" method="post">
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Mật khẩu hiện tại</label>
                                     <input th:field="*{oldPassword}" type="password" class="form-control" placeholder="Nhập mật khẩu hiện tại">
