@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản lý Đơn hàng</title>
+    <style>
+        /* Buttons */
+
+        /* ===== FruitMarket Green Theme ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            /* Green palette */
+            --leaf-50:  #f1f8e9;
+            --leaf-100: #dcedc8;
+            --leaf-200: #c5e1a5;
+            --leaf-300: #aed581;
+            --leaf-400: #9ccc65;
+            --leaf-500: #8bc34a;
+            --leaf-600: #689f38;
+            --leaf-700: #558b2f;
+
+            --danger-100: #ffebee;
+            --danger-500: #e53935;
+            --danger-600: #c62828;
+            --accent: #43a047;
+
+            --ink: #333;
+            --muted: #607d8b;
+            --card: #fff;
+            --shadow: 0 6px 14px rgba(0,0,0,.08);
+        }
+
+        /* ===== Page layout ===== */
+        html, body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--leaf-50), #fff8e1);
+            min-height: 100vh;
+            color: var(--ink);
+        }
+        body { padding: 24px; }
+
+        /* ===== Card container ===== */
+        .card {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            max-width: 1100px;
+            margin: 0 auto;
+            border: 1px solid var(--leaf-100);
+            animation: fadeIn .4s ease;
+        }
+
+        /* ===== Title ===== */
+        h2 {
+            color: var(--leaf-600);
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-align: left;
+            margin-bottom: 20px;
+            text-shadow: 0 1px 1px rgba(0,0,0,.05);
+        }
+
+        /* ===== Header row ===== */
+        .top-row, .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn-view, .btn-back, .btn-update {
+            display: inline-block;
+            background: var(--leaf-500);
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-weight: 600;
+            transition: background .2s, transform .2s, box-shadow .2s;
+            box-shadow: 0 4px 10px rgba(139,195,74,.18);
+        }
+        .btn-view:hover, .btn-back:hover, .btn-update:hover {
+            background: var(--leaf-600);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(104,159,56,.25);
+        }
+        .btn-back {
+            background: var(--leaf-400);
+            color: white;
+        }
+        .btn-update {
+            width: 100%;
+            background: var(--leaf-600);
+        }
+
+        /* ===== Alerts ===== */
+        .alert {
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .alert-success {
+            background: #e8f5e9;
+            color: var(--leaf-700);
+            border: 1px solid var(--leaf-200);
+        }
+        .alert-danger {
+            background: var(--danger-100);
+            color: var(--danger-600);
+            border: 1px solid #ffcdd2;
+        }
+
+        /* ===== Info sections ===== */
+        .info-section {
+            margin-bottom: 28px;
+        }
+        .info-section h3 {
+            font-size: 15px;
+            color: var(--leaf-600);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 14px;
+        }
+        .info-item {
+            background: var(--leaf-50);
+            border: 1px solid var(--leaf-100);
+            border-radius: 10px;
+            padding: 12px;
+        }
+        .info-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        /* ===== Table ===== */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid var(--leaf-100);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            background: var(--card);
+        }
+        thead th {
+            background: linear-gradient(0deg, var(--leaf-50), #ffffff);
+            color: var(--leaf-700);
+            font-weight: 800;
+            text-align: left;
+            padding: 14px 16px;
+            font-size: .9rem;
+            border-bottom: 1px solid var(--leaf-100);
+        }
+        tbody td {
+            padding: 14px 16px;
+            font-size: .95rem;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        tbody tr:hover {
+            background: #fbfff7;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== Badges ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pending { background: #fff7d6; color: #9c6f00; }
+        .status-confirmed { background: #e8f0fe; color: #1e40af; }
+        .status-shipping { background: #e0f2f1; color: #00695c; }
+        .status-delivered { background: #e6f4ea; color: #256029; }
+        .status-cancelled { background: #fdecea; color: #b71c1c; }
+
+        .paid-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .paid-yes { background: var(--leaf-600); }
+        .paid-no { background: var(--danger-500); }
+
+        /* ===== Product info ===== */
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+        .price {
+            font-weight: 700;
+            color: var(--leaf-700);
+        }
+        .total-row {
+            font-weight: 700;
+            background: var(--leaf-50);
+        }
+
+        /* ===== Status form ===== */
+        .status-form {
+            background: var(--leaf-50);
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--leaf-100);
+            margin-top: 16px;
+        }
+        .status-form select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--leaf-200);
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .status-form select:focus {
+            outline: 3px solid rgba(139,195,74,.25);
+            border-color: var(--leaf-400);
+        }
+
+        /* ===== Empty state ===== */
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 720px) {
+            .info-grid { grid-template-columns: 1fr; }
+            th, td { padding: 12px 14px; font-size: .9rem; }
+            h2 { font-size: 20px; }
+            .btn-view, .btn-back { width: 100%; text-align: center; }
+        }
+
+        /* ===== Animations ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: none; }
+        }
+
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="top-row">
+        <h2>📦 Quản lý Đơn hàng</h2>
+    </div>
+
+    <div th:if="${message}" th:class="'alert alert-' + ${type}" style="padding: 12px; margin-bottom: 16px; border-radius: 6px;">
+        <span th:text="${message}"></span>
+    </div>
+
+    <table th:if="${orders != null and !orders.isEmpty()}">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Khách hàng</th>
+            <th>Số điện thoại</th>
+            <th>Địa chỉ</th>
+            <th>Tổng tiền</th>
+            <th>Số lượng</th>
+            <th>Thanh toán</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="order : ${orders}">
+            <td th:text="${order.id}"></td>
+            <td th:text="${order.users?.username ?: 'N/A'}"></td>
+            <td th:text="${order.phoneNumber}"></td>
+            <td th:text="${#strings.abbreviate(order.address, 30)}"></td>
+            <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
+            <td th:text="${order.totalQuantity}"></td>
+            <td>
+                <span th:class="${order.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
+                      th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}"></span>
+            </td>
+            <td>
+                <span th:class="'status-badge status-' + ${#strings.toLowerCase(order.orderStauts)}"
+                      th:text="${order.orderStauts}"></span>
+            </td>
+            <td>
+                <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn-view">Xem chi tiết</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <div th:if="${orders == null or orders.isEmpty()}" class="no-data">
+        <p>📭 Chưa có đơn hàng nào</p>
+    </div>
+</div>
+</body>
+</html>

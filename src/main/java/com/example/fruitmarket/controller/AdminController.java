@@ -12,6 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import com.example.fruitmarket.model.Order;
+import com.example.fruitmarket.service.OrderService;
+import com.example.fruitmarket.enums.OrderStauts;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,6 +29,7 @@ public class AdminController {
     @Autowired private CategorysService categorysService;
     @Autowired private VariantService variantService;
     @Autowired private ImageService imageService;
+    @Autowired private OrderService orderService;
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
 
@@ -134,5 +139,69 @@ public class AdminController {
         // Chỉ upload ảnh đầu tiên (One-to-One)
         variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
         return "redirect:/admin/products/" + productId + "/variants";
+    }
+
+    @GetMapping("/productVariant/delete/{id}")
+    public String deleteProductVariant(@PathVariable Long id) {
+        ProductVariant variant = variantService.findById(id);
+        Long productId = variant.getProduct().getId();
+
+        variantService.updateStatusToInactive(id);
+
+        return "redirect:/admin/products/" + productId + "/variants/list";
+    }
+
+    @GetMapping("/products/{id}/variants/list")
+    public String viewVariantList(@PathVariable Long id, Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "admin/variantList";
+    }
+    @GetMapping("/orders")
+    public String adminOrders(Model model) {
+        List<Order> orders = orderService.getAllOrders();
+        model.addAttribute("orders", orders);
+        return "admin/orders";
+    }
+
+    @GetMapping("/orders/{id}")
+    public String viewOrderDetail(@PathVariable Long id, Model model) {
+        try {
+            Order order = orderService.getOrderById(id);
+            if (order == null) {
+                model.addAttribute("error", "Không tìm thấy đơn hàng với ID: " + id);
+                return "redirect:/admin/orders";
+            }
+            model.addAttribute("order", order);
+            model.addAttribute("orderStatuses", OrderStauts.values());
+            return "admin/orderDetail";
+        } catch (Exception e) {
+            log.error("Error loading order detail: ", e);
+            model.addAttribute("error", "Lỗi: " + e.getMessage());
+            return "redirect:/admin/orders";
+        }
+    }
+
+    @PostMapping("/orders/{id}/updateStatus")
+    public String updateOrderStatus(@PathVariable Long id,
+                                    @RequestParam("status") String status,
+                                    RedirectAttributes ra) {
+        try {
+            Order order = orderService.getOrderById(id);
+            if (order == null) {
+                ra.addFlashAttribute("message", "Không tìm thấy đơn hàng!");
+                ra.addFlashAttribute("type", "danger");
+                return "redirect:/admin/orders";
+            }
+            order.setOrderStauts(OrderStauts.valueOf(status));
+            orderService.updateOrder(order);
+            ra.addFlashAttribute("message", "Cập nhật trạng thái đơn hàng thành công!");
+            ra.addFlashAttribute("type", "success");
+        } catch (Exception e) {
+            log.error("Error updating order status: ", e);
+            ra.addFlashAttribute("message", "Lỗi: " + e.getMessage());
+            ra.addFlashAttribute("type", "danger");
+        }
+        return "redirect:/admin/orders/" + id;
     }
 }

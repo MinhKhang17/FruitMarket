@@ -1,6 +1,7 @@
 package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.enums.ImageType;
+import com.example.fruitmarket.enums.ProductStatus;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.repository.ProductRepository;
@@ -38,5 +39,18 @@ public class VariantServiceImpl implements VariantService {
         }
 
         return savedVariant;
+    }
+
+    @Override
+    public void updateStatusToInactive(Long variantId) {
+        ProductVariant variant = productVariantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể có ID: " + variantId));
+        variant.setStatus(ProductStatus.INACTIVE);
+        productVariantRepository.save(variant);
+    }
+
+    @Override
+    public ProductVariant findById(Long variantId) {
+        return productVariantRepository.findById(variantId).orElse(null);
     }
 }

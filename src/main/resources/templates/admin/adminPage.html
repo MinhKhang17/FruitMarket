@@ -59,8 +59,8 @@
             </div>
 
             <div>
-                <a id="btnCreate" class="btn btn-sm btn-success" href="#" role="button">➕ Tạo Product</a>
-                <a id="btnProducts" class="btn btn-sm btn-outline-primary" href="#" role="button">🧾 Danh sách Products</a>
+                <a id="btnCreate" class="btn btn-sm btn-success" href="#" role="button">➕ Thêm sản phẩm</a>
+                <a id="btnProducts" class="btn btn-sm btn-outline-primary" href="#" role="button">🧾 Danh sách sản phẩm</a>
             </div>
         </div>
 
@@ -96,7 +96,7 @@
 
         document.getElementById('btnCreate').addEventListener('click', function (e) {
             e.preventDefault();
-            document.querySelector('aside.sidebar .nav-link[data-src="/admin/product/create"]').click();
+            document.querySelector('aside.sidebar .nav-link[data-src="/admin/products/create"]').click();
         });
         document.getElementById('btnProducts').addEventListener('click', function (e) { e.preventDefault(); document.querySelector('aside.sidebar .nav-link[data-src="/admin/products"]').click(); });
 

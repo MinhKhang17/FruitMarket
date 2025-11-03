@@ -1,0 +1,168 @@
+/* ===== Product Page (Leaf Theme) ===== */
+:root {
+    --bg: #f1f8e9;
+    --card: #ffffff;
+    --muted: #607d8b;
+    --text: #1b4332;
+    --accent: #66bb6a;
+    --accent-dark: #43a047;
+    --danger: #e53935;
+    --danger-dark: #c62828;
+    --purple: #8b5cf6;
+    --purple-dark: #7c3aed;
+}
+
+body {
+    margin: 0;
+    padding: 24px;
+    font-family: "Segoe UI", Roboto, Arial, sans-serif;
+    background: linear-gradient(135deg, #f1f8e9, #fff);
+    color: var(--text);
+}
+
+.card {
+    background: var(--card);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+    border: 1px solid #c8e6c9;
+}
+
+/* ===== Top Section ===== */
+.top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+h2 {
+    color: var(--accent-dark);
+    margin: 0 0 4px 0;
+    font-weight: 800;
+}
+
+.subtitle {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.15);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Nút chính (Thêm sản phẩm mới) */
+.btn-main {
+    background: var(--accent);
+}
+.btn-main:hover {
+    background: var(--accent-dark);
+}
+
+/* ===== Table ===== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    background: var(--card);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+th, td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+}
+
+th {
+    background: #e8f5e9;
+    color: #2e7d32;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+tbody tr:hover {
+    background: #f9fff9;
+}
+
+.thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #c8e6c9;
+}
+
+/* ===== Product Desc ===== */
+.product-desc {
+    color: #546e7a;
+    font-size: 13px;
+}
+
+/* ===== No data ===== */
+.no-data {
+    color: var(--muted);
+    padding: 20px;
+    text-align: center;
+}
+
+/* ===== Action buttons ===== */
+.actions a {
+    margin-right: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+/* Edit */
+.actions a.edit {
+    background-color: #4caf50;
+}
+.actions a.edit:hover {
+    background-color: #388e3c;
+}
+
+/* Delete */
+.actions a.delete {
+    background-color: var(--danger);
+}
+.actions a.delete:hover {
+    background-color: var(--danger-dark);
+}
+
+/* View Variant */
+.actions a.btn-view {
+    background-color: var(--purple);
+}
+.actions a.btn-view:hover {
+    background-color: var(--purple-dark);
+}
+
+/* Create Variant */
+.actions a.btn-create {
+    background-color: var(--accent);
+}
+.actions a.btn-create:hover {
+    background-color: var(--accent-dark);
+}

@@ -2,6 +2,7 @@ package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.dto.ProductDTO;
 import com.example.fruitmarket.dto.ProductDTO;
+import com.example.fruitmarket.enums.ProductStatus;
 import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.model.Product;
@@ -36,10 +37,6 @@ public class ProductServiceImpl implements ProductService {
         return productRepo.findProductById(id);
     }
 
-    @Override
-    public void deleteById(Long id) {
-        productRepo.deleteById(id);
-    }
 
     @Override
     public ProductDTO findAllProductWithProductVariant(long id) {
@@ -111,5 +108,17 @@ public class ProductServiceImpl implements ProductService {
         String q = keyword.trim();
         if (q.isEmpty()) return Collections.emptyList();
         return productRepo.search(q);
+    }
+
+    @Override
+    public void updateProductStatusToInactive(Long productId) {
+        Product product = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        product.setStatus(ProductStatus.INACTIVE);
+        productRepo.save(product);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        productRepo.deleteById(id);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.fruitmarket.config;
 
+import com.example.fruitmarket.enums.ProductStatus;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.*;
 import jakarta.transaction.Transactional;
@@ -118,6 +119,7 @@ public class DataInitializer implements CommandLineRunner {
             p1.setProduct_description("Crisp, sweet red apples - fresh and juicy.");
             p1.setCategory(defaultCategory);
             p1.setBrand(defaultBrand);
+            p1.setStatus(ProductStatus.ACTIVE);
 
             // set product image (served from /images/red_apple.jpg)
             setImageIfPossible.accept(p1, "/images/red_apple.jpg");
@@ -131,7 +133,7 @@ public class DataInitializer implements CommandLineRunner {
             Image image = new Image();
             image.setUrl("/images/red_apple.jpg");
             v11.setImage(image);
-
+            v11.setStatus(ProductStatus.ACTIVE);
             try {
                 v11.getClass().getMethod("setImageUrl", String.class).invoke(v11, "/images/red_apple.jpg");
             } catch (Exception ignored) {
@@ -143,6 +145,7 @@ public class DataInitializer implements CommandLineRunner {
             v12.setProduct(p1);
             v12.setStock(100);
             v12.setImage(new Image("/images/baby_spinach"));
+            v12.setStatus(ProductStatus.ACTIVE);
             try {
                 v12.getClass().getMethod("setImageUrl", String.class).invoke(v12, "/images/red_apple.jpg");
             } catch (Exception ignored) {
@@ -164,6 +167,7 @@ public class DataInitializer implements CommandLineRunner {
             p2.setProduct_description("Fresh baby spinach - tender leaves, great for salads.");
             p2.setCategory(defaultCategory);
             p2.setBrand(defaultBrand);
+            p2.setStatus(ProductStatus.ACTIVE);
 
             setImageIfPossible.accept(p2, "/images/baby_spinach.jpg");
 
@@ -172,6 +176,7 @@ public class DataInitializer implements CommandLineRunner {
             s21.setPrice(new BigDecimal("24000.00"));
             s21.setProduct(p2);
             s21.setStock(80);
+            s21.setStatus(ProductStatus.ACTIVE);
             try {
                 s21.getClass().getMethod("setImageUrl", String.class).invoke(s21, "/images/baby_spinach.jpg");
             } catch (Exception ignored) {
@@ -182,6 +187,7 @@ public class DataInitializer implements CommandLineRunner {
             s22.setPrice(new BigDecimal("42000.00"));
             s22.setProduct(p2);
             s22.setStock(60);
+            s22.setStatus(ProductStatus.ACTIVE);
             try {
                 s22.getClass().getMethod("setImageUrl", String.class).invoke(s22, "/images/baby_spinach.jpg");
             } catch (Exception ignored) {
@@ -203,6 +209,7 @@ public class DataInitializer implements CommandLineRunner {
             p3.setProduct_description("Sweet dried mango slices - tasty snack.");
             p3.setCategory(defaultCategory);
             p3.setBrand(defaultBrand);
+            p3.setStatus(ProductStatus.ACTIVE);
 
             setImageIfPossible.accept(p3, "/images/dried_mango.jpg");
 
@@ -211,6 +218,7 @@ public class DataInitializer implements CommandLineRunner {
             m31.setPrice(new BigDecimal("55000.00"));
             m31.setProduct(p3);
             m31.setStock(120);
+            m31.setStatus(ProductStatus.ACTIVE);
             try {
                 m31.getClass().getMethod("setImageUrl", String.class).invoke(m31, "/images/dried_mango.jpg");
             } catch (Exception ignored) {
@@ -221,6 +229,7 @@ public class DataInitializer implements CommandLineRunner {
             m32.setPrice(new BigDecimal("120000.00"));
             m32.setProduct(p3);
             m32.setStock(60);
+            m32.setStatus(ProductStatus.ACTIVE);
             try {
                 m32.getClass().getMethod("setImageUrl", String.class).invoke(m32, "/images/dried_mango.jpg");
             } catch (Exception ignored) {

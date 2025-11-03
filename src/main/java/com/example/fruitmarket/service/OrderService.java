@@ -17,4 +17,5 @@ public interface OrderService {
     void updateOrder(Order order);
     List<Order> getOrdersOfUser(HttpSession session);
     Order getOrderDetailForUser(Long orderId, HttpSession session);
+    List<Order> getAllOrders();
 }

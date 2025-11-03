@@ -4,174 +4,57 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - Products</title>
-
-    <style>
-        :root {
-            --bg: #0b1222;
-            --card: #0f172a;
-            --muted: #94a3b8;
-            --accent: #2563eb;
-            --text: #e2e8f0;
-            --green: #16a34a;
-        }
-
-        body {
-            margin: 0;
-            padding: 24px;
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .card {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 6px 18px rgba(2,6,23,0.6);
-        }
-
-        .top-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .btn {
-            background: var(--accent);
-            color: white;
-            padding: 8px 14px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.2s ease;
-        }
-
-        .btn:hover {
-            background: #1d4ed8;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 12px;
-        }
-
-        th, td {
-            padding: 10px 12px;
-            text-align: left;
-            border-bottom: 1px solid #1e293b;
-            font-size: 14px;
-            color: var(--text);
-        }
-
-        th {
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .thumb {
-            width: 64px;
-            height: 64px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #111827;
-        }
-
-        .actions a {
-            margin-right: 10px;
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.2s;
-        }
-
-        .actions a:hover {
-            color: #60a5fa;
-        }
-
-        .no-data {
-            color: var(--muted);
-            padding: 20px;
-            text-align: center;
-        }
-
-        .btn-green {
-            background: var(--green);
-            padding: 6px 10px;
-            color: white;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .btn-green:hover {
-            background: #15803d;
-        }
-
-        .product-desc {
-            color: #cbd5e1;
-            font-size: 13px;
-        }
-    </style>
+    <link th:href="@{/products.css}" rel="stylesheet" />
 </head>
 <body>
 <div class="card">
     <div class="top-row">
         <div>
-            <h2 style="margin:0 0 4px 0">Danh sách Products</h2>
-            <div style="color:var(--muted); font-size:13px">
-                Quản lý sản phẩm — xem, sửa, xóa hoặc tạo mới.
-            </div>
+            <h2>Danh sách Products</h2>
+            <div class="subtitle">Quản lý sản phẩm — xem, sửa, xóa hoặc tạo mới.</div>
         </div>
         <div>
-            <a class="btn" th:href="@{/admin/products/create}">➕ Tạo Product mới</a>
+            <a class="btn btn-main" th:href="@{/admin/products/create}">Thêm sản phẩm mới</a>
         </div>
     </div>
 
-    <div th:if="${#lists.isEmpty(products)}" class="no-data">Không có product nào.</div>
+    <div th:if="${#lists.isEmpty(products)}" class="no-data">Không có sản phẩm nào.</div>
 
     <div th:if="${!#lists.isEmpty(products)}">
         <table>
             <thead>
             <tr>
                 <th>#</th>
-                <th>Ảnh</th>
-                <th>Tên</th>
-                <th>Mô tả</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Description</th>
                 <th>Category</th>
                 <th>Brand</th>
-                <th>Hành động</th>
+                <th>Action</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="p,iter : ${products}">
+            <tr th:each="p,iter : ${products}"
+                th:if="${p.status != T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}">
                 <td th:text="${iter.index + 1}">1</td>
                 <td>
                     <img th:src="${!#lists.isEmpty(p.variants) && p.variants.get(0).image != null ?
                                 p.variants.get(0).image.url :
                                 '/images/placeholder.png'}"
-                         alt="thumb"
-                         class="thumb"/>
+                         alt="thumb" class="thumb"/>
                 </td>
 
                 <td th:text="${p.productName}">Product name</td>
                 <td class="product-desc" th:text="${p.product_description != null ? p.product_description : '-'}">Description...</td>
-
                 <td th:text="${p.category != null ? p.category.name : '—'}">Category</td>
                 <td th:text="${p.brand != null ? p.brand.name : '—'}">Brand</td>
 
                 <td class="actions">
-                    <a th:href="@{'/admin/products/edit/' + ${p.id}}">Edit</a>
-                    <a th:href="@{'/admin/products/delete/' + ${p.id}}"
+                    <a th:href="@{'/admin/products/edit/' + ${p.id}}" class="edit">Edit</a>
+                    <a th:href="@{'/admin/products/delete/' + ${p.id}}" class="delete"
                        onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">Delete</a>
-                    <a th:href="@{'/admin/products/view/' + ${p.id}}">View</a>
-                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}"
-                       class="btn-green">Create Variant</a>
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants/list'}" class="btn-view">View Variants</a>
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}" class="btn-create">Create Variant</a>
                 </td>
             </tr>
             </tbody>

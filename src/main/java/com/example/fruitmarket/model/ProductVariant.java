@@ -1,5 +1,6 @@
 package com.example.fruitmarket.model;
 
+import com.example.fruitmarket.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,9 @@ public class ProductVariant {
 
     @Column(precision = 15, scale = 2)
     private BigDecimal price;
+
+    @Enumerated(EnumType.STRING)
+    private ProductStatus status;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "image_id", referencedColumnName = "id")

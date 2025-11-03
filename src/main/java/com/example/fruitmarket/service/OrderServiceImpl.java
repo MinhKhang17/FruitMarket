@@ -150,8 +150,9 @@ public class OrderServiceImpl implements OrderService{
         return saved.getId();
     }
     @Override
-    public Order getOrderById(Long Id) {
-        return orderRepo.findOrderById(Id);
+    public Order getOrderById(Long id) {
+        return orderRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng với ID: " + id));
     }
 
     @Override
@@ -176,5 +177,10 @@ public class OrderServiceImpl implements OrderService{
             throw new IllegalStateException("Bạn không có quyền xem đơn hàng này.");
         }
         return order; // đã fetch đủ items/variant/product nhờ @EntityGraph
+    }
+
+    @Override
+    public List<Order> getAllOrders() {
+        return orderRepo.findAll();
     }
 }
