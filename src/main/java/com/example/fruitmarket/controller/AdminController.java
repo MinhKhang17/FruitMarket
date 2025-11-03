@@ -35,6 +35,8 @@ public class AdminController {
 
     @GetMapping({"", "/adminPage"})
     public String adminPage(Model model, HttpSession session) {
+        if(!com.example.fruitmarket.util.UserUtil.isLogin(session)){return "redirect:/auth/login";}
+        if(!com.example.fruitmarket.util.UserUtil.isAdmin(session)) {return "redirect:/error";}
         Object logged = (session != null) ? session.getAttribute("loggedUser") : null;
         String username = "admin";
         if (logged instanceof com.example.fruitmarket.model.Users user) {

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>403 — Không có quyền truy cập</title>
+
+    <!-- Style nhẹ, xanh lá hợp với giao diện FruitMarket -->
+    <style>
+        :root{
+            --leaf-50:  #f1f8e9;
+            --leaf-100: #dcedc8;
+            --leaf-300: #aed581;
+            --leaf-400: #9ccc65;
+            --leaf-500: #8bc34a;
+            --leaf-600: #689f38;
+            --card: #ffffff;
+            --ink: #24333a;
+            --muted: #6b7a76;
+            --shadow: 0 8px 24px rgba(35, 56, 18, .08);
+        }
+        html,body{height:100%; margin:0; font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: linear-gradient(135deg,var(--leaf-50), #fff8e1); color:var(--ink);}
+        a{color:var(--leaf-600); text-decoration:none;}
+        .site-header, .site-footer{background:var(--card); border-bottom:1px solid var(--leaf-100); box-shadow: var(--shadow); }
+        .site-footer{border-top:1px solid var(--leaf-100); border-bottom:none;}
+        .container{max-width:1100px; margin:0 auto; padding:20px;}
+        .brand{display:flex; align-items:center; gap:12px;}
+        .brand .logo{width:44px; height:44px; border-radius:8px; background:linear-gradient(180deg,var(--leaf-500), var(--leaf-600)); display:inline-block; box-shadow:0 4px 10px rgba(139,195,74,.15);}
+        .brand h1{font-size:18px; margin:0; color:var(--leaf-600); font-weight:800;}
+        nav{margin-left:auto;}
+        nav a{margin-left:14px; color:var(--muted); font-weight:600;}
+        /* Main */
+        .hero{min-height:60vh; display:flex; align-items:center; justify-content:center; padding:40px 20px;}
+        .card{
+            width:100%;
+            max-width:880px;
+            background:var(--card);
+            border-radius:14px;
+            padding:28px;
+            box-shadow:var(--shadow);
+            border:1px solid var(--leaf-100);
+            display:flex;
+            gap:20px;
+            align-items:center;
+        }
+        .left{
+            flex:0 0 160px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+        .icon{
+            width:120px;
+            height:120px;
+            border-radius:16px;
+            background:linear-gradient(180deg, #fff7e6, #ffe9d6);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:46px;
+            color:#b91c1c;
+            border:1px solid #fdecea;
+        }
+        .right{flex:1;}
+        h2{margin:0 0 8px 0; font-size:22px; color:var(--leaf-700);}
+        p.lead{margin:0 0 16px 0; color:var(--muted); line-height:1.5;}
+        .actions{display:flex; gap:12px; flex-wrap:wrap;}
+        .btn-primary{
+            background:var(--leaf-500);
+            color:white;
+            padding:10px 16px;
+            border-radius:10px;
+            font-weight:700;
+            display:inline-block;
+            text-decoration:none;
+            box-shadow:0 6px 18px rgba(139,195,74, .14);
+        }
+        .btn-secondary{
+            background:transparent;
+            color:var(--muted);
+            padding:10px 16px;
+            border-radius:10px;
+            border:1px solid #f0f5ea;
+            font-weight:700;
+            display:inline-block;
+            text-decoration:none;
+        }
+        .help{margin-top:12px; color:var(--muted); font-size:13px;}
+        /* footer */
+        .footer-grid{display:flex; justify-content:space-between; gap:12px; align-items:center; padding:14px 0; font-size:14px; color:var(--muted);}
+        @media (max-width:720px){
+            .card{flex-direction:column; text-align:center;}
+            .left{flex: none;}
+            nav{display:none;}
+            .footer-grid{flex-direction:column; gap:8px; text-align:center;}
+        }
+    </style>
+</head>
+<body>
+
+<!--
+  Nếu bạn dùng Thymeleaf fragments, hãy chuẩn bị:
+  - templates/fragments/header.html với fragment th:fragment="siteHeader"
+  - templates/fragments/footer.html với fragment th:fragment="siteFooter"
+  Sau đó file này sẽ nhúng như:
+     <header th:replace="fragments/header :: siteHeader"></header>
+     <footer th:replace="fragments/footer :: siteFooter"></footer>
+-->
+
+<div th:replace="fragments/header :: header"></div>
+
+
+<!-- Main content -->
+<main class="hero" role="main">
+    <div class="container">
+        <div class="card" role="article" aria-labelledby="err-title" aria-describedby="err-desc">
+            <div class="left" aria-hidden="true">
+                <div class="icon">🔒</div>
+            </div>
+
+            <div class="right">
+                <h2 id="err-title">403 — Bạn không có quyền truy cập</h2>
+                <p id="err-desc" class="lead">
+                    Bạn không có quyền để xem trang này. Có thể bạn cần đăng nhập với tài khoản có quyền cao hơn
+                    hoặc liên hệ quản trị viên để được cấp quyền.
+                </p>
+
+                <div class="actions" role="navigation" aria-label="Hành động">
+                    <!-- Quay về trang chủ -->
+                    <a href="/" class="btn-primary">Về Trang chủ</a>
+
+                    <!-- Quay lại trang trước -->
+                    <a href="javascript:history.back()" class="btn-secondary">Quay lại</a>
+                </div>
+
+                <div class="help">
+                    Nếu bạn nghĩ đây là lỗi, vui lòng liên hệ: <a href="mailto:admin@fruitmarket.example">admin@fruitmarket.example</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div th:replace="fragments/footer :: footer"></div>
+
+
+</body>
+</html>

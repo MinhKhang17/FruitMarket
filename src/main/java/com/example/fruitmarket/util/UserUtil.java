@@ -13,7 +13,7 @@ public class UserUtil {
 
     }
     public static boolean isAdmin(HttpSession session) {
-        if(getUserFromSession(session).getRole().equals("admin")) return true;
+        if(getUserFromSession(session).getRole().equalsIgnoreCase("admin")) return true;
         else return false;
     }
 }

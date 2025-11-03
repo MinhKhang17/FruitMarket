@@ -20,7 +20,8 @@ public class AuthController {
     private final UserService userService;
 
     @GetMapping("/login")
-    public String loginForm(Model model) {
+    public String loginForm(Model model,HttpSession session) {
+        if(com.example.fruitmarket.util.UserUtil.isLogin(session)){return "redirect:/";}
         if (!model.containsAttribute("user")) {
             model.addAttribute("user", new Users());
         }

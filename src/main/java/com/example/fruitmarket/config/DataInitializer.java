@@ -6,6 +6,7 @@ import com.example.fruitmarket.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -83,6 +84,15 @@ public class DataInitializer implements CommandLineRunner {
             userDetail.setUser(savedUser);
             userDetailRepo.save(userDetail);
 
+
+            Users user = new Users();
+            user.setUsername("admin");
+            user.setPassword(passwordEncoder.encode("password"));
+            user.setRole("ADMIN");
+            user.setPhone("0933567467");
+            user.setStatus("ACTIVE");
+            user.setEmail("admin123@gmail.com");
+            userRepository.save(user);
             log.info("Seeded default user and userDetail");
         } else {
             log.info("Default user already exists, skipping user seed");
