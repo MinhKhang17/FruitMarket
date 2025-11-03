@@ -4,20 +4,20 @@ import com.example.fruitmarket.model.Users;
 import jakarta.servlet.http.HttpSession;
 
 public class AuthUtils {
-    public static boolean isLoggedIn(HttpSession session){
-        if (session.getAttribute("loggedUser") != null) return false;
-        return true;
+
+    public static boolean isLoggedIn(HttpSession session) {
+        return session != null && session.getAttribute("loggedUser") != null;
     }
 
-    public static boolean isAdmin(HttpSession session){
+    public static boolean isAdmin(HttpSession session) {
         Users user = (Users) session.getAttribute("loggedUser");
-        if (user!=null && user.getRole().equals("ADMIN")) return true;
-        return false;
+        return user != null && "ADMIN".equalsIgnoreCase(user.getRole());
     }
 
-    public static boolean isCustomer(HttpSession session){
+    public static boolean isClient(HttpSession session) {
         Users user = (Users) session.getAttribute("loggedUser");
-        if (user!=null && user.getRole().equals("CUSTOMER")) return true;
-        return false;
+        return user != null
+                && "CUSTOMER".equalsIgnoreCase(user.getRole())
+                && "ACTIVE".equalsIgnoreCase(user.getStatus());
     }
 }

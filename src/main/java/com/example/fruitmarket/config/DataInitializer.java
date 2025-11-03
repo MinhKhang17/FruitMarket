@@ -35,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
         seedCategories();
         seedBrands();
         seedDefaultUser();
+        seedDefaultAdmin();
         seedProducts();
     }
 
@@ -85,17 +86,35 @@ public class DataInitializer implements CommandLineRunner {
             userDetailRepo.save(userDetail);
 
 
-            Users user = new Users();
-            user.setUsername("admin");
-            user.setPassword(passwordEncoder.encode("password"));
-            user.setRole("ADMIN");
-            user.setPhone("0933567467");
-            user.setStatus("ACTIVE");
-            user.setEmail("admin123@gmail.com");
-            userRepository.save(user);
+
             log.info("Seeded default user and userDetail");
         } else {
             log.info("Default user already exists, skipping user seed");
+        }
+    }
+
+    private void seedDefaultAdmin() {
+        String defaultAdminUsername = "admin";
+        if (!userRepository.existsByUsername(defaultAdminUsername)) {
+            Users admin = new Users();
+            admin.setUsername(defaultAdminUsername);
+            admin.setPassword(passwordEncoder.encode("1"));
+            admin.setRole("ADMIN");
+            admin.setPhone("0900000000");
+            admin.setEmail("admin@gmail.com");
+            admin.setStatus("ACTIVE");
+
+            Users savedAdmin = userRepository.save(admin);
+
+            User_detail adminDetail = new User_detail();
+            adminDetail.setAddress("System HQ");
+            adminDetail.setPhone("0900000000");
+            adminDetail.setUser(savedAdmin);
+            userDetailRepo.save(adminDetail);
+
+            log.info("✅ Seeded default admin (username='admin', password='1')");
+        } else {
+            log.info("ℹ️ Admin user already exists, skipping");
         }
     }
 

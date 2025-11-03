@@ -1,11 +1,10 @@
 package com.example.fruitmarket.controller;
 
 import com.example.fruitmarket.enums.ImageType;
-import com.example.fruitmarket.model.Brands;
-import com.example.fruitmarket.model.Categorys;
-import com.example.fruitmarket.model.Product;
-import com.example.fruitmarket.model.ProductVariant;
+import com.example.fruitmarket.enums.OrderStauts;
+import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.service.*;
+import com.example.fruitmarket.util.AuthUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -33,63 +32,186 @@ public class AdminController {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
 
+    private String checkAdminAccess(HttpSession session) {
+        if (!AuthUtils.isLoggedIn(session)) {
+            return "redirect:/auth/login";
+        }
+        if (!AuthUtils.isAdmin(session)) {
+            return "redirect:/access-denied";
+        }
+        return null;
+    }
+
     @GetMapping({"", "/adminPage"})
     public String adminPage(Model model, HttpSession session) {
-        if(!com.example.fruitmarket.util.UserUtil.isLogin(session)){return "redirect:/auth/login";}
-        if(!com.example.fruitmarket.util.UserUtil.isAdmin(session)) {return "redirect:/error";}
-        Object logged = (session != null) ? session.getAttribute("loggedUser") : null;
-        String username = "admin";
-        if (logged instanceof com.example.fruitmarket.model.Users user) {
-            username = user.getUsername();
-        }
-        model.addAttribute("loggedUserName", username);
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        Users logged = (Users) session.getAttribute("loggedUser");
+        model.addAttribute("loggedUserName", logged != null ? logged.getUsername() : "admin");
         return "admin/adminPage";
     }
 
     @GetMapping("/categories")
-    public String categories(Model model) {
+    public String categories(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         model.addAttribute("categories", categorysService.findAll());
         return "admin/categories";
     }
 
+    @GetMapping("/categories/edit/{id}")
+    public String editCategoryForm(@PathVariable Long id, Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        Categorys category = categorysService.getById(id);
+        if (category == null) return "redirect:/admin/categories";
+        model.addAttribute("category", category);
+        return "admin/createCategory";
+    }
+
     @GetMapping("/categories/create")
-    public String createCategoryForm(Model model) {
+    public String createCategoryForm(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         model.addAttribute("category", new Categorys());
         return "admin/createCategory";
     }
 
     @PostMapping("/categories/save")
-    public String saveCategory(@ModelAttribute Categorys category) {
-        categorysService.addCategorys(category);
+    public String saveCategory(@ModelAttribute Categorys category,
+                               RedirectAttributes ra,
+                               HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        try {
+            categorysService.addCategorys(category);
+            ra.addFlashAttribute("message",
+                    (category.getId() == null) ? "Thêm danh mục mới thành công!" : "Cập nhật danh mục thành công!");
+            ra.addFlashAttribute("type", "success");
+        } catch (Exception e) {
+            ra.addFlashAttribute("message", "Lỗi khi lưu danh mục: " + e.getMessage());
+            ra.addFlashAttribute("type", "danger");
+        }
+        return "redirect:/admin/categories";
+    }
+
+    @GetMapping("/categories/delete/{id}")
+    public String deleteCategory(@PathVariable Long id, RedirectAttributes ra, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        Categorys category = categorysService.getById(id);
+        if (category != null) {
+            category.setStatus(false);
+            categorysService.addCategorys(category);
+            ra.addFlashAttribute("message", "Đã xóa danh mục (inactive).");
+            ra.addFlashAttribute("type", "warning");
+        } else {
+            ra.addFlashAttribute("message", "Không tìm thấy danh mục.");
+            ra.addFlashAttribute("type", "danger");
+        }
         return "redirect:/admin/categories";
     }
 
     @GetMapping("/brands")
-    public String brands(Model model) {
+    public String brands(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         model.addAttribute("brands", brandsService.findAll());
         return "admin/brands";
     }
 
     @GetMapping("/brands/create")
-    public String createBrandForm(Model model) {
+    public String createBrandForm(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         model.addAttribute("brand", new Brands());
         return "admin/createBrand";
     }
 
+    @GetMapping("/brands/edit/{id}")
+    public String editBrandForm(@PathVariable Long id, Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        Brands brand = brandsService.findById(id);
+        if (brand == null) return "redirect:/admin/brands";
+
+        model.addAttribute("brand", brand);
+        return "admin/createBrand";
+    }
+
     @PostMapping("/brands/save")
-    public String saveBrand(@ModelAttribute Brands brand) {
-        brandsService.addBrand(brand);
+    public String saveBrand(@ModelAttribute Brands brand,
+                            RedirectAttributes ra,
+                            HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        try {
+            // Nếu brand mới (id null) => mặc định status = true (active)
+            if (brand.getId() == null) {
+                brand.setStatus(true);
+            }
+            brandsService.addBrand(brand);
+            ra.addFlashAttribute("message",
+                    (brand.getId() == null)
+                            ? "Thêm thương hiệu mới thành công!"
+                            : "Cập nhật thương hiệu thành công!");
+            ra.addFlashAttribute("type", "success");
+        } catch (Exception e) {
+            ra.addFlashAttribute("message", "Lỗi khi lưu thương hiệu: " + e.getMessage());
+            ra.addFlashAttribute("type", "danger");
+        }
+        return "redirect:/admin/brands";
+    }
+
+    @GetMapping("/brands/delete/{id}")
+    public String deleteBrand(@PathVariable Long id,
+                              RedirectAttributes ra,
+                              HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        try {
+            Brands brand = brandsService.findById(id);
+            if (brand != null) {
+                brand.setStatus(false); // inactive = xóa mềm
+                brandsService.addBrand(brand);
+                ra.addFlashAttribute("message", "Đã xóa thương hiệu (inactive).");
+                ra.addFlashAttribute("type", "warning");
+            } else {
+                ra.addFlashAttribute("message", "Không tìm thấy thương hiệu.");
+                ra.addFlashAttribute("type", "danger");
+            }
+        } catch (Exception e) {
+            ra.addFlashAttribute("message", "Lỗi khi xóa thương hiệu: " + e.getMessage());
+            ra.addFlashAttribute("type", "danger");
+        }
         return "redirect:/admin/brands";
     }
 
     @GetMapping("/products")
-    public String adminProducts(Model model) {
+    public String adminProducts(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         model.addAttribute("products", productService.findAll());
         return "admin/products";
     }
 
     @GetMapping("/products/create")
-    public String createProduct(Model model) {
+    public String createProduct(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         model.addAttribute("product", new Product());
         model.addAttribute("categories", categorysService.findAll());
         model.addAttribute("brands", brandsService.findAll());
@@ -98,13 +220,19 @@ public class AdminController {
 
     // ✅ POST mapping gọn gàng, thống nhất
     @PostMapping("/products/save")
-    public String saveProduct(@ModelAttribute Product product) {
+    public String saveProduct(@ModelAttribute Product product, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         productService.saveProduct(product);
         return "redirect:/admin/products";
     }
 
     @GetMapping("/products/edit/{id}")
-    public String editProduct(@PathVariable Long id, Model model) {
+    public String editProduct(@PathVariable Long id, Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         Product product = productService.findById(id);
         model.addAttribute("product", product);
         model.addAttribute("categories", categorysService.findAll());
@@ -119,14 +247,20 @@ public class AdminController {
     }
 
     @GetMapping("/products/delete/{id}")
-    public String deleteProduct(@PathVariable Long id) {
+    public String deleteProduct(@PathVariable Long id, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         productService.deleteById(id);
         return "redirect:/admin/products";
     }
 
     /* ---------------------------- VARIANTS ---------------------------- */
     @GetMapping("/products/{id}/variants")
-    public String showVariantPage(@PathVariable Long id, Model model) {
+    public String showVariantPage(@PathVariable Long id, Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         Product product = productService.findById(id);
         model.addAttribute("product", product);
         return "admin/productVariant";
@@ -135,45 +269,33 @@ public class AdminController {
     @PostMapping("/products/{productId}/variant/save")
     public String saveVariant(@PathVariable Long productId,
                               @ModelAttribute ProductVariant variant,
-                              @RequestParam(value = "files", required = false) List<MultipartFile> files)
+                              @RequestParam(value = "files", required = false) List<MultipartFile> files,
+                              HttpSession session)
             throws IOException {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
 
-        // Chỉ upload ảnh đầu tiên (One-to-One)
         variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
         return "redirect:/admin/products/" + productId + "/variants";
     }
 
-    @GetMapping("/productVariant/delete/{id}")
-    public String deleteProductVariant(@PathVariable Long id) {
-        ProductVariant variant = variantService.findById(id);
-        Long productId = variant.getProduct().getId();
-
-        variantService.updateStatusToInactive(id);
-
-        return "redirect:/admin/products/" + productId + "/variants/list";
-    }
-
-    @GetMapping("/products/{id}/variants/list")
-    public String viewVariantList(@PathVariable Long id, Model model) {
-        Product product = productService.findById(id);
-        model.addAttribute("product", product);
-        return "admin/variantList";
-    }
     @GetMapping("/orders")
-    public String adminOrders(Model model) {
-        List<Order> orders = orderService.getAllOrders();
-        model.addAttribute("orders", orders);
+    public String adminOrders(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        model.addAttribute("orders", orderService.getAllOrders());
         return "admin/orders";
     }
 
     @GetMapping("/orders/{id}")
-    public String viewOrderDetail(@PathVariable Long id, Model model) {
+    public String viewOrderDetail(@PathVariable Long id, Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         try {
             Order order = orderService.getOrderById(id);
-            if (order == null) {
-                model.addAttribute("error", "Không tìm thấy đơn hàng với ID: " + id);
-                return "redirect:/admin/orders";
-            }
+            if (order == null) return "redirect:/admin/orders";
             model.addAttribute("order", order);
             model.addAttribute("orderStatuses", OrderStauts.values());
             return "admin/orderDetail";
@@ -187,7 +309,11 @@ public class AdminController {
     @PostMapping("/orders/{id}/updateStatus")
     public String updateOrderStatus(@PathVariable Long id,
                                     @RequestParam("status") String status,
-                                    RedirectAttributes ra) {
+                                    RedirectAttributes ra,
+                                    HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
         try {
             Order order = orderService.getOrderById(id);
             if (order == null) {
