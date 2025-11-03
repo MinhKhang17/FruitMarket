@@ -22,7 +22,7 @@
         <tr th:each="b : ${brands}">
             <td th:text="${b.id}"></td>
             <td th:text="${b.name}">Brand Name</td>
-            <td th:text="${b.status ? 'Inactive' : 'Active'}"></td>
+            <td th:text="${b.status ? 'Active' : 'Inactive'}"></td>
             <td class="actions">
                 <a th:href="@{'/admin/brands/edit/' + ${b.id}}">Edit</a>
                 |

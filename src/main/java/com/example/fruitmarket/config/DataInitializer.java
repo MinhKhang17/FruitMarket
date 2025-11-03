@@ -1,6 +1,7 @@
 package com.example.fruitmarket.config;
 
 import com.example.fruitmarket.enums.ProductStatus;
+import com.example.fruitmarket.enums.UserStatus;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.*;
 import jakarta.transaction.Transactional;
@@ -75,7 +76,7 @@ public class DataInitializer implements CommandLineRunner {
             u.setRole("CLIENT");
             u.setPhone("0933456172");
             u.setEmail("user@gmail.com");
-            u.setStatus("ACTIVE");
+            u.setStatus(UserStatus.ACTIVE);
             Users savedUser = userRepository.save(u);
 
             User_detail userDetail = new User_detail();
@@ -90,7 +91,7 @@ public class DataInitializer implements CommandLineRunner {
             user.setPassword(passwordEncoder.encode("password"));
             user.setRole("ADMIN");
             user.setPhone("0933567467");
-            user.setStatus("ACTIVE");
+            user.setStatus(UserStatus.ACTIVE);
             user.setEmail("admin123@gmail.com");
             userRepository.save(user);
             log.info("Seeded default user and userDetail");

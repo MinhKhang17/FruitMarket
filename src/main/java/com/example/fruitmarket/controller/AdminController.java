@@ -1,6 +1,7 @@
 package com.example.fruitmarket.controller;
 
 import com.example.fruitmarket.enums.ImageType;
+import com.example.fruitmarket.enums.UserStatus;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
@@ -32,6 +33,8 @@ public class AdminController {
     @Autowired private OrderService orderService;
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
+    @Autowired
+    private UserService userService;
 
     @GetMapping({"", "/adminPage"})
     public String adminPage(Model model, HttpSession session) {
@@ -205,5 +208,29 @@ public class AdminController {
             ra.addFlashAttribute("type", "danger");
         }
         return "redirect:/admin/orders/" + id;
+    }
+
+    @GetMapping("/userManagement")
+    public String showUserManagementPage(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        return "admin/userManagement";
+    }
+
+    @PostMapping("/userManagement/{id}/ban")
+    public String banUser(@PathVariable int id) {
+        userService.updateUserStatus(id, UserStatus.BANNED);
+        return "redirect:/admin/userManagement";
+    }
+
+    @PostMapping("/userManagement/{id}/unban")
+    public String unbanUser(@PathVariable int id) {
+        userService.updateUserStatus(id, UserStatus.ACTIVE);
+        return "redirect:/admin/userManagement";
+    }
+
+    @GetMapping("/userManagement/{id}")
+    public String getUser(@PathVariable int id, Model model) {
+        model.addAttribute("user", userService.findUserById(id));
+        return "admin/userDetail";
     }
 }

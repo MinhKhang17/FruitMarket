@@ -22,7 +22,7 @@
         <tr th:each="c : ${categories}">
             <td th:text="${c.id}"></td>
             <td th:text="${c.name}"></td>
-            <td th:text="${c.status ? 'Inactive' : 'Active'}"></td>
+            <td th:text="${c.status ? 'Active' : 'Inactive'}"></td>
             <td class="actions">
                 <a th:href="@{'/admin/categories/edit/' + ${c.id}}">Edit</a>
                 |
