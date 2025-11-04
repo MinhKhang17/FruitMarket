@@ -17,7 +17,7 @@ public class AuthUtils {
     public static boolean isClient(HttpSession session) {
         Users user = (Users) session.getAttribute("loggedUser");
         return user != null
-                && "CUSTOMER".equalsIgnoreCase(user.getRole())
-                && "ACTIVE".equalsIgnoreCase(user.getStatus());
+                && "CUSTOMER".equalsIgnoreCase(user.getRole().toString())
+                && "ACTIVE".equalsIgnoreCase(user.getStatus().toString());
     }
 }

@@ -109,7 +109,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setRole("ADMIN");
             admin.setPhone("0900000000");
             admin.setEmail("admin@gmail.com");
-            admin.setStatus("ACTIVE");
+            admin.setStatus(UserStatus.ACTIVE);
 
             Users savedAdmin = userRepository.save(admin);
 

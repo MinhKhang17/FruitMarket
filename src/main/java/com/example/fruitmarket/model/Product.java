@@ -1,6 +1,7 @@
 package com.example.fruitmarket.model;
 
 import com.example.fruitmarket.enums.ProductStatus;
+import com.example.fruitmarket.enums.Units;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,4 +42,7 @@ public class Product {
     private ProductStatus status;
     @Column
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column
+    private Units unit;
 }
