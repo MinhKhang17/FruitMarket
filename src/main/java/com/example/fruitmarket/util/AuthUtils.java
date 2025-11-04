@@ -18,6 +18,6 @@ public class AuthUtils {
         Users user = (Users) session.getAttribute("loggedUser");
         return user != null
                 && "CUSTOMER".equalsIgnoreCase(user.getRole())
-                && "ACTIVE".equalsIgnoreCase(user.getStatus());
+                && "ACTIVE".equalsIgnoreCase(String.valueOf(user.getStatus()));
     }
 }

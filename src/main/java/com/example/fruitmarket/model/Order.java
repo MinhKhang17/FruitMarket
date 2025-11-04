@@ -31,17 +31,23 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private PricingMethod pricingMethod;
-    @Column
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
     @Column
     private String phoneNumber;
     @Column
     private BigDecimal totalPrice;
+    @Column
+    private String ghnOrderCode;
+    @Column
+    private String ghnStatus;
+    @Column
+    private BigDecimal shippingFee;
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Payment payment;
 
 
     @Column
-    private int totalQuantity;
+    private long totalQuantity;
 
 }

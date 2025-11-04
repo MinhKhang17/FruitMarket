@@ -27,4 +27,6 @@ public interface UserService {
     Users updateUserStatus(int id, UserStatus status);
     List<UserResponse> getAllUsers();
     UserResponse findUserById(int id);
+
+    void updateAddressGeo(Long addressId, Integer toDistrictId, String toWardCode);
 }

@@ -1,5 +1,6 @@
 package com.example.fruitmarket.config;
 
+import com.example.fruitmarket.controller.GeoJsonLoader;
 import com.example.fruitmarket.enums.ProductStatus;
 import com.example.fruitmarket.enums.UserStatus;
 import com.example.fruitmarket.model.*;
@@ -29,14 +30,61 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserDetailRepo userDetailRepo;
+    private final ProvinceRepo provinceRepo;
+    private final DistrictRepo districtRepo;
+    private final WardRepo wardRepo;
+    private final GeoJsonLoader geoJsonLoader;
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
+        seedGeoData();
         seedCategories();
         seedBrands();
         seedDefaultUser();
         seedProducts();
+    }
+
+    // ==========================================
+    // 🗺️ SEED GEO DATA FROM JSON FILES
+    // ==========================================
+    private void seedGeoData() {
+        if (provinceRepo.count() == 0) {
+            log.info("📦 Importing provinces...");
+            geoJsonLoader.getProvinces().forEach(p -> {
+                Province province = new Province();
+                province.setProvinceId(((Number) p.id()).intValue());
+                province.setProvinceName(p.name());
+                provinceRepo.save(province);
+            });
+            log.info("✅ Imported provinces");
+        }
+
+        if (districtRepo.count() == 0) {
+            log.info("📦 Importing districts...");
+            geoJsonLoader.getDistricts().forEach(d -> {
+                District district = new District();
+                district.setDistrictId(d.id());
+                district.setDistrictName(d.name());
+                if (d.provinceId() != null)
+                    provinceRepo.findById(d.provinceId()).ifPresent(district::setProvince);
+                districtRepo.save(district);
+            });
+            log.info("✅ Imported districts");
+        }
+
+        if (wardRepo.count() == 0) {
+            log.info("📦 Importing wards...");
+            geoJsonLoader.getWards().forEach(w -> {
+                Ward ward = new Ward();
+                ward.setWardCode(w.id());
+                ward.setWardName(w.name());
+                if (w.districtId() != null)
+                    districtRepo.findById(w.districtId()).ifPresent(ward::setDistrict);
+                wardRepo.save(ward);
+            });
+            log.info("✅ Imported wards");
+        }
     }
 
     private void seedCategories() {
@@ -80,9 +128,23 @@ public class DataInitializer implements CommandLineRunner {
             Users savedUser = userRepository.save(u);
 
             User_detail userDetail = new User_detail();
-            userDetail.setAddress("Ho Chi Minh");
+            userDetail.setAddress("1 Mạc Thiên Tích, Pháo Ðài, Hà Tiên");
             userDetail.setPhone("0933567467");
             userDetail.setUser(savedUser);
+
+            // 🗺️ Lấy các entity từ DB (ví dụ: Hà Tiên – tỉnh Kiên Giang)
+            Province province = provinceRepo.findById(206)
+                    .orElseThrow(() -> new IllegalArgumentException("Province not found"));
+            District district = districtRepo.findById(1544)
+                    .orElseThrow(() -> new IllegalArgumentException("District not found"));
+            Ward ward = wardRepo.findById("520108")
+                    .orElseThrow(() -> new IllegalArgumentException("Ward not found"));
+
+            // ✅ Gán vào userDetail
+            userDetail.setProvince(province);
+            userDetail.setDistrict(district);
+            userDetail.setWard(ward);
+
             userDetailRepo.save(userDetail);
 
 
@@ -109,7 +171,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setRole("ADMIN");
             admin.setPhone("0900000000");
             admin.setEmail("admin@gmail.com");
-            admin.setStatus("ACTIVE");
+            admin.setStatus(UserStatus.ACTIVE);
 
             Users savedAdmin = userRepository.save(admin);
 

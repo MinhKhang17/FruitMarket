@@ -8,11 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
 
+    <!-- (Tùy app) Nếu bạn đã render meta CSRF ở layout, có thể bỏ 2 dòng này -->
+    <meta th:if="${_csrf != null}" name="_csrf" th:content="${_csrf.token}"/>
+    <meta th:if="${_csrf != null}" name="_csrf_header" th:content="${_csrf.headerName}"/>
+
     <style>
         :root { --green: #198754; --green-dark: #156a3c; --muted: #6c757d; --card-bg:#fff; --page-bg:#f6faf6; }
         body { background: var(--page-bg); }
         .card { max-width: 980px; margin: 32px auto; border-radius: 12px; }
         .thumb { width:70px; height:70px; object-fit:cover; border-radius:8px; }
+        .price{ font-weight:600; color:var(--green); }
+        .small-muted{ color:#95a49a; font-size:.9rem; }
     </style>
 </head>
 <body>
@@ -62,63 +68,160 @@
                 <div class="mb-3">
                     <h6>Địa chỉ giao hàng</h6>
 
+                    <!-- Có địa chỉ -->
                     <div th:if="${userDetail != null and !#lists.isEmpty(userDetail)}">
-                        <div th:each="addr, i : ${userDetail}" class="form-check">
-                            <input class="form-check-input address-radio" type="radio" name="addressSelect"
-                                   th:id="${'addr_'+i.index}" th:value="${addr.id}" th:checked="${i.index == 0}"
-                                   onchange="setSelectedAddress(this)">
-                            <label class="form-check-label" th:for="${'addr_'+i.index}">
-                                <strong th:text="${addr.phone}">0123</strong> — <span th:text="${addr.address}">Địa chỉ</span>
+                        <p class="text-muted">Chọn địa chỉ có sẵn hoặc thêm mới nếu cần.</p>
+
+                        <div class="list-group mb-3">
+                            <label th:each="addr, i : ${userDetail}"
+                                   class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <input class="form-check-input me-2 address-radio" type="radio" name="addressSelect"
+                                           th:id="${'addr_'+i.index}" th:value="${addr.id}"
+                                           th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
+                                    <strong th:text="${addr.phone}">0123456789</strong>
+                                    <div class="small text-muted" th:text="${addr.address}">Địa chỉ</div>
+                                </div>
                             </label>
                         </div>
 
-                        <div class="mt-2">
-                            <button class="btn btn-outline-success btn-sm" type="button" onclick="toggleNewAddressForm()">Thêm địa chỉ mới</button>
+                        <div class="text-end">
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleNewAddressForm()">
+                                <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
+                            </button>
                         </div>
 
-                        <form id="newAddressForm" th:action="@{/checkout/save-address}" method="post" class="mt-2 d-none">
+                        <!-- Form thêm mới (có dropdown tỉnh/huyện/phường) -->
+                        <form id="newAddressFormGeo" class="mt-3 d-none" th:action="@{/checkout/save-address}" method="post">
                             <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                            <div class="mb-2">
-                                <input class="form-control" name="address" placeholder="Địa chỉ mới" required/>
+
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tỉnh/Thành</label>
+                                    <select id="na_province" class="form-select" required>
+                                        <option value="">-- Chọn --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Quận/Huyện</label>
+                                    <select id="na_district" class="form-select" required disabled>
+                                        <option value="">-- Chọn --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Phường/Xã</label>
+                                    <select id="na_ward" class="form-select" required disabled>
+                                        <option value="">-- Chọn --</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="mb-2">
-                                <input class="form-control" name="phone" placeholder="Số điện thoại" required/>
+
+                            <div class="row g-2 mt-2">
+                                <div class="col-md-8">
+                                    <label class="form-label">Địa chỉ cụ thể</label>
+                                    <input type="text" class="form-control" name="address" placeholder="Số nhà, đường..." required />
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Số điện thoại</label>
+                                    <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
+                                </div>
                             </div>
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-success btn-sm">Lưu</button>
-                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">Hủy</button>
+
+                            <!-- Hidden để lưu geo -->
+                            <input type="hidden" name="provinceId" id="na_provinceId"/>
+                            <input type="hidden" name="districtId" id="na_districtId"/>
+                            <input type="hidden" name="wardCode"   id="na_wardCode"/>
+
+                            <div class="text-end mt-3">
+                                <button type="submit" class="btn btn-success btn-sm">
+                                    <i class="bi bi-check2-circle"></i> Lưu địa chỉ mới
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">
+                                    Hủy
+                                </button>
                             </div>
                         </form>
                     </div>
 
+                    <!-- Không có địa chỉ -->
                     <div th:if="${userDetail == null or #lists.isEmpty(userDetail)}">
-                        <div class="alert alert-warning">Bạn chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ.</div>
-                        <form th:action="@{/checkout/save-address}" method="post">
+                        <div class="alert alert-warning py-2 mb-3">Bạn chưa có địa chỉ giao hàng. Vui lòng thêm địa chỉ.</div>
+
+                        <form th:action="@{/checkout/save-address}" method="post" class="mb-0">
                             <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                            <div class="mb-2"><input class="form-control" name="address" placeholder="Địa chỉ" required/></div>
-                            <div class="mb-2"><input class="form-control" name="phone" placeholder="Số điện thoại" required/></div>
-                            <button class="btn btn-success">Lưu và tiếp tục</button>
+
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label">Tỉnh/Thành</label>
+                                    <select id="ka_province" class="form-select" required>
+                                        <option value="">-- Chọn --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Quận/Huyện</label>
+                                    <select id="ka_district" class="form-select" required disabled>
+                                        <option value="">-- Chọn --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Phường/Xã</label>
+                                    <select id="ka_ward" class="form-select" required disabled>
+                                        <option value="">-- Chọn --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 mt-2">
+                                <label class="form-label">Địa chỉ cụ thể</label>
+                                <input type="text" class="form-control" name="address" placeholder="Số nhà, đường..." required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
+                            </div>
+
+                            <input type="hidden" name="provinceId" id="ka_provinceId"/>
+                            <input type="hidden" name="districtId" id="ka_districtId"/>
+                            <input type="hidden" name="wardCode"   id="ka_wardCode"/>
+
+                            <button type="submit" class="btn btn-success w-100">Lưu địa chỉ và tiếp tục</button>
                         </form>
                     </div>
-
                 </div>
             </div>
 
+            <!-- BOX Tổng kết + GHN -->
             <div class="col-md-6">
                 <div class="p-3 bg-white rounded shadow-sm">
                     <div class="d-flex justify-content-between mb-2">
                         <div>Tổng số lượng:</div>
                         <div th:text="${totalQuantity}">0</div>
                     </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <div>Tổng tiền:</div>
-                        <div class="fs-5 text-success" th:text="${#numbers.formatDecimal(totalPrice,0,'COMMA',0,'POINT')} + ' ₫'">0 ₫</div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>Tổng tiền hàng:</div>
+                        <div id="goodsTotal" class="fs-6" th:text="${#numbers.formatDecimal(totalPrice,0,'COMMA',0,'POINT')} + ' ₫'">0 ₫</div>
                     </div>
+
+                    <!-- NEW: phí ship + tổng thanh toán -->
+                    <div class="d-flex justify-content-between mb-1">
+                        <div>Phí vận chuyển (GHN):</div>
+                        <div id="shipFee" class="price">—</div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="fw-semibold">Tổng thanh toán:</div>
+                        <div id="grandTotal" class="price">—</div>
+                    </div>
+                    <div class="small-muted">Phí sẽ được tính khi bạn chọn/đổi địa chỉ.</div>
 
                     <!-- Checkout form (points to CartController.processCartCheckoutFromCartPage) -->
                     <form th:action="@{/cart/process-checkout-from-page}" method="post" onsubmit="return finalizeCartCheckout(this);">
                         <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
                         <input type="hidden" id="finalAddressId" name="addressId" value="" />
+                        <input type="hidden" id="toDistrictId" name="toDistrictId" value="">
+                        <input type="hidden" id="toWardCode"   name="toWardCode"   value="">
+                        <!-- NEW: submit ship fee + serviceId -->
+                        <input type="hidden" id="finalShipFee"   name="shippingFee" value="0"/>
+                        <input type="hidden" id="finalServiceId" name="serviceId"   value=""/>
 
                         <h6>Phương thức thanh toán</h6>
                         <div class="form-check">
@@ -149,45 +252,224 @@
 
 <script th:inline="javascript">
     /*<![CDATA[*/
-    function toggleNewAddressForm() {
-        const frm = document.getElementById('newAddressForm');
-        if (frm) frm.classList.toggle('d-none');
+
+    // ====== CSRF (nếu có) ======
+    const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]')?.content || null;
+    const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.content || "X-CSRF-TOKEN";
+
+    // ====== Tổng tiền hàng từ server ======
+    const GOODS_TOTAL_NUMBER = Number(/*[[${totalPrice}]]*/ 0) || 0;
+
+    // ====== Elements ======
+    const shipFeeEl     = document.getElementById("shipFee");
+    const grandTotalEl  = document.getElementById("grandTotal");
+    const finalShipFee  = document.getElementById("finalShipFee");
+    const finalServiceId= document.getElementById("finalServiceId");
+    const finalAddressId= document.getElementById("finalAddressId");
+
+    // Hidden GHN for form
+    const hidToDistrict = document.getElementById('toDistrictId');
+    const hidToWard     = document.getElementById('toWardCode');
+
+    // State
+    let lastShip = 0;
+
+    function fmt(n){ try{ return Number(n).toLocaleString("vi-VN")+" ₫"; }catch(_){ return n; } }
+
+    function updateGrand(){
+        const grand = GOODS_TOTAL_NUMBER + (lastShip || 0);
+        shipFeeEl.textContent   = lastShip > 0 ? fmt(lastShip) : "—";
+        grandTotalEl.textContent= fmt(grand);
     }
 
-    function setSelectedAddress(radio) {
+    async function fetchJsonSafe(input, init){
+        const res = await fetch(input, init);
+        let data = null;
+        try{ data = await res.json(); }catch(_){}
+        if(!res.ok){
+            const msg = (data && (data.error||data.message)) || `HTTP ${res.status}`;
+            throw new Error(msg);
+        }
+        return data ?? {};
+    }
+
+    function debounce(fn, delay=350){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), delay); }; }
+
+    // ====== Gọi phí ship theo địa chỉ có sẵn (GET) ======
+    const quoteExisting = debounce(async function(addressId){
+        if(!addressId){
+            lastShip=0; finalShipFee.value="0"; updateGrand(); return;
+        }
+        shipFeeEl.textContent = "đang tính...";
+        try{
+            // BE trả: { fee|total, serviceId, ... }
+            const data = await fetchJsonSafe(`/api/shipping/quote?addressId=${encodeURIComponent(addressId)}`);
+            const fee = Number(data.fee ?? data.total ?? 0);
+            const svc = data.serviceId ?? "";
+            lastShip = fee;
+            finalShipFee.value   = String(fee);
+            finalServiceId.value = String(svc);
+        }catch(e){
+            console.error("quoteExisting:", e.message);
+            lastShip=0; finalShipFee.value="0";
+            shipFeeEl.textContent = "không tính được";
+        }
+        updateGrand();
+    }, 300);
+
+    // ====== Gọi phí ship theo địa chỉ mới (POST) ======
+    const quoteShipping = debounce(async function(toDistrictId, toWardCode){
+        if(!toDistrictId || !toWardCode){
+            lastShip=0; finalShipFee.value="0"; updateGrand(); return;
+        }
+        shipFeeEl.textContent = "đang tính...";
+        try{
+            // Giả định cân nặng/tỉ lệ gộp theo giỏ: 200g mỗi item * tổng số lượng
+            const totalQty = Number(/*[[${totalQuantity}]]*/ 1) || 1;
+            const payload = {
+                toDistrictId: Number(toDistrictId),
+                toWardCode: String(toWardCode),
+                weight: Math.max(200, totalQty*200), // g
+                length: 25, width: 20, height: 12,   // cm (tùy bạn chỉnh)
+                insuranceValue: GOODS_TOTAL_NUMBER   // ₫
+            };
+            const headers = { "Content-Type":"application/json" };
+            if (CSRF_TOKEN) headers[CSRF_HEADER] = CSRF_TOKEN;
+
+            const data = await fetchJsonSafe('/api/shipping/quote', { method:'POST', headers, body: JSON.stringify(payload) });
+            const fee = Number(data.total || 0);
+            const svc = data.serviceId ?? "";
+            lastShip = fee;
+            finalShipFee.value   = String(fee);
+            finalServiceId.value = String(svc);
+        }catch(e){
+            console.error("quoteShipping:", e.message);
+            lastShip=0; finalShipFee.value="0";
+            shipFeeEl.textContent = "không tính được";
+        }
+        updateGrand();
+    }, 300);
+
+    // ----- Radio địa chỉ có sẵn -----
+    function selectExistingAddress(radio){
         if (!radio) return;
-        var id = radio.value;
-        document.getElementById('finalAddressId').value = id;
+        // Ẩn form thêm mới nếu đang mở
+        document.getElementById("newAddressFormGeo")?.classList.add("d-none");
+        // Ghi id vào hidden để submit
+        finalAddressId.value = radio.value;
+        // Tính phí ship
+        quoteExisting(radio.value);
     }
 
-    function finalizeCartCheckout(form) {
-        // ensure an address selected
-        var addr = document.getElementById('finalAddressId').value;
-        if (!addr) {
+    // ----- Toggle form thêm địa chỉ mới -----
+    function toggleNewAddressForm(){
+        document.getElementById("newAddressFormGeo")?.classList.toggle("d-none");
+    }
+
+    /* ===== Helpers địa giới hành chính ===== */
+    async function fetchJson(url){
+        const r = await fetch(url);
+        if(!r.ok) throw new Error(`HTTP ${r.status}`);
+        return await r.json();
+    }
+    async function loadProvinces(sel){
+        const d = await fetchJson('/api/geo/provinces');
+        sel.innerHTML = '<option value="">-- Chọn --</option>';
+        d.forEach(p => { const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; sel.appendChild(o); });
+        sel.disabled = false;
+    }
+    async function loadDistricts(pid, sel){
+        sel.innerHTML = '<option value="">-- Chọn --</option>';
+        if(!pid){ sel.disabled = true; return; }
+        const d = await fetchJson(`/api/geo/districts?provinceId=${pid}`);
+        d.forEach(x => { const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; sel.appendChild(o); });
+        sel.disabled = false;
+    }
+    async function loadWards(did, sel){
+        sel.innerHTML = '<option value="">-- Chọn --</option>';
+        if(!did){ sel.disabled = true; return; }
+        const d = await fetchJson(`/api/geo/wards?districtId=${did}`);
+        d.forEach(x => { const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; sel.appendChild(o); });
+        sel.disabled = false;
+    }
+
+    /* Gắn dropdown cho 2 form: 'na' (new address), 'ka' (khi chưa có địa chỉ) */
+    function wireGeoForm(prefix){
+        const selP = document.getElementById(`${prefix}_province`);
+        const selD = document.getElementById(`${prefix}_district`);
+        const selW = document.getElementById(`${prefix}_ward`);
+        const hidP = document.getElementById(`${prefix}_provinceId`);
+        const hidD = document.getElementById(`${prefix}_districtId`);
+        const hidW = document.getElementById(`${prefix}_wardCode`);
+        if(!selP || !selD || !selW) return;
+
+        loadProvinces(selP).catch(console.error);
+
+        selP.addEventListener('change', async ()=>{
+            if(hidP) hidP.value = selP.value || '';
+            await loadDistricts(selP.value, selD);
+            selW.innerHTML = '<option value="">-- Chọn --</option>';
+            selW.disabled  = true;
+            if(hidD) hidD.value = '';
+            if(hidW) hidW.value = '';
+            // reset phí khi đổi tỉnh
+            lastShip=0; finalShipFee.value="0"; updateGrand();
+        });
+
+        selD.addEventListener('change', async ()=>{
+            if(hidD) hidD.value = selD.value || '';
+            await loadWards(selD.value, selW);
+            if(hidW) hidW.value = '';
+            lastShip=0; finalShipFee.value="0"; updateGrand();
+        });
+
+        selW.addEventListener('change', ()=>{
+            if(hidW) hidW.value = selW.value || '';
+            // Copy qua hidden của form submit checkout để BE dùng GHN khi cần
+            hidToDistrict.value = selD.value || '';
+            hidToWard.value     = selW.value || '';
+            // Gọi tính phí ship khi chọn phường
+            quoteShipping(hidToDistrict.value, hidToWard.value);
+        });
+    }
+
+    /* ===== Finalize submit từ trang giỏ hàng ===== */
+    function finalizeCartCheckout(form){
+        const addr = finalAddressId.value;
+        if (!addr){
             alert("Vui lòng chọn địa chỉ giao hàng hoặc thêm địa chỉ mới.");
             return false;
         }
-        // ensure payment selected
-        var pay = document.querySelector("input[name='paymentMethod']:checked");
-        if (!pay) {
+        const pay = document.querySelector("input[name='paymentMethod']:checked");
+        if (!pay){
             alert("Vui lòng chọn phương thức thanh toán.");
             return false;
         }
+        // shipFee/serviceId đã gắn vào hidden, OK submit
         return true;
     }
 
-    // init: set first address if present and add listeners
-    document.addEventListener('DOMContentLoaded', function () {
-        const firstAddr = document.querySelector("input[name='addressSelect']:checked");
-        if (firstAddr) document.getElementById('finalAddressId').value = firstAddr.value;
-
-        // attach change listener to address radios (in case user clicks label)
-        document.querySelectorAll('input.address-radio').forEach(r => {
-            r.addEventListener('change', function () {
-                setSelectedAddress(this);
-            });
+    /* ===== init ===== */
+    document.addEventListener('DOMContentLoaded', ()=>{
+        // Set địa chỉ đầu tiên nếu có và tính phí
+        const first = document.querySelector("input[name='addressSelect']:checked");
+        if (first){
+            finalAddressId.value = first.value;
+            quoteExisting(first.value);
+        }
+        // Lắng nghe thay đổi radio địa chỉ
+        document.querySelectorAll('input.address-radio').forEach(r=>{
+            r.addEventListener('change', function(){ selectExistingAddress(this); });
         });
+
+        // Gắn 2 form dropdown địa giới
+        wireGeoForm('na');
+        wireGeoForm('ka');
+
+        // Render tổng ngay lần đầu
+        updateGrand();
     });
+
     /*]]>*/
 </script>
 </body>

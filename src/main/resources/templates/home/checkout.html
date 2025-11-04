@@ -1,4 +1,3 @@
-<!-- file: src/main/resources/templates/home/checkout.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
@@ -6,34 +5,26 @@
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <title>Thanh toán — Fruit Market</title>
 
-    <!-- Bootstrap + icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
 
     <style>
-        :root {
-            --green: #198754;
-            --green-dark: #156a3c;
-            --muted: #6c757d;
-            --card-bg: #ffffff;
-            --page-bg: #f6faf6;
-        }
-        body { background: var(--page-bg); font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
-        .card { max-width: 920px; margin: 40px auto; border-radius: 12px; }
-        .title { font-weight: 600; color: var(--green-dark); }
-        .price { font-weight: 700; color: var(--green); font-size: 1.2rem; }
-        .muted { color: var(--muted); font-size: 0.95rem; }
-        .form-section { background: var(--card-bg); padding: 20px; border-radius: 10px; }
-        .divider { border-top: 2px solid #e7f3ea; margin: 25px 0; }
-        .btn-success { background-color: var(--green); border: none; }
-        .btn-success:hover { background-color: var(--green-dark); }
-        .thumb { width:90px; height:90px; object-fit:cover; border-radius:8px; }
-        .small-muted { color: #95a49a; font-size: 0.85rem; }
+        :root { --green:#198754; --green-dark:#156a3c; --muted:#6c757d; --card-bg:#fff; --page-bg:#f6faf6; }
+        body{ background:var(--page-bg); font-family:'Segoe UI', Roboto, Arial, sans-serif; }
+        .card{ max-width:920px; margin:40px auto; border-radius:12px; }
+        .title{ font-weight:600; color:var(--green-dark); }
+        .price{ font-weight:700; color:var(--green); font-size:1.2rem; }
+        .muted{ color:var(--muted); font-size:0.95rem; }
+        .form-section{ background:var(--card-bg); padding:20px; border-radius:10px; }
+        .divider{ border-top:2px solid #e7f3ea; margin:25px 0; }
+        .btn-success{ background-color:var(--green); border:none; }
+        .btn-success:hover{ background-color:var(--green-dark); }
+        .thumb{ width:90px; height:90px; object-fit:cover; border-radius:8px; }
+        .small-muted{ color:#95a49a; font-size:0.85rem; }
     </style>
 </head>
 <body>
 
-<!-- header / notification fragments (use ~{} syntax per Thymeleaf newer versions) -->
 <div th:replace="~{fragments/header :: header}"></div>
 <div th:replace="~{fragments/notification :: notification}"></div>
 
@@ -41,15 +32,12 @@
     <div class="card shadow-sm p-4">
         <h4 class="title mb-4"><i class="bi bi-basket2-fill text-success"></i> Xác nhận đơn hàng</h4>
 
-        <!-- ================= THÔNG TIN SẢN PHẨM ================= -->
+        <!-- ============ SẢN PHẨM ============ -->
         <div class="form-section mb-4" th:object="${productVariant}">
             <div class="row align-items-center">
                 <div class="col-auto">
-                    <!-- image fallback: server image_url else placeholder; onerror fallback too -->
                     <img th:src="${#strings.isEmpty(productVariant.image_url) ? '/images/placeholder.png' : productVariant.image_url}"
-                         alt="Ảnh sản phẩm"
-                         class="thumb"
-                         onerror="this.src='/images/placeholder.png'"/>
+                         alt="Ảnh sản phẩm" class="thumb" onerror="this.src='/images/placeholder.png'"/>
                 </div>
 
                 <div class="col">
@@ -59,9 +47,7 @@
 
                 <div class="col-auto text-end">
                     <div id="displayUnitPrice" class="price"
-                         th:text="${#numbers.formatDecimal(productVariant.product_price,0,'COMMA',2,'POINT')} + ' ₫'">
-                        0 ₫
-                    </div>
+                         th:text="${#numbers.formatDecimal(productVariant.product_price,0,'COMMA',2,'POINT')} + ' ₫'">0 ₫</div>
                 </div>
             </div>
 
@@ -69,7 +55,7 @@
                 <div class="col-auto">
                     <label class="form-label">Số lượng</label>
                     <input id="quantityInput" th:value="${quantity}" type="number" min="1" value="1"
-                           class="form-control" style="max-width:120px;" onchange="updateTotal()" />
+                           class="form-control" style="max-width:120px;" />
                 </div>
 
                 <div class="col-auto align-self-end">
@@ -77,93 +63,155 @@
                     <div id="totalPrice" class="price">—</div>
                 </div>
             </div>
+
+            <!-- === Hiển thị phí ship & tổng thanh toán === -->
+            <div class="mt-2 pt-2">
+                <div class="d-flex justify-content-between">
+                    <span class="muted">Phí vận chuyển (GHN)</span>
+                    <span id="shipFee" class="price">—</span>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="muted">Tổng thanh toán</span>
+                    <span id="grandTotal" class="price">—</span>
+                </div>
+                <div class="small-muted">Phí sẽ được tính khi bạn chọn Tỉnh/Quận/Phường.</div>
+            </div>
         </div>
 
         <div class="divider"></div>
 
-        <!-- ================= THÔNG TIN GIAO HÀNG ================= -->
+        <!-- ============ ĐỊA CHỈ GIAO HÀNG ============ -->
         <div class="form-section mb-4">
             <h5 class="mb-3"><i class="bi bi-geo-alt-fill text-success"></i> Địa chỉ giao hàng</h5>
 
-            <!-- Nếu có nhiều địa chỉ -->
+            <!-- Có địa chỉ -->
             <div th:if="${userDetail != null and !#lists.isEmpty(userDetail)}">
                 <p class="muted">Chọn địa chỉ giao hàng có sẵn hoặc thêm mới nếu cần.</p>
 
-            <div class="list-group mb-3">
-                <label th:each="addr, i : ${userDetail}"
-                       class="list-group-item d-flex justify-content-between align-items-start">
-                    <div>
-                        <input class="form-check-input me-2" type="radio" name="addressSelect"
-                               th:id="${'addr_'+i.index}" th:value="${addr.id}"
-                               th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
-                        <strong th:text="${addr.phone}">0123456789</strong>
-                        <div class="small text-muted" th:text="${addr.address}">Địa chỉ giao hàng</div>
+                <div class="list-group mb-3">
+                    <label th:each="addr, i : ${userDetail}"
+                           class="list-group-item d-flex justify-content-between align-items-start">
+                        <div>
+                            <input class="form-check-input me-2" type="radio" name="addressSelect"
+                                   th:id="${'addr_'+i.index}" th:value="${addr.id}"
+                                   th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
+                            <strong th:text="${addr.phone}">0123456789</strong>
+                            <div class="small text-muted" th:text="${addr.address}">Địa chỉ giao hàng</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="text-end">
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleNewAddressForm()">
+                        <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
+                    </button>
+                </div>
+
+                <!-- Form thêm mới (có dropdown) -->
+                <form id="newAddressFormGeo" class="mt-3 d-none" th:action="@{/checkout/save-address}" method="post">
+                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Tỉnh/Thành</label>
+                            <select id="na_province" class="form-select" required>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quận/Huyện</label>
+                            <select id="na_district" class="form-select" required disabled>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Phường/Xã</label>
+                            <select id="na_ward" class="form-select" required disabled>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
                     </div>
-                </label>
+
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-8">
+                            <label class="form-label">Địa chỉ cụ thể</label>
+                            <input type="text" class="form-control" name="address" placeholder="Số nhà, đường..." required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
+                        </div>
+                    </div>
+
+                    <!-- Lưu GHN -->
+                    <input type="hidden" name="provinceId"  id="na_provinceId" />
+                    <input type="hidden" name="districtId"  id="na_districtId" />
+                    <input type="hidden" name="wardCode"    id="na_wardCode" />
+
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="bi bi-check2-circle"></i> Lưu địa chỉ mới
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">
+                            Hủy
+                        </button>
+                    </div>
+                </form>
             </div>
 
-            <div class="text-end">
-                <button type="button" class="btn btn-outline-success btn-sm" onclick="toggleNewAddressForm()">
-                    <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
-                </button>
-            </div>
+            <!-- Không có địa chỉ -->
+            <div th:if="${userDetail == null or #lists.isEmpty(userDetail)}">
+                <div class="alert alert-warning py-2 mb-3" role="alert">
+                    ⚠️ Bạn chưa có thông tin giao hàng. Vui lòng nhập địa chỉ và số điện thoại bên dưới.
+                </div>
 
-            <!-- ✅ Form thêm mới -->
-            <form id="newAddressForm" class="mt-3 d-none" th:action="@{/checkout/save-address}" method="post">
-                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                <div class="row g-2">
-                    <div class="col-md-8">
-                        <label class="form-label">Địa chỉ mới</label>
-                        <input type="text" class="form-control" name="address"
-                               placeholder="Nhập địa chỉ cụ thể..." required />
+                <form th:action="@{/checkout/save-address}" method="post" class="mb-0">
+                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+
+                    <div class="row g-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Tỉnh/Thành</label>
+                            <select id="ka_province" class="form-select" required>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Quận/Huyện</label>
+                            <select id="ka_district" class="form-select" required disabled>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Phường/Xã</label>
+                            <select id="ka_ward" class="form-select" required disabled>
+                                <option value="">-- Chọn --</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="col-md-4">
+
+                    <div class="mb-3 mt-2">
+                        <label class="form-label">Địa chỉ cụ thể</label>
+                        <input type="text" class="form-control" name="address" placeholder="Số nhà, đường..." required />
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Số điện thoại</label>
-                        <input type="text" class="form-control" name="phone"
-                               placeholder="Nhập số điện thoại..." required />
+                        <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
                     </div>
-                </div>
-                <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-success btn-sm">
-                        <i class="bi bi-check2-circle"></i> Lưu địa chỉ mới
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleNewAddressForm()">
-                        Hủy
-                    </button>
-                </div>
-            </form>
-        </div>
 
-        <!-- ✅ Không có địa chỉ -->
-        <div th:if="${userDetail == null or #lists.isEmpty(userDetail)}">
-            <div class="alert alert-warning py-2 mb-3" role="alert">
-                ⚠️ Bạn chưa có thông tin giao hàng. Vui lòng nhập địa chỉ và số điện thoại bên dưới.
+                    <input type="hidden" name="provinceId" id="ka_provinceId" />
+                    <input type="hidden" name="districtId" id="ka_districtId" />
+                    <input type="hidden" name="wardCode"   id="ka_wardCode" />
+
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> Lưu địa chỉ và tiếp tục
+                    </button>
+                </form>
             </div>
-
-            <form th:action="@{/checkout/save-address}" method="post" class="mb-0">
-                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                <div class="mb-3">
-                    <label class="form-label">Địa chỉ</label>
-                    <input type="text" class="form-control" name="address"
-                           placeholder="Nhập địa chỉ cụ thể..." required />
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Số điện thoại</label>
-                    <input type="text" class="form-control" name="phone"
-                           placeholder="Nhập số điện thoại..." required />
-                </div>
-                <button type="submit" class="btn btn-success w-100">
-                    <i class="bi bi-check-circle"></i> Lưu địa chỉ và tiếp tục
-                </button>
-            </form>
         </div>
-    </div>
 
+        <div class="divider"></div>
 
-
-    <div class="divider"></div>
-
-        <!-- ================= THANH TOÁN ================= -->
+        <!-- ============ THANH TOÁN ============ -->
         <div class="form-section mb-4">
             <h5 class="mb-3"><i class="bi bi-credit-card text-success"></i> Phương thức thanh toán</h5>
             <div class="form-check">
@@ -176,25 +224,21 @@
             </div>
         </div>
 
-        <!-- ================= XÁC NHẬN ================= -->
+        <!-- ============ XÁC NHẬN ============ -->
         <form th:action="@{/checkout/process}" method="post" onsubmit="return finalizeAndSubmit(this);">
             <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-
-            <!-- variant id (from DTO) -->
             <input type="hidden" name="variantId" th:value="${productVariant.id}" />
-
-            <!-- final values set by JS -->
-            <input type="hidden" id="finalQuantity" name="quantity" th:value="${quantity}" />
-            <input type="hidden" id="finalAddressId" name="addressId" value="" />
-            <input type="hidden" id="finalPayment" name="paymentMethod" value="COD" />
+            <input type="hidden" id="finalQuantity"   name="quantity"      th:value="${quantity}" />
+            <input type="hidden" id="finalAddressId"  name="addressId"     value="" />
+            <input type="hidden" id="finalPayment"    name="paymentMethod" value="COD" />
+            <input type="hidden" id="finalToDistrictId" name="toDistrictId" value="" />
+            <input type="hidden" id="finalToWardCode"   name="toWardCode"   value="" />
+            <input type="hidden" id="finalShipFee"   name="shippingFee" value="0"/>
+            <input type="hidden" id="finalServiceId" name="serviceId"   value=""/>
 
             <div class="d-flex justify-content-end gap-3 mt-3">
-                <a th:href="@{/}" class="btn btn-outline-success">
-                    <i class="bi bi-arrow-left"></i> Quay lại
-                </a>
-                <button type="submit" class="btn btn-success px-4">
-                    <i class="bi bi-check2-circle"></i> Xác nhận đặt hàng
-                </button>
+                <a th:href="@{/}" class="btn btn-outline-success"><i class="bi bi-arrow-left"></i> Quay lại</a>
+                <button type="submit" class="btn btn-success px-4"><i class="bi bi-check2-circle"></i> Xác nhận đặt hàng</button>
             </div>
         </form>
 
@@ -202,10 +246,9 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Thymeleaf inline JS để inject productVariant.product_price -->
+<!-- ============ JS ============ -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     const qtyInput = document.getElementById("quantityInput");
@@ -215,81 +258,206 @@
     const finalPayment = document.getElementById("finalPayment");
     const finalAddressId = document.getElementById("finalAddressId");
 
-    const variantPrice = /*[[${productVariant.product_price}]]*/ 0;
+    // GHN hidden (form submit)
+    const finalToDistrict = document.getElementById("finalToDistrictId");
+    const finalToWard     = document.getElementById("finalToWardCode");
 
-    function fmt(num) {
-        try { return Number(num).toLocaleString("vi-VN") + " ₫"; }
-        catch(e) { return num; }
-    }
+    // fee + tổng
+    const shipFeeEl    = document.getElementById("shipFee");
+    const grandTotalEl = document.getElementById("grandTotal");
 
-    function updateTotal() {
-        const qty = Number(qtyInput.value) || 1;
+    // hidden để submit fee/serviceId
+    const finalShipFee   = document.getElementById("finalShipFee");
+    const finalServiceId = document.getElementById("finalServiceId");
+
+    // CSRF
+    const CSRF_TOKEN  = document.querySelector('meta[name="_csrf"]')?.content || null;
+    const CSRF_HEADER = document.querySelector('meta[name="_csrf_header"]')?.content || "X-CSRF-TOKEN";
+
+    // số liệu
+    const variantPrice = Number(/*[[${productVariant.product_price}]]*/ 0) || 0;
+
+    function fmt(n){ try{ return Number(n).toLocaleString("vi-VN")+" ₫"; }catch(_){ return n; } }
+    function getQty(){ return Number(finalQty?.value||1); }
+    function getUnitPrice(){ return variantPrice; }
+
+    let lastShip = 0;
+
+    // --- UI totals ---
+    function updateTotal(){
+        const qty = Number(qtyInput?.value) || 1;
         totalPrice.textContent = fmt(variantPrice * qty);
-        finalQty.value = qty;
+        if (finalQty) finalQty.value = qty;
+    }
+    function updateGrand(){
+        const goods = getQty() * getUnitPrice();
+        const grand = goods + (lastShip || 0);
+        shipFeeEl.textContent = (lastShip > 0) ? fmt(lastShip) : "—";
+        grandTotalEl.textContent = fmt(grand);
     }
 
-    function toggleNewAddressForm() {
-        const frm = document.getElementById("newAddressForm");
-        if (frm) frm.classList.toggle("d-none");
+    // --- tiện ích fetch JSON an toàn ---
+    async function fetchJsonSafe(input, init){
+        const res = await fetch(input, init);
+        let data = null;
+        try { data = await res.json(); } catch(_){}
+        if (!res.ok) {
+            const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+            throw new Error(msg);
+        }
+        return data ?? {};
     }
 
-    function selectExistingAddress(radio) {
+    // --- debounce để tránh spam API khi đổi số lượng ---
+    function debounce(fn, delay=400){
+        let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), delay); };
+    }
+
+    // --- quote: địa chỉ có sẵn (GET) ---
+    const quoteExisting = debounce(async function(addressId){
+        if(!addressId){ lastShip=0; if(finalShipFee) finalShipFee.value="0"; updateGrand(); return; }
+        shipFeeEl.textContent = "đang tính...";
+        try{
+            const data = await fetchJsonSafe(`/api/shipping/quote?addressId=${encodeURIComponent(addressId)}`);
+            // BE trả: { services, serviceId, fee, subtotal, total }
+            const fee = Number(data.fee ?? data.total ?? 0);
+            const svc = data.serviceId ?? "";
+            lastShip = fee;
+
+            // ghi về hidden để submit
+            if (finalShipFee)   finalShipFee.value   = String(fee);
+            if (finalServiceId) finalServiceId.value = String(svc);
+        }catch(e){
+            console.error("quoteExisting error:", e.message);
+            lastShip = 0;
+            if (finalShipFee) finalShipFee.value = "0";
+            shipFeeEl.textContent = "không tính được";
+        }
+        updateGrand();
+    }, 350);
+
+    // --- quote: địa chỉ mới (POST) ---
+    const quoteShipping = debounce(async function(toDistrictId, toWardCode){
+        if(!toDistrictId || !toWardCode){ lastShip=0; if(finalShipFee) finalShipFee.value="0"; updateGrand(); return; }
+        shipFeeEl.textContent = "đang tính...";
+        try{
+            const payload = {
+                toDistrictId: Number(toDistrictId),
+                toWardCode: String(toWardCode),
+                weight: Math.max(200, getQty()*200),
+                length: 20, width: 15, height: 8,
+                insuranceValue: getQty() * getUnitPrice()
+            };
+            const headers = { "Content-Type":"application/json" };
+            if (CSRF_TOKEN) headers[CSRF_HEADER] = CSRF_TOKEN;
+
+            const data = await fetchJsonSafe('/api/shipping/quote', {
+                method:'POST', headers, body: JSON.stringify(payload)
+            });
+            // BE trả: { total, serviceId, raw, ... }
+            const fee = Number(data.total || 0);
+            const svc = data.serviceId ?? "";
+            lastShip = fee;
+
+            if (finalShipFee)   finalShipFee.value   = String(fee);
+            if (finalServiceId) finalServiceId.value = String(svc);
+        }catch(e){
+            console.error("quoteShipping error:", e.message);
+            lastShip = 0;
+            if (finalShipFee) finalShipFee.value = "0";
+            shipFeeEl.textContent = "không tính được";
+        }
+        updateGrand();
+    }, 350);
+
+    // --- chọn radio địa chỉ có sẵn ---
+    function selectExistingAddress(radio){
         if (!radio) return;
-        const frm = document.getElementById("newAddressForm");
-        if (radio.value === "new") {
-            frm?.classList.remove("d-none");
-            finalAddressId.value = "";
-        } else {
-            frm?.classList.add("d-none");
-            finalAddressId.value = radio.value;
-        }
+        document.getElementById("newAddressFormGeo")?.classList.add("d-none");
+        finalAddressId.value = radio.value;
+        quoteExisting(radio.value);
     }
 
-    paymentRadios.forEach(r => r.addEventListener("change", () => finalPayment.value = r.value));
-    // listen payment radio changes -> update hidden input
-    paymentRadios.forEach(r => r.addEventListener("change", (e) => finalPayment.value = e.target.value));
+    // --- toggle form địa chỉ mới ---
+    function toggleNewAddressForm(){
+        document.getElementById("newAddressFormGeo")?.classList.toggle("d-none");
+    }
 
-    function finalizeAndSubmit(form) {
-        const qty = Number(finalQty.value) || 1;
+    // --- payment sync ---
+    paymentRadios.forEach(r => r.addEventListener("change", (e)=> finalPayment.value = e.target.value));
+
+    // --- Geo helpers ---
+    async function fetchJson(url){ const r=await fetch(url); if(!r.ok) throw new Error(`HTTP ${r.status}`); return await r.json(); }
+    async function loadProvinces(sel){ const d=await fetchJson('/api/geo/provinces'); sel.innerHTML='<option value="">-- Chọn --</option>'; d.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; sel.appendChild(o); }); sel.disabled=false; }
+    async function loadDistricts(pid, sel){ sel.innerHTML='<option value="">-- Chọn --</option>'; if(!pid){ sel.disabled=true; return; } const d=await fetchJson(`/api/geo/districts?provinceId=${pid}`); d.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; sel.appendChild(o); }); sel.disabled=false; }
+    async function loadWards(did, sel){ sel.innerHTML='<option value="">-- Chọn --</option>'; if(!did){ sel.disabled=true; return; } const d=await fetchJson(`/api/geo/wards?districtId=${did}`); d.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; sel.appendChild(o); }); sel.disabled=false; }
+
+    function wireGeoForm(prefix){
+        const selP = document.getElementById(`${prefix}_province`);
+        const selD = document.getElementById(`${prefix}_district`);
+        const selW = document.getElementById(`${prefix}_ward`);
+        const hidP = document.getElementById(`${prefix}_provinceId`);
+        const hidD = document.getElementById(`${prefix}_districtId`);
+        const hidW = document.getElementById(`${prefix}_wardCode`);
+        if(!selP || !selD || !selW) return;
+
+        loadProvinces(selP).catch(console.error);
+
+        selP.addEventListener('change', async ()=>{
+            if(hidP) hidP.value = selP.value || '';
+            await loadDistricts(selP.value, selD);
+            selW.innerHTML = '<option value="">-- Chọn --</option>'; selW.disabled = true;
+            if(hidD) hidD.value = ''; if(hidW) hidW.value = '';
+            lastShip = 0; if (finalShipFee) finalShipFee.value="0"; updateGrand();
+        });
+
+        selD.addEventListener('change', async ()=>{
+            if(hidD) hidD.value = selD.value || '';
+            await loadWards(selD.value, selW);
+            if(hidW) hidW.value = '';
+            lastShip = 0; if (finalShipFee) finalShipFee.value="0"; updateGrand();
+        });
+
+        selW.addEventListener('change', ()=>{
+            if(hidW) hidW.value = selW.value || '';
+            finalToDistrict.value = selD.value || '';
+            finalToWard.value     = selW.value || '';
+            quoteShipping(finalToDistrict.value, finalToWard.value);
+        });
+    }
+
+    // --- finalize submit ---
+    function finalizeAndSubmit(form){
+        const qty = Number(finalQty.value)||1;
         if (qty <= 0) { alert("Số lượng không hợp lệ."); return false; }
-
-        // if user selected an existing address, finalAddressId already set by selectExistingAddress
-        const addr = finalAddressId.value;
-        if (!addr) {
-            alert("Vui lòng chọn hoặc nhập địa chỉ giao hàng.");
-            return false;
-            const newAddr = document.querySelector("#newAddressForm input[name='address'], #newAddressFormSingle input[name='address']");
-            const newPhone = document.querySelector("#newAddressForm input[name='phone'], #newAddressFormSingle input[name='phone']");
-            if (newAddr && newPhone) {
-                if (!newAddr.value.trim() || !newPhone.value.trim()) {
-                    alert("Vui lòng chọn địa chỉ có sẵn hoặc nhập địa chỉ giao hàng mới.");
-                    return false;
-                }
-                // allow submit - server should accept these fields or create User_detail first
-            } else {
-                alert("Vui lòng chọn địa chỉ giao hàng hoặc thêm địa chỉ mới.");
-                return false;
-            }
-        }
-
+        if (!finalAddressId.value) { alert("Vui lòng chọn hoặc nhập địa chỉ giao hàng."); return false; }
+        // đã có hidden shippingFee/serviceId
         return true;
     }
 
-    // init on DOM ready: set initial selected address (if any) and payment
-    document.addEventListener('DOMContentLoaded', function() {
-        // set initial selected address -> pick checked radio
+    // --- init ---
+    document.addEventListener('DOMContentLoaded', ()=>{
         const checkedAddr = document.querySelector("input[name='addressSelect']:checked");
-        if (checkedAddr) finalAddressId.value = checkedAddr.value;
-
-        // set initial payment hidden value
+        if (checkedAddr){
+            finalAddressId.value = checkedAddr.value;
+            quoteExisting(checkedAddr.value); // tính lần đầu
+        }
         const checkedPayment = document.querySelector("input[name='paymentMethod']:checked");
         if (checkedPayment) finalPayment.value = checkedPayment.value;
 
-        if (qtyInput) qtyInput.addEventListener("input", updateTotal);
+        qtyInput?.addEventListener("input", ()=>{
+            updateTotal();
+            if (finalAddressId.value)       quoteExisting(finalAddressId.value);
+            else if (finalToDistrict.value && finalToWard.value) quoteShipping(finalToDistrict.value, finalToWard.value);
+            else updateGrand();
+        });
+
         updateTotal();
+        updateGrand();
+
+        wireGeoForm('na'); // form thêm mới
+        wireGeoForm('ka'); // form khi chưa có địa chỉ
     });
-    if (qtyInput) qtyInput.addEventListener("input", updateTotal);
-    document.addEventListener("DOMContentLoaded", updateTotal);
     /*]]>*/
 </script>
 </body>

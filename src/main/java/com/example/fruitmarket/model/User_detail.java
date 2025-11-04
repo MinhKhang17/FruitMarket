@@ -14,8 +14,20 @@ public class User_detail {
 
    @Column
     private String phone;
-   @Column
+   @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "province_id")
+    private Province province;  // ✅ FK -> province.id
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "district_id")
+    private District district;  // ✅ FK -> district.id
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ward_code")
+    private Ward ward;          // ✅ FK -> ward.code
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

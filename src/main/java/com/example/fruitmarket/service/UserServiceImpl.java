@@ -2,12 +2,8 @@ package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.dto.UserResponse;
 import com.example.fruitmarket.enums.UserStatus;
-import com.example.fruitmarket.model.User_detail;
-import com.example.fruitmarket.model.Users;
-import com.example.fruitmarket.model.VerificationToken;
-import com.example.fruitmarket.repository.UserDetailRepo;
-import com.example.fruitmarket.repository.UserRepository;
-import com.example.fruitmarket.repository.VerificationTokenRepository;
+import com.example.fruitmarket.model.*;
+import com.example.fruitmarket.repository.*;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +29,8 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final UserDetailRepo userDetailRepo;
+    private final DistrictRepo districtRepo;
+    private final WardRepo wardRepo;
 
 
     @Value("${app.base-url}")
@@ -207,5 +205,27 @@ public class UserServiceImpl implements UserService {
                 user.getRole(),
                 user.getStatus()
         );
+    }
+
+    @Override
+    public void updateAddressGeo(Long addressId, Integer districtId, String wardCode) {
+        User_detail ud = userDetailRepo.findById(addressId)
+                .orElseThrow(() -> new IllegalArgumentException("Address not found: " + addressId));
+
+        if (districtId != null) {
+            District district = districtRepo.findById(districtId)
+                    .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtId));
+            ud.setDistrict(district);
+            // Gán province theo district (nếu cần)
+            ud.setProvince(district.getProvince());
+        }
+
+        if (wardCode != null && !wardCode.isBlank()) {
+            Ward ward = wardRepo.findById(wardCode)
+                    .orElseThrow(() -> new IllegalArgumentException("Ward not found: " + wardCode));
+            ud.setWard(ward);
+        }
+
+        userDetailRepo.save(ud);
     }
 }

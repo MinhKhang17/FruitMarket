@@ -50,7 +50,7 @@
 
 <div class="container py-4 wrap" th:with="o=${order}">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <a th:href="@{/orders}" class="btn btn-outline-success btn-sm"><i class="bi bi-arrow-left"></i> Trở lại</a>
+        <a th:href="@{/myOrders}" class="btn btn-outline-success btn-sm"><i class="bi bi-arrow-left"></i> Trở lại</a>
         <div class="d-flex gap-2">
             <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
                 <i class="bi bi-printer"></i> In hoá đơn
@@ -172,19 +172,42 @@
                         <div><i class="bi bi-telephone text-success me-1"></i>
                             <span th:text="${o.phoneNumber}">SĐT</span>
                         </div>
+                        <!-- Thông tin GHN nếu có -->
+                        <div class="mt-3" th:if="${ghn != null}">
+                            <div><i class="bi bi-truck text-success me-1"></i> Mã GHN:
+                                <span class="fw-semibold text-success" th:text="${ghn.orderCode}">GHN123456</span>
+                            </div>
+                            <div><i class="bi bi-box-seam text-success me-1"></i> Trạng thái GHN:
+                                <span th:text="${ghn.status}">delivering</span>
+                            </div>
+                            <div th:if="${ghn.expectedDeliveryTime != null}">
+                                <i class="bi bi-clock text-success me-1"></i> Dự kiến giao:
+                                <span th:text="${ghn.expectedDeliveryTime}">2025-11-05 18:00</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="block">
+                    <div class="block"
+                             th:with="
+                            fee=${o.shippingFee != null ? o.shippingFee : 0},
+                            goods=${(o.totalPrice != null ? o.totalPrice : 0) - fee}
+                         ">
                         <div class="section-title">Tổng thanh toán</div>
+
                         <div class="total-row">
                             <span class="text-muted">Tổng tiền hàng</span>
-                            <span><span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ</span>
+                            <span>
+                              <span th:text="${#numbers.formatDecimal(goods,0,'POINT',0,'COMMA')}">0</span>đ
+                            </span>
                         </div>
+
                         <div class="total-row">
                             <span class="text-muted">Phí vận chuyển</span>
-                            <span>0đ</span>
+                            <span><span th:text="${#numbers.formatDecimal(fee,0,'POINT',0,'COMMA')}">0</span>đ</span>
                         </div>
+
                         <div class="divider"></div>
+
                         <div class="total-row">
                             <span class="fw-semibold">Thành tiền</span>
                             <span class="grand"><span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ</span>
@@ -194,7 +217,7 @@
                             <a class="btn btn-outline-success btn-sm" th:if="${o.orderStauts?.name()=='PENDING'}">
                                 <i class="bi bi-cash-coin"></i> Thanh toán lại
                             </a>
-                            <a class="btn btn-outline-secondary btn-sm" th:href="@{/orders}">
+                            <a class="btn btn-outline-secondary btn-sm" th:href="@{/myOrders}">
                                 <i class="bi bi-list-ul"></i> Danh sách đơn
                             </a>
                         </div>
