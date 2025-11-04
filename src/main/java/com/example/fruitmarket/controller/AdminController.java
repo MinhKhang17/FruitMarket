@@ -9,7 +9,7 @@ import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.service.*;
-import com.example.fruitmarket.util.AuthUtils;
+import com.example.fruitmarket.Util.AuthUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

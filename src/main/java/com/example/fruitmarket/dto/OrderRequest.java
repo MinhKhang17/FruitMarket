@@ -10,6 +10,10 @@ public class OrderRequest {
     private List<OrderItem> items = new ArrayList<>();
     private BigDecimal totalPrice;
     private Integer totalQuantity;
+    private Integer toDistrictId;
+    private String toWardCode;
+    private BigDecimal shippingFee;
+    private Integer serviceId;
 
     public Long getAddressId() { return addressId; }
     public void setAddressId(Long addressId) { this.addressId = addressId; }
@@ -21,6 +25,14 @@ public class OrderRequest {
     public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
     public Integer getTotalQuantity() { return totalQuantity; }
     public void setTotalQuantity(Integer totalQuantity) { this.totalQuantity = totalQuantity; }
+    public Integer getToDistrictId() { return toDistrictId; }
+    public void setToDistrictId(Integer toDistrictId) { this.toDistrictId = toDistrictId; }
+    public String getToWardCode() { return toWardCode; }
+    public void setToWardCode(String toWardCode) { this.toWardCode = toWardCode; }
+    public BigDecimal getShippingFee() { return shippingFee; }
+    public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
+    public Integer getServiceId() { return serviceId; }
+    public void setServiceId(Integer serviceId) { this.serviceId = serviceId; }
 
     public static class OrderItem {
         private Long productId;
@@ -28,6 +40,7 @@ public class OrderRequest {
         private String name;
         private java.math.BigDecimal price;
         private Integer quantity;
+
 
         public Long getProductId() { return productId; }
         public void setProductId(Long productId) { this.productId = productId; }

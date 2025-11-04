@@ -1,6 +1,8 @@
 package com.example.fruitmarket.controller;
 
+import com.example.fruitmarket.dto.OrderDetailRes;
 import com.example.fruitmarket.model.Order;
+import com.example.fruitmarket.service.GhnClientService;
 import com.example.fruitmarket.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +18,9 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final GhnClientService ghnClientService;
 
-    @GetMapping("/orders")
+    @GetMapping("/myOrders")
     public String myOrders(HttpSession session, Model model) {
         try {
             List<Order> orders = orderService.getOrdersOfUser(session);
@@ -25,15 +28,28 @@ public class OrderController {
         } catch (IllegalStateException e) {
             return "redirect:/auth/login";
         }
-        return "client/orders";
+        return "client/ordersClient"; // <-- phải khớp với ordersClient.html
     }
 
-    @GetMapping("/orders/{id}")
-    public String orderDetail(@PathVariable("id") Long id, HttpSession session, Model model) {
+    @GetMapping("/myOrders/{id}")
+    public String orderDetail(@PathVariable Long id, HttpSession session, Model model) {
         try {
             Order order = orderService.getOrderDetailForUser(id, session);
             model.addAttribute("order", order);
-            return "client/order-detail";
+
+            try {
+                String code = "FruitProject";
+                if (code != null && !code.isBlank()) {
+                    OrderDetailRes detail = ghnClientService.getOrderDetail(code);
+                    if (detail != null && detail.getData() != null) {
+                        model.addAttribute("ghn", detail.getData());
+                    }
+                }
+            } catch (Exception ignore) {
+                model.addAttribute("ghnError", "Không thể tải trạng thái GHN lúc này.");
+            }
+
+            return "client/order-detail"; // khớp với order-detail.html
         } catch (IllegalStateException ex) {
             return "redirect:/auth/login";
         } catch (IllegalArgumentException ex) {

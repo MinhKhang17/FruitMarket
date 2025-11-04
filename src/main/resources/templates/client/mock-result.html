@@ -1,0 +1,53 @@
+<!-- src/main/resources/templates/dev/mock-result.html -->
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mock GHN | FruitMarket</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- tự động quay về trang chi tiết đơn sau 2 giây -->
+    <meta http-equiv="refresh" th:content="'2;url=' + ${orderDetailUrl}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background:#f6faf6; }
+        .cardx { max-width:720px; margin:48px auto; border:none; border-radius:16px;
+            box-shadow:0 10px 22px rgba(0,0,0,.08); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card cardx p-4">
+        <h4 class="mb-2">Mock GHN — cập nhật trạng thái</h4>
+        <p class="text-muted mb-3">Kết quả mô phỏng webhook GHN.</p>
+
+        <div class="alert alert-success" th:if="${status == 'delivered'}">
+            ✅ Đơn hàng #<b th:text="${orderId}">0</b> đã được cập nhật thành <b>delivered</b>
+            (nội bộ sẽ là trạng thái <b>SHIPPED/COMPLETED</b>).
+        </div>
+
+        <div class="alert alert-warning" th:if="${status == 'picking'}">
+            🚚 Đơn hàng #<b th:text="${orderId}">0</b> đã chuyển trạng thái GHN <b>picking</b>
+            (nội bộ sẽ là <b>SHIPPING/PROCESSING</b>).
+        </div>
+
+        <div class="alert alert-danger" th:if="${status == 'cancel'}">
+            ❌ Đơn hàng #<b th:text="${orderId}">0</b> đã chuyển trạng thái GHN <b>cancel</b>
+            (nội bộ sẽ là <b>CANCELLED</b>).
+        </div>
+
+        <div class="d-flex gap-2 mt-3">
+            <a class="btn btn-success" th:href="${orderDetailUrl}">
+                Xem chi tiết đơn
+            </a>
+            <a class="btn btn-outline-secondary" href="/">Về trang chủ</a>
+        </div>
+
+        <p class="text-muted mt-3 mb-0">
+            * Trang sẽ tự chuyển về chi tiết đơn trong 2 giây…
+        </p>
+    </div>
+</div>
+
+</body>
+</html>

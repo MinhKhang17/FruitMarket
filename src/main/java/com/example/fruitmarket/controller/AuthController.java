@@ -2,7 +2,7 @@ package com.example.fruitmarket.controller;
 
 import com.example.fruitmarket.model.Users;
 import com.example.fruitmarket.service.UserService;
-import com.example.fruitmarket.util.AuthUtils;
+import com.example.fruitmarket.Util.AuthUtils;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
