@@ -17,17 +17,17 @@ public class GhnWebhookController {
 
      private final OrderService orderService; // cắm service của bạn để cập nhật DB
 
-    @PostMapping("/order-status")
-    public ResponseEntity<Void> onOrderStatus(@RequestBody GhnOrderStatusPayload payload) {
-        // Ví dụ: map trạng thái GHN -> trạng thái nội bộ
-         orderService.updateFromGhnCallback(
-                payload.getClientOrderCode(),
-                payload.getOrderCode(),
-                payload.getStatus(),
-                payload.getCODAmount()
-         );
+        @PostMapping("/order-status")
+        public ResponseEntity<Void> onOrderStatus(@RequestBody GhnOrderStatusPayload payload) {
+            // Ví dụ: map trạng thái GHN -> trạng thái nội bộ
+             orderService.  updateFromGhnCallback(
+                    payload.getClientOrderCode(),
+                    payload.getOrderCode(),
+                    payload.getStatus(),
+                    payload.getCODAmount()
+             );
 
-        // Trả 200 OK để GHN biết bạn nhận thành công
-        return ResponseEntity.ok().build();
-    }
+            // Trả 200 OK để GHN biết bạn nhận thành công
+            return ResponseEntity.ok().build();
+        }
 }

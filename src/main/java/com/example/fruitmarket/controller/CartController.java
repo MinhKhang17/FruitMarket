@@ -335,7 +335,7 @@ public String checkoutCart(
 
                 // 2) Tính tổng cân nặng của đơn (đơn giản: dùng defaultWeight nếu bạn coi là tổng)
                 // Bạn có thể cải tiến: lấy weight theo từng item/variant nếu có.
-                int totalWeight = Math.max(100, defaultWeight); // gram, tối thiểu 100g
+                long totalWeight = Math.max(100, defaultWeight); // gram, tối thiểu 100g
 
                 // 3) TÍNH PHÍ SHIP GHN (signature theo code bạn đang gọi)
                 var feeRes = ghnClientService.calculateFee(

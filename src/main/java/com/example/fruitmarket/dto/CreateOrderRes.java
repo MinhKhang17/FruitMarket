@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class CreateOrderRes {
-    private int code;
+    private String code;
     private String message;
     private DataObj data;
 

@@ -1,13 +1,14 @@
 package com.example.fruitmarket.dto;
 
+import com.example.fruitmarket.enums.GhnStatus;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 @Data
 @RequiredArgsConstructor
 public class GhnOrderStatusPayload {
-    private String ClientOrderCode; // mã đơn nội bộ
+    private long ClientOrderCode; // mã đơn nội bộ
     private String OrderCode;       // mã đơn GHN
-    private String Status;          // ví dụ: delivering, delivered, cancel...
+    private GhnStatus Status;          // ví dụ: delivering, delivered, cancel...
     private Integer CODAmount;
 }

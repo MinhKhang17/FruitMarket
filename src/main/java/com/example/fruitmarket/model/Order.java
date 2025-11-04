@@ -1,5 +1,6 @@
 package com.example.fruitmarket.model;
 
+import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.enums.OrderStauts;
 import com.example.fruitmarket.enums.PricingMethod;
 import jakarta.persistence.*;
@@ -39,8 +40,8 @@ public class Order {
     private BigDecimal totalPrice;
     @Column
     private String ghnOrderCode;
-    @Column
-    private String ghnStatus;
+    @Enumerated(EnumType.STRING)
+    private GhnStatus ghnStatus;
     @Column
     private BigDecimal shippingFee;
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)

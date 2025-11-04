@@ -1,5 +1,6 @@
 package com.example.fruitmarket.controller;
 
+import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ui.Model;
@@ -18,15 +19,15 @@ public class MockGhnWebhookController {
                               Model model) {
 
         // map action -> status GHN
-        String status = switch (action.toLowerCase()) {
-            case "delivered" -> "delivered";
-            case "cancel"    -> "cancel";
-            case "picking"   -> "picking";
-            default          -> "delivered"; // mặc định cho gọn
+        GhnStatus status = switch (action.toLowerCase()) {
+            case "delivered" -> GhnStatus.DELIVERED;
+            case "cancel"    -> GhnStatus.CANCEL;
+            case "picking"   -> GhnStatus.PICKING;
+            default          -> GhnStatus.DELIVERED; // mặc định cho gọn
         };
 
         // cập nhật đơn nội bộ
-        orderService.updateFromGhnCallback("ORD-" + id, null, status, null);
+        orderService.updateFromGhnCallback(id, null, status, null);
 
         model.addAttribute("orderId", id);
         model.addAttribute("status", status);

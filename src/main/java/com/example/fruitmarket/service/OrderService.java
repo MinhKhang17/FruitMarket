@@ -1,6 +1,7 @@
 package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.dto.OrderRequest;
+import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.ProductVariant;
 import jakarta.servlet.http.HttpSession;
@@ -23,7 +24,7 @@ public interface OrderService {
     Order getOrderDetailForUser(Long orderId, HttpSession session);
     List<Order> getAllOrders();
     void attachShippingCode(Long orderId, String ghnOrderCode);
-    void updateFromGhnCallback(String clientOrderCode, String ghnOrderCode, String ghnStatus, Integer codAmount);
+    void updateFromGhnCallback(long clientOrderCode, String ghnOrderCode, GhnStatus ghnStatus, Integer codAmount);
 
     void updateShippingFee(Long orderId, BigDecimal bigDecimal);
 

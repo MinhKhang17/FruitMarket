@@ -12,7 +12,7 @@ public class CreateOrderReq {
     private Integer toDistrictId;  // bắt buộc
 
     private Integer serviceId;     // dùng service_id
-    private long weight;        // gram
+    private Long weight;        // gram
     private Integer length;        // cm
     private Integer width;         // cm
     private Integer height;        // cm

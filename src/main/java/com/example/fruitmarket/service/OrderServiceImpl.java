@@ -1,37 +1,48 @@
 package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.dto.CreateOrderReq;
-import com.example.fruitmarket.dto.CreateOrderRes;
 import com.example.fruitmarket.dto.OrderDetailRes;
 import com.example.fruitmarket.dto.OrderRequest;
+import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.enums.OrderStauts;
 import com.example.fruitmarket.enums.PricingMethod;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.OrderRepo;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class OrderServiceImpl implements OrderService {
 
-    @Autowired UserService userService;
-    @Autowired OrderRepo orderRepo;
-    @Autowired ProductService productService;
-    @Autowired GhnClientService ghnClientService;
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private OrderRepo orderRepo;
+
+    @Autowired
+    private ProductService productService;
+
+    @Autowired
+    private GhnClientService ghnClientService;
 
     @Value("${ghn.from-district-id}")
     private int fromDistrictId;
 
     @Override
-    @Transactional  // ← thêm để đảm bảo cùng 1 TX
+    @Transactional
     public Order createOrder(
             HttpSession session,
             ProductVariant variant,
@@ -63,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
         // item
         OrderItem oi = new OrderItem();
         oi.setQuanity(quantity != null && quantity > 0 ? quantity : 1);
-        oi.setProductVariant(variant); // dùng luôn object đang có
+        oi.setProductVariant(variant);
         oi.setPrice(variant.getPrice() != null ? variant.getPrice() : BigDecimal.ZERO);
 
         order.setOrderItemList(new ArrayList<>());
@@ -75,6 +86,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalPrice(goodsTotal.add(safeShip));
         order.setTotalQuantity(oi.getQuanity());
         order.setShippingFee(safeShip);
+        order.setGhnStatus(GhnStatus.READY_TO_PICK);
 
         Order saved = orderRepo.save(order);
 
@@ -86,7 +98,7 @@ public class OrderServiceImpl implements OrderService {
                         ? serviceId
                         : svRes.getData().get(0).getServiceId();
 
-                long weight = Math.max(1, saved.getTotalQuantity()) * 500;
+                long weight = Math.max(1, saved.getTotalQuantity()) * 500L;
                 int length = 20, width = 15, height = 10;
 
                 int cod = (saved.getPricingMethod() == PricingMethod.COD)
@@ -107,22 +119,45 @@ public class OrderServiceImpl implements OrderService {
                 req.setCodAmount(cod);
                 req.setClientOrderCode("ORD-" + saved.getId());
 
-                CreateOrderRes ghRes = ghnClientService.createOrder(req);
-                if (ghRes != null && ghRes.getData() != null && ghRes.getData().getOrderCode() != null) {
-                    saved.setGhnOrderCode(ghRes.getData().getOrderCode());
-                    OrderDetailRes detail = ghnClientService.getOrderDetail(saved.getGhnOrderCode());
-                    if (detail != null && detail.getData() != null) {
-                        saved.setGhnStatus(detail.getData().getStatus());
+                // BẮT exception chi tiết từ WebClient để log body (400/422) mà không làm đổ TX
+                try {
+                    Optional<String> optCode = ghnClientService.createOrderAndGetOrderCode(req);
+                    if (optCode.isPresent()) {
+                        String code = optCode.get();
+                        saved.setGhnOrderCode(code);
+
+                        OrderDetailRes detail = null;
+                        try {
+                            detail = ghnClientService.getOrderDetail(code);
+                        } catch (WebClientResponseException wcre) {
+                            log.warn("Failed to fetch GHN order detail for code {}: status={} body={}", code, wcre.getStatusCode(), wcre.getResponseBodyAsString());
+                        } catch (Exception e) {
+                            log.warn("Failed to fetch GHN order detail for code {}: {}", code, e.getMessage(), e);
+                        }
+
+                        if (detail != null && detail.getData() != null) {
+                            saved.setGhnStatus(GhnStatus.READY_TO_PICK);
+                        }
+                        orderRepo.saveAndFlush(saved);
+                        log.info("Saved GHN order code {} for local order {}", code, saved.getId());
+                    } else {
+                        log.warn("[GHN] createOrder: no orderCode returned for local order {}", saved.getId());
                     }
-                    orderRepo.saveAndFlush(saved); // flush ngay
-                } else {
-                    System.out.println("[GHN] createOrder: no orderCode returned");
+                } catch (WebClientResponseException wcre) {
+                    // log chi tiết body từ GHN (rất hữu ích để debug payload thiếu trường/thiếu header)
+                    String body = "<no body>";
+                    try { body = wcre.getResponseBodyAsString(); } catch (Exception ignore) {}
+                    log.warn("[GHN] createOrder failed with status {} and body: {}", wcre.getStatusCode(), body);
+                    // không ném tiếp: giữ best-effort (local order đã lưu)
+                } catch (Exception ex) {
+                    log.error("Unexpected error while creating GHN order for local order " + saved.getId(), ex);
                 }
             } else {
-                System.out.println("[GHN] no available service for route " + fromDistrictId + " -> " + ud.getDistrict().getDistrictId());
+                log.warn("[GHN] no available service for route {} -> {}", fromDistrictId, ud.getDistrict().getDistrictId());
             }
         } catch (Exception ex) {
-            ex.printStackTrace(); // đừng nuốt lỗi
+            // bảo vệ an toàn: bất kỳ lỗi nào ở bước kiểm tra service cũng không làm fail toàn bộ flow
+            log.warn("Failed to check available GHN services (best-effort): {}", ex.getMessage(), ex);
         }
 
         return saved;
@@ -181,8 +216,7 @@ public class OrderServiceImpl implements OrderService {
             oi.setProductVariant(pv);
             oi.setQuanity(qty);
             oi.setPrice(reqItem.getPrice() != null ? reqItem.getPrice() : pv.getPrice());
-            // nếu entity OrderItem có quan hệ @ManyToOne Order, set ngược lại:
-            // oi.setOrder(order);
+            // nếu cần: oi.setOrder(order);
 
             BigDecimal price = oi.getPrice() != null ? oi.getPrice() : BigDecimal.ZERO;
             goodsTotal = goodsTotal.add(price.multiply(BigDecimal.valueOf(qty)));
@@ -203,11 +237,9 @@ public class OrderServiceImpl implements OrderService {
 
             var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);
             if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
-                // dùng DTO getter camelCase
                 int serviceId = svRes.getData().get(0).getServiceId();
 
-                // có weight trên variant thì cộng dồn; không thì mặc định 500g/item
-                int weight = Math.max(1, totalQty) * 500;
+                int weight = (int) (Math.max(1, totalQty) * 500L);
                 int length = 20, width = 15, height = 10;
 
                 var feeRes = ghnClientService.calculateFee(
@@ -220,10 +252,11 @@ public class OrderServiceImpl implements OrderService {
             }
         } catch (Exception ignore) {
             // không chặn flow khi GHN lỗi -> để ship = 0
+            log.warn("Failed to calculate GHN shipping fee, default to 0", ignore);
         }
 
         order.setShippingFee(shippingFee);
-        order.setTotalPrice(goodsTotal.add(shippingFee)); // ✅ tổng = hàng + ship
+        order.setTotalPrice(goodsTotal.add(shippingFee));
 
         // ===== 3) LƯU ĐƠN =====
         Order saved = orderRepo.save(order);
@@ -233,19 +266,19 @@ public class OrderServiceImpl implements OrderService {
             String toName = user.getUsername();
             String toPhone = userDetail.getPhone();
             String toAddr  = userDetail.getAddress();
-            String toWardCode   = userDetail.getWard().getWardCode();     // đảm bảo user_detail có ward/district
+            String toWardCode   = userDetail.getWard().getWardCode();
             Integer toDistrictId= userDetail.getDistrict().getDistrictId();
 
             var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);
             if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
                 int serviceId = svRes.getData().get(0).getServiceId();
 
-                long weight = Math.max(1, order.getTotalQuantity()) * 500; // ví dụ
+                long weight = Math.max(1, order.getTotalQuantity()) * 500L;
                 int length = 20, width = 15, height = 10;
 
                 int cod = order.getPricingMethod() == PricingMethod.COD
-                        ? order.getTotalPrice().intValue()   // nếu COD gửi tổng tiền
-                        : 0;                                  // VNPAY thì 0
+                        ? order.getTotalPrice().intValue()
+                        : 0;
 
                 CreateOrderReq req = new CreateOrderReq();
                 req.setToName(toName);
@@ -261,19 +294,37 @@ public class OrderServiceImpl implements OrderService {
                 req.setCodAmount(cod);
                 req.setClientOrderCode("ORD-" + saved.getId());
 
-                CreateOrderRes ghRes = ghnClientService.createOrder(req);
-                if (ghRes != null && ghRes.getData() != null && ghRes.getData().getOrderCode() != null) {
-                    saved.setGhnOrderCode(ghRes.getData().getOrderCode());
-                    // (tuỳ chọn) lấy status
-                    var detail = ghnClientService.getOrderDetail(saved.getGhnOrderCode());
-                    if (detail != null && detail.getData() != null) {
-                        saved.setGhnStatus(detail.getData().getStatus());
+                try {
+                    Optional<String> optCode = ghnClientService.createOrderAndGetOrderCode(req);
+                    if (optCode.isPresent()) {
+                        saved.setGhnOrderCode(optCode.get());
+                        var detail = (OrderDetailRes) null;
+                        try {
+                            detail = ghnClientService.getOrderDetail(saved.getGhnOrderCode());
+                        } catch (WebClientResponseException wcre) {
+                            log.warn("Failed to fetch GHN order detail for code {}: status={} body={}", saved.getGhnOrderCode(), wcre.getStatusCode(), wcre.getResponseBodyAsString());
+                        } catch (Exception e) {
+                            log.warn("Failed to fetch GHN order detail for code {}: {}", saved.getGhnOrderCode(), e.getMessage(), e);
+                        }
+
+                        if (detail != null && detail.getData() != null) {
+                            saved.setGhnStatus(GhnStatus.READY_TO_PICK);
+                        }
+                        orderRepo.saveAndFlush(saved);
+                        log.info("Saved GHN order code {} for local order {}", saved.getGhnOrderCode(), saved.getId());
+                    } else {
+                        log.warn("[GHN] createOrder returned no order code for order {}", saved.getId());
                     }
-                    orderRepo.save(saved); // hoặc saveAndFlush
+                } catch (WebClientResponseException wcre) {
+                    String body = "<no body>";
+                    try { body = wcre.getResponseBodyAsString(); } catch (Exception ignore) {}
+                    log.warn("[GHN] createOrder failed with status {} and body: {}", wcre.getStatusCode(), body);
+                } catch (Exception ex) {
+                    log.error("Create GHN failed", ex);
                 }
             }
         } catch (Exception ex) {
-            // log.warn("Create GHN failed", ex);
+            log.warn("Create GHN failed (service check)", ex);
         }
 
         return saved.getId();
@@ -327,17 +378,17 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateFromGhnCallback(String clientOrderCode, String ghnOrderCode, String ghnStatus, Integer codAmount) {
-        Long orderId = parseOrderIdFromClientOrderCode(clientOrderCode);
+    public void updateFromGhnCallback(long clientOrderCode, String ghnOrderCode, GhnStatus ghnStatus, Integer codAmount) {
+//        Long orderId = parseOrderIdFromClientOrderCode(clientOrderCode);
 
-        Order order = orderRepo.findById(orderId)
+        Order order = orderRepo.findById(clientOrderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng từ clientOrderCode: " + clientOrderCode));
 
         if (order.getGhnOrderCode() == null || order.getGhnOrderCode().isBlank()) {
             order.setGhnOrderCode(ghnOrderCode);
         }
 
-        switch (safe(ghnStatus)) {
+        switch (ghnStatus.toString().toLowerCase()) {
             case "ready_to_pick":
             case "picking":
             case "picked":
@@ -359,7 +410,12 @@ public class OrderServiceImpl implements OrderService {
                 break;
         }
 
-        order.setGhnStatus(ghnStatus);
+        try {
+            order.setGhnStatus(ghnStatus);
+        } catch (Exception ex) {
+            log.warn("Unknown GHN status received: {}", ghnStatus);
+        }
+
         orderRepo.save(order);
     }
 
@@ -372,11 +428,13 @@ public class OrderServiceImpl implements OrderService {
         if (code == null) throw new IllegalArgumentException("clientOrderCode null");
         String c = code.trim();
         if (c.startsWith("ORD-")) {
-            try { return Long.parseLong(c.substring(4)); }
-            catch (NumberFormatException ignored) {}
+            try {
+                return Long.parseLong(c.substring(4));
+            } catch (NumberFormatException ignored) {}
         }
-        try { return Long.parseLong(c); }
-        catch (NumberFormatException e) {
+        try {
+            return Long.parseLong(c);
+        } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Không parse được orderId từ clientOrderCode: " + code);
         }
     }
