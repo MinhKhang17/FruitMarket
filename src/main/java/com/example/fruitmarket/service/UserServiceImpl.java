@@ -1,5 +1,7 @@
 package com.example.fruitmarket.service;
 
+import com.example.fruitmarket.dto.UserResponse;
+import com.example.fruitmarket.enums.UserStatus;
 import com.example.fruitmarket.model.User_detail;
 import com.example.fruitmarket.model.Users;
 import com.example.fruitmarket.model.VerificationToken;
@@ -15,9 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -48,8 +53,8 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Số điện thoại này đã tồn tại.");
         }
 
-        user.setRole("CLIENT");
-        user.setStatus("PENDING");
+        user.setRole("CUSTOMER");
+        user.setStatus(UserStatus.PENDING);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         Users saved = userRepository.save(user);
@@ -96,7 +101,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         Users user = vt.getUser();
-        user.setStatus("ACTIVE");
+        user.setStatus(UserStatus.ACTIVE);
         userRepository.save(user);
         tokenRepository.delete(vt);
         return true;
@@ -107,7 +112,7 @@ public class UserServiceImpl implements UserService {
         Optional<Users> opt = userRepository.findByUsername(username);
         if (opt.isEmpty()) return null;
         Users user = opt.get();
-        if (!"ACTIVE".equals(user.getStatus())) return null;
+        if (user.getStatus() != UserStatus.ACTIVE) return null;
         if (!passwordEncoder.matches(rawPassword, user.getPassword())) return null;
         return user;
     }
@@ -165,5 +170,42 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
+    }
+
+    @Override
+    public Users updateUserStatus(int id, UserStatus status) {
+        Users user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+        user.setStatus(status);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public List<UserResponse> getAllUsers() {
+        List<Users> users = userRepository.findAll();
+        List<UserResponse> userResponseList = users.stream()
+                .map(u -> new UserResponse(
+                        u.getId(),
+                        u.getUsername(),
+                        u.getEmail(),
+                        u.getPhone(),
+                        u.getRole(),
+                        u.getStatus())
+                ).toList();
+        return  userResponseList;
+    }
+
+    @Override
+    public UserResponse findUserById(int id) {
+        Users user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy người dùng"));
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole(),
+                user.getStatus()
+        );
     }
 }

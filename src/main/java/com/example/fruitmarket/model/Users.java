@@ -1,5 +1,6 @@
 package com.example.fruitmarket.model;
 
+import com.example.fruitmarket.enums.UserStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -48,7 +49,8 @@ public class Users {
     private String password;
 
     @Column(nullable = false)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
 
     private LocalDateTime createdDate = LocalDateTime.now();
 
