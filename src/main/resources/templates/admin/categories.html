@@ -12,10 +12,9 @@
 
     <!-- Thông báo flash -->
     <div th:if="${message}"
-         th:classappend="'alert ' + (${type} == 'success' ? 'alert-success'
-                        : (${type} == 'danger' ? 'alert-danger'
-                        : (${type} == 'warning' ? 'alert-warning' : 'alert-info')))">
-        <span th:text="${message}"></span>
+         th:class="'alert ' + (${type} == 'success' ? 'alert-success' : 'alert-danger')"
+         class="alert">
+        <p th:text="${message}">Thông báo</p>
     </div>
 
     <!-- Nút thêm mới -->
@@ -23,9 +22,9 @@
         <a th:href="@{/admin/categories/create}" class="add-btn">Thêm danh mục mới</a>
     </div>
 
-    <!-- Header cố định: chỉ chứa THEAD -->
-    <div class="table-header">
-        <table class="header-table">
+    <!-- Bảng với header sticky và body cuộn -->
+    <div class="table-wrapper">
+        <table class="main-table">
             <thead>
             <tr>
                 <th>#</th>
@@ -34,19 +33,13 @@
                 <th>Hành động</th>
             </tr>
             </thead>
-        </table>
-    </div>
-
-    <!-- Body cuộn: chỉ chứa TBODY -->
-    <div class="table-wrapper">
-        <table class="body-table">
             <tbody>
             <tr th:each="c, iterStat : ${categories}">
                 <td th:text="${iterStat.count}">1</td>
                 <td th:text="${c.name}">Fruits</td>
                 <td class="status">
-                <span th:class="${c.status ? 'active' : 'inactive'}"
-                      th:text="${c.status ? 'Active' : 'Inactive'}"></span>
+                    <span th:class="${c.status ? 'active' : 'inactive'}"
+                          th:text="${c.status ? 'Active' : 'Inactive'}"></span>
                 </td>
                 <td class="actions">
                     <a th:href="@{'/admin/categories/edit/' + ${c.id}}" class="edit-btn">Sửa</a>

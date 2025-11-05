@@ -11,4 +11,5 @@ public interface CategorysService {
     Categorys addCategorys(Categorys categorys);
     List<Categorys> findAll();
     void deleteById(Long id);
+    Categorys findByName(String name);
 }
