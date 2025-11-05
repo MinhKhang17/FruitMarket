@@ -119,6 +119,19 @@ public class OrderServiceImpl implements OrderService {
                 req.setCodAmount(cod);
                 req.setClientOrderCode("ORD-" + saved.getId());
 
+                // ✅ thêm các dòng bắt buộc
+                req.setPayment_type_id(1); // shop trả ship
+                req.setRequired_note("KHONGCHOXEMHANG");
+                req.setNote("Đơn hàng FruitMarket #" + saved.getId());
+
+                // ✅ thêm items
+                List<CreateOrderReq.Item> items = new ArrayList<>();
+                CreateOrderReq.Item item = new CreateOrderReq.Item();
+                item.setName(variant.getProduct().getProductName());
+                item.setQuantity(quantity);
+                items.add(item);
+                req.setItems(items);
+
                 // BẮT exception chi tiết từ WebClient để log body (400/422) mà không làm đổ TX
                 try {
                     Optional<String> optCode = ghnClientService.createOrderAndGetOrderCode(req);
@@ -379,8 +392,6 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public void updateFromGhnCallback(long clientOrderCode, String ghnOrderCode, GhnStatus ghnStatus, Integer codAmount) {
-//        Long orderId = parseOrderIdFromClientOrderCode(clientOrderCode);
-
         Order order = orderRepo.findById(clientOrderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng từ clientOrderCode: " + clientOrderCode));
 
@@ -397,14 +408,22 @@ public class OrderServiceImpl implements OrderService {
             case "delivering":
                 order.setOrderStauts(OrderStauts.SHIPPING);
                 break;
+
             case "delivered":
-                order.setOrderStauts(OrderStauts.SHIPPED);
+                // Nếu đơn hàng đã được giao và trước đó đã SHIPPED hoặc PAID thì cập nhật thành COMPLETED
+                if (order.getOrderStauts() == OrderStauts.SHIPPED || order.getOrderStauts() == OrderStauts.PAID) {
+                    order.setOrderStauts(OrderStauts.COMPLETED);
+                } else {
+                    order.setOrderStauts(OrderStauts.SHIPPED);
+                }
                 break;
+
             case "cancel":
             case "returned":
             case "return":
                 order.setOrderStauts(OrderStauts.CANCELLED);
                 break;
+
             default:
                 order.setOrderStauts(OrderStauts.PENDING);
                 break;
@@ -418,6 +437,7 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepo.save(order);
     }
+
 
     // ===== helper =====
     private String safe(String s) {

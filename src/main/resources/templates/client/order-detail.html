@@ -178,7 +178,7 @@
                                 <span class="fw-semibold text-success" th:text="${ghn.orderCode}">GHN123456</span>
                             </div>
                             <div><i class="bi bi-box-seam text-success me-1"></i> Trạng thái GHN:
-                                <span th:text="${ghn.status}">delivering</span>
+                                <span th:text="${ghn.status.toUpperCase()}">delivering</span>
                             </div>
                             <div th:if="${ghn.expectedDeliveryTime != null}">
                                 <i class="bi bi-clock text-success me-1"></i> Dự kiến giao:

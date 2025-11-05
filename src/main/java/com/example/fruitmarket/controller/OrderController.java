@@ -38,15 +38,16 @@ public class OrderController {
             model.addAttribute("order", order);
 
             try {
-                String code = "FruitProject";
+                // ✅ Lấy mã GHN thực tế từ order đã lưu
+                String code = order.getGhnOrderCode();
                 if (code != null && !code.isBlank()) {
                     OrderDetailRes detail = ghnClientService.getOrderDetail(code);
                     if (detail != null && detail.getData() != null) {
                         model.addAttribute("ghn", detail.getData());
                     }
                 }
-            } catch (Exception ignore) {
-                model.addAttribute("ghnError", "Không thể tải trạng thái GHN lúc này.");
+            } catch (Exception e) {
+                model.addAttribute("ghnError", "Không thể tải trạng thái GHN lúc này: " + e.getMessage());
             }
 
             return "client/order-detail"; // khớp với order-detail.html
