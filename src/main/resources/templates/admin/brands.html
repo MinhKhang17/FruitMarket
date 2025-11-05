@@ -10,14 +10,20 @@
     <h2>Danh sách thương hiệu</h2>
     <p>Quản lý thương hiệu — xem, sửa, xóa hoặc tạo mới.</p>
 
+    <div th:if="${message}"
+         th:class="'alert ' + (${type} == 'success' ? 'alert-success' : 'alert-danger')"
+         class="alert">
+        <p th:text="${message}">Thông báo</p>
+    </div>
+
     <!-- Nút thêm mới -->
     <div class="actions-bar">
         <a th:href="@{/admin/brands/create}" class="add-btn">Thêm thương hiệu mới</a>
     </div>
 
-    <!-- Header cố định -->
-    <div class="table-header">
-        <table class="header-table">
+    <!-- Bảng với header sticky và body cuộn -->
+    <div class="table-wrapper">
+        <table class="main-table">
             <thead>
             <tr>
                 <th>#</th>
@@ -26,12 +32,6 @@
                 <th>Hành động</th>
             </tr>
             </thead>
-        </table>
-    </div>
-
-    <!-- Body có thể cuộn -->
-    <div class="table-wrapper">
-        <table class="body-table">
             <tbody>
             <tr th:each="b, iterStat : ${brands}">
                 <td th:text="${iterStat.count}">1</td>

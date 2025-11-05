@@ -5,6 +5,7 @@ import com.example.fruitmarket.dto.CreateOrderRes;
 import com.example.fruitmarket.dto.OrderRequest;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.service.*;
+import com.example.fruitmarket.util.AuthUtils;
 import com.example.fruitmarket.util.UserUtil;
 import com.example.fruitmarket.util.QrUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,6 +61,9 @@ public class CartController {
         if(!UserUtil.isLogin(session)){
             return "redirect:/auth/login";
         }
+        if (!AuthUtils.isClient(session)) {
+            return "redirect:/";
+        }
         Cart cart = cartService.getCart();
         model.addAttribute("cart", cart);
         return "home/cart/view"; // tạo template cart/view.html
@@ -70,8 +74,11 @@ public class CartController {
             @RequestParam Long productId,
             @RequestParam(required = false) Long variantId,
             @RequestParam(defaultValue = "1") int qty,
-            @RequestHeader(value = "Referer", required = false) String referer
+            @RequestHeader(value = "Referer", required = false) String referer,
+            HttpSession session,
+            RedirectAttributes ra
     ) {
+        if (denyIfNotClient(session, ra)) return "redirect:/";
         cartService.addToCart(productId, variantId, qty);
         // redirect về trang gọi thêm (referer) hoặc /cart
         return "redirect:" + (referer != null ? referer : "/cart");
@@ -80,20 +87,27 @@ public class CartController {
     @PostMapping("/update")
     public String updateQty(@RequestParam Long productId,
                             @RequestParam(required=false) Long variantId,
-                            @RequestParam int qty) {
+                            @RequestParam int qty,
+                            HttpSession session,
+                            RedirectAttributes ra) {
+        if (denyIfNotClient(session, ra)) return "redirect:/";
         cartService.updateQuantity(productId, variantId, qty);
         return "redirect:/cart";
     }
 
     @PostMapping("/remove")
     public String remove(@RequestParam Long productId,
-                         @RequestParam(required=false) Long variantId) {
+                         @RequestParam(required=false) Long variantId,
+                         HttpSession session,
+                         RedirectAttributes ra) {
+        if (denyIfNotClient(session, ra)) return "redirect:/";
         cartService.remove(productId, variantId);
         return "redirect:/cart";
     }
 
     @PostMapping("/clear")
-    public String clear() {
+    public String clear(HttpSession session, RedirectAttributes ra) {
+        if (denyIfNotClient(session, ra)) return "redirect:/";
         cartService.clear();
         return "redirect:/cart";
     }
@@ -500,6 +514,20 @@ public String checkoutCart(
         ra.addFlashAttribute("type", "success");
 
         return "redirect:cart/checkout";
+    }
+
+    private boolean denyIfNotClient(HttpSession session, RedirectAttributes ra) {
+        if (!UserUtil.isLogin(session)) {
+            ra.addFlashAttribute("message", "Vui lòng đăng nhập để sử dụng giỏ hàng.");
+            ra.addFlashAttribute("type", "warning");
+            return true;
+        }
+        if (!AuthUtils.isClient(session)) {
+            ra.addFlashAttribute("message", "Chỉ khách hàng mới có thể thao tác trên giỏ hàng.");
+            ra.addFlashAttribute("type", "danger");
+            return true;
+        }
+        return false;
     }
 
 }

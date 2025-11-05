@@ -1,14 +1,13 @@
 /* ===== Tone màu xanh lá dịu ===== */
 :root {
-    --green-50:#f4faef;
-    --green-100:#e8f5e9;
-    --green-500:#43a047;
-    --green-600:#388e3c;
-    --red-500:#e53935;
-    --red-600:#c62828;
-    --purple-500:#7e57c2;
-    --white:#fff;
-    --shadow:0 4px 10px rgba(0,0,0,.06);
+    --green-50: #f4faef;
+    --green-100: #e8f5e9;
+    --green-500: #43a047;
+    --green-600: #388e3c;
+    --red-500: #e53935;
+    --red-600: #c62828;
+    --white: #fff;
+    --shadow: 0 4px 10px rgba(0,0,0,.06);
 }
 
 /* ===== Tổng thể ===== */
@@ -62,32 +61,61 @@ h2 {
 }
 
 /* ===== Bảng ===== */
-table {
+.main-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
     border-radius: 12px;
-    overflow: hidden;
     box-shadow: var(--shadow);
 }
+
 thead th {
     background: var(--green-100);
     color: var(--green-600);
     padding: 14px;
     font-weight: 600;
     font-size: 1rem;
-    text-align: center;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
+
 tbody td {
     padding: 16px;
     border-bottom: 1px solid #f2f2f2;
-    text-align: center;
     vertical-align: middle;
+    text-align: left;
 }
+
 tbody tr:last-child td {
     border-bottom: none;
 }
+
 tbody tr:hover {
     background: #f9fff5;
+}
+
+/* Căn chỉnh nội dung để khớp với ảnh */
+.main-table th:nth-child(1),
+.main-table td:nth-child(1) {
+    width: 10%;
+}
+
+.main-table th:nth-child(2),
+.main-table td:nth-child(2) {
+    width: 40%;
+}
+
+.main-table th:nth-child(3),
+.main-table td:nth-child(3) {
+    width: 20%;
+}
+
+.main-table th:nth-child(4),
+.main-table td:nth-child(4) {
+    width: 30%;
 }
 
 /* ===== Trạng thái ===== */
@@ -126,7 +154,7 @@ tbody tr:hover {
 /* ===== Nút hành động ===== */
 .actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
 }
 .actions a {
@@ -156,18 +184,18 @@ tbody tr:hover {
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     body { padding: 16px; }
-    table, th, td { font-size: 0.9rem; }
+    .main-table, th, td { font-size: 0.9rem; }
     .add-btn { padding: 8px 14px; font-size: 0.9rem; }
 }
+
 /* ===== Scroll riêng cho bảng ===== */
 .table-wrapper {
-    max-height: 450px; /* bạn có thể chỉnh tùy ý, ví dụ 400–600px */
+    max-height: 300px; /* Điều chỉnh để hiển thị khoảng 4 rows mà không cần scroll, thêm row thứ 5 sẽ xuất hiện scroll */
     overflow-y: auto;
     border-radius: 12px;
-    box-shadow: var(--shadow);
 }
 
-/* Thanh cuộn nhẹ nhàng, chỉ hiện trong bảng */
+/* Thanh cuộn nhẹ nhàng */
 .table-wrapper::-webkit-scrollbar {
     width: 8px;
 }
@@ -181,56 +209,26 @@ tbody tr:hover {
 .table-wrapper::-webkit-scrollbar-track {
     background: var(--green-100);
 }
-/* ===== Giữ cố định hàng tiêu đề khi cuộn ===== */
-.table-wrapper {
-    position: relative;
-    max-height: 450px;
-    overflow-y: auto;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-}
 
-.table-wrapper table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
+/* Đảm bảo header sticky không bị che */
 .table-wrapper thead th {
-    position: sticky;
-    top: 0;
     background: var(--green-100);
-    z-index: 2;
+    box-shadow: inset 0 -1px 0 #f2f2f2; /* Thêm đường viền dưới cho header */
 }
-/* Fix sticky header không hoạt động trong Chrome/Edge */
-.table-wrapper table {
-    border-collapse: separate;
-    border-spacing: 0;
+.alert {
+    margin: 15px 0;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 500;
 }
-/* ===== Header cố định và body cuộn (tách riêng) ===== */
-.table-header table,
-.table-wrapper table {
-    width: 100%;
-    border-collapse: collapse;
+.alert-success {
+    background-color: #e8f5e9;
+    color: #256029;
+    border: 1px solid #c8e6c9;
 }
-
-.table-header th,
-.table-wrapper td {
-    text-align: center;
-    padding: 14px;
-}
-
-/* Header giữ nguyên màu */
-.table-header th {
-    background: var(--green-100);
-    color: var(--green-600);
-    font-weight: 600;
-}
-
-/* Body cuộn */
-.table-wrapper {
-    max-height: 450px;
-    overflow-y: auto;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    border-top: none;
+.alert-danger {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
 }

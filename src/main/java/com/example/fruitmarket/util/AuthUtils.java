@@ -1,4 +1,4 @@
-package com.example.fruitmarket.Util;
+package com.example.fruitmarket.util;
 
 import com.example.fruitmarket.model.Users;
 import jakarta.servlet.http.HttpSession;

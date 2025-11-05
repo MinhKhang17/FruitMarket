@@ -9,7 +9,7 @@ import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
 import com.example.fruitmarket.model.ProductVariant;
 import com.example.fruitmarket.service.*;
-import com.example.fruitmarket.Util.AuthUtils;
+import com.example.fruitmarket.util.AuthUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -94,11 +94,18 @@ public class AdminController {
                                HttpSession session) {
         String redirect = checkAdminAccess(session);
         if (redirect != null) return redirect;
-
+        boolean isNew = (category.getId() == null);
         try {
+            Categorys existing = categorysService.findByName(category.getName().trim());
+            if (existing != null &&
+                    (category.getId() == null || !existing.getId().equals(category.getId()))) {
+                ra.addFlashAttribute("message", "Tên danh mục đã tồn tại!");
+                ra.addFlashAttribute("type", "danger");
+                return "redirect:/admin/categories";
+            }
             categorysService.addCategorys(category);
             ra.addFlashAttribute("message",
-                    (category.getId() == null) ? "Thêm danh mục mới thành công!" : "Cập nhật danh mục thành công!");
+                    isNew ? "Thêm danh mục mới thành công!" : "Cập nhật danh mục thành công!");
             ra.addFlashAttribute("type", "success");
         } catch (Exception e) {
             ra.addFlashAttribute("message", "Lỗi khi lưu danh mục: " + e.getMessage());
@@ -163,13 +170,21 @@ public class AdminController {
         if (redirect != null) return redirect;
 
         try {
+            boolean isNew = (brand.getId() == null);
+            Brands existingBrand = brandsService.findByName(brand.getName().trim());
+            if (existingBrand != null &&
+                    (brand.getId() == null || !existingBrand.getId().equals(brand.getId()))) {
+                ra.addFlashAttribute("message", "Tên thương hiệu đã tồn tại!");
+                ra.addFlashAttribute("type", "danger");
+                return "redirect:/admin/brands";
+            }
             // Nếu brand mới (id null) => mặc định status = true (active)
             if (brand.getId() == null) {
                 brand.setStatus(true);
             }
             brandsService.addBrand(brand);
             ra.addFlashAttribute("message",
-                    (brand.getId() == null)
+                    isNew
                             ? "Thêm thương hiệu mới thành công!"
                             : "Cập nhật thương hiệu thành công!");
             ra.addFlashAttribute("type", "success");

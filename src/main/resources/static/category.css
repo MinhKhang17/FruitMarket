@@ -1,28 +1,26 @@
-/* ===== Tone xanh lá dịu ===== */
+/* ===== Tone màu xanh lá dịu ===== */
 :root {
-    --green-50:#f4faef;
-    --green-100:#e8f5e9;
-    --green-500:#43a047;
-    --green-600:#388e3c;
-    --red-500:#e53935;
-    --red-600:#c62828;
-    --white:#fff;
-    --shadow:0 4px 12px rgba(0,0,0,.08);
+    --green-50: #f4faef;
+    --green-100: #e8f5e9;
+    --green-500: #43a047;
+    --green-600: #388e3c;
+    --red-500: #e53935;
+    --red-600: #c62828;
+    --white: #fff;
+    --shadow: 0 4px 10px rgba(0,0,0,.06);
 }
 
-/* ===== Reset & body ===== */
-* { margin:0; padding:0; box-sizing:border-box; }
+/* ===== Tổng thể ===== */
 body {
     font-family: "Segoe UI", Tahoma, sans-serif;
     background: var(--green-50);
     color: #2e7d32;
-    min-height: 100vh;
     padding: 30px;
 }
 
-/* ===== Container ===== */
+/* ===== Container chính ===== */
 .container {
-    max-width: 1050px;
+    max-width: 1200px;
     margin: 0 auto;
     background: var(--white);
     border-radius: 16px;
@@ -30,7 +28,7 @@ body {
     padding: 25px 30px 40px;
 }
 
-/* ===== Title ===== */
+/* ===== Tiêu đề ===== */
 h2 {
     font-weight: 800;
     color: var(--green-600);
@@ -54,53 +52,84 @@ h2 {
 .alert-warning { background: #fff8e1; color: #f57f17; border-color: #ffe082; }
 .alert-info    { background: #e3f2fd; color: #1976d2; border-color: #bbdefb; }
 
-/* ===== Nút thêm ===== */
-.actions-bar {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 15px;
-}
+/* ===== Nút thêm mới ===== */
 .add-btn {
     background: var(--green-500);
     color: #fff;
-    text-decoration: none;
     font-weight: 600;
-    padding: 10px 18px;
+    padding: 10px 20px;
     border-radius: 10px;
+    text-decoration: none;
     box-shadow: var(--shadow);
-    transition: 0.25s;
+    transition: all 0.25s;
 }
 .add-btn:hover {
     background: var(--green-600);
     transform: translateY(-1px);
 }
+.actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+}
 
 /* ===== Bảng ===== */
-table {
+.main-table {
     width: 100%;
-    border-collapse: collapse;
-    background: var(--white);
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
     border-radius: 12px;
-    overflow: hidden;
     box-shadow: var(--shadow);
 }
+
 thead th {
-    background: #e8f5e9;
-    color: #2e7d32;
-    font-weight: 600;
-    padding: 14px 12px;
-    text-align: center;
-    font-size: 1rem;
-    border-bottom: 2px solid #d6ead7;
-}
-tbody td {
+    background: var(--green-100);
+    color: var(--green-600);
     padding: 14px;
-    border-bottom: 1px solid #f1f1f1;
-    text-align: center;
-    font-size: 0.95rem;
+    font-weight: 600;
+    font-size: 1rem;
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 }
-tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: #f9fff5; }
+
+tbody td {
+    padding: 16px;
+    border-bottom: 1px solid #f2f2f2;
+    vertical-align: middle;
+    text-align: left;
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background: #f9fff5;
+}
+
+/* Căn chỉnh nội dung để khớp với ảnh */
+.main-table th:nth-child(1),
+.main-table td:nth-child(1) {
+    width: 10%;
+}
+
+.main-table th:nth-child(2),
+.main-table td:nth-child(2) {
+    width: 40%;
+}
+
+.main-table th:nth-child(3),
+.main-table td:nth-child(3) {
+    width: 20%;
+}
+
+.main-table th:nth-child(4),
+.main-table td:nth-child(4) {
+    width: 30%;
+}
 
 /* ===== Trạng thái ===== */
 .status span {
@@ -135,17 +164,17 @@ tbody tr:hover { background: #f9fff5; }
     border-radius: 50%;
 }
 
-/* ===== Hành động ===== */
+/* ===== Nút hành động ===== */
 .actions {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
 }
-.edit-btn, .delete-btn {
+.actions a {
     text-decoration: none;
     color: #fff;
     font-weight: 600;
-    padding: 6px 14px;
+    padding: 7px 16px;
     border-radius: 8px;
     box-shadow: var(--shadow);
     transition: 0.25s;
@@ -181,140 +210,34 @@ tbody tr:hover { background: #f9fff5; }
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
     body { padding: 16px; }
-    table, thead, tbody, th, td { font-size: 0.9rem; }
+    .main-table, th, td { font-size: 0.9rem; }
     .add-btn { padding: 8px 14px; font-size: 0.9rem; }
 }
-/* ===== Scrollable table area ===== */
+
+/* ===== Scroll riêng cho bảng ===== */
 .table-wrapper {
-    max-height: 480px;
+    max-height: 300px; /* Điều chỉnh để hiển thị khoảng 4 rows mà không cần scroll, thêm row thứ 5 sẽ xuất hiện scroll */
     overflow-y: auto;
     border-radius: 12px;
-    border: 1px solid #e0e0e0;
-    box-shadow: var(--shadow);
 }
 
-/* Sticky header trong vùng cuộn */
-.table-wrapper thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: #e8f5e9; /* giữ đúng tone header */
-    box-shadow: 0 2px 6px rgba(0,0,0,.06);
-}
-
-/* Thanh cuộn mảnh & tone xanh lá */
+/* Thanh cuộn nhẹ nhàng */
 .table-wrapper::-webkit-scrollbar {
     width: 8px;
 }
 .table-wrapper::-webkit-scrollbar-thumb {
-    background: var(--green-500);
+    background-color: var(--green-500);
     border-radius: 10px;
 }
 .table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: var(--green-600);
+    background-color: var(--green-600);
 }
-/* ===== Scrollable table area ===== */
-.table-wrapper {
-    max-height: 480px;
-    overflow-y: auto;
-    border-radius: 12px;
-    border: 1px solid #e0e0e0;
-    box-shadow: var(--shadow);
+.table-wrapper::-webkit-scrollbar-track {
+    background: var(--green-100);
 }
 
-/* Sticky header trong vùng cuộn */
+/* Đảm bảo header sticky không bị che */
 .table-wrapper thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: #e8f5e9; /* giữ đúng tone header */
-    box-shadow: 0 2px 6px rgba(0,0,0,.06);
-}
-
-/* Thanh cuộn mảnh & tone xanh lá */
-.table-wrapper::-webkit-scrollbar {
-    width: 8px;
-}
-.table-wrapper::-webkit-scrollbar-thumb {
-    background: var(--green-500);
-    border-radius: 10px;
-}
-.table-wrapper::-webkit-scrollbar-thumb:hover {
-    background: var(--green-600);
-}
-/* Fix sticky header không hoạt động trong Chrome/Edge */
-.table-wrapper table {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-/* 1) đảm bảo vùng cuộn là .table-wrapper */
-.table-wrapper {
-    max-height: 480px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-}
-
-/* 2) để sticky hoạt động ổn định trên Chrome/Edge */
-.table-wrapper table {
-    width: 100%;
-    border-collapse: separate; /* bạn đã thêm; giữ nguyên */
-    border-spacing: 0;
-    table-layout: fixed; /* giúp hàng tiêu đề và cột khớp khi sticky */
-}
-
-/* 3) đặt sticky lên thead (thêm trên th để an toàn) */
-.table-wrapper thead {
-    position: sticky;
-    top: 0;
-    z-index: 5; /* phải lớn hơn z-index của các ô tbody */
-}
-
-/* 4) đảm bảo mỗi th có nền và z-index cao hơn */
-.table-wrapper thead th {
-    position: relative; /* giữ layout */
-    background: #e8f5e9;
-    z-index: 6;
-}
-
-/* 5) giữ các ô tbody bình thường; nếu cột lệch, cân nhắc đặt widths tĩnh */
-.table-wrapper tbody td {
-    box-sizing: border-box;
-    word-break: break-word;
-}
-
-/* 6) nếu vẫn lệch cột, thêm width cho các cột (ví dụ) */
-/* .table-wrapper th:nth-child(1), .table-wrapper td:nth-child(1) { width: 8%; }
-   .table-wrapper th:nth-child(2), .table-wrapper td:nth-child(2) { width: 52%; }
-   .table-wrapper th:nth-child(3), .table-wrapper td:nth-child(3) { width: 20%; }
-   .table-wrapper th:nth-child(4), .table-wrapper td:nth-child(4) { width: 20%; } */
-/* Giữ nguyên style, chỉ thêm để 2 bảng khớp và header nhìn như 1 */
-.table-header { overflow: hidden; border-radius: 12px 12px 0 0; }
-.header-table, .body-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    table-layout: fixed; /* quan trọng để JS dễ set width */
-}
-.header-table thead th {
-    /* copy style thead của bạn */
-    background: #e8f5e9;
-    color: #2e7d32;
-    font-weight: 600;
-    padding: 14px 12px;
-    text-align: center;
-    font-size: 1rem;
-    border-bottom: 2px solid #d6ead7;
-}
-
-/* body table giữ nguyên nhìn, chỉ bỏ border-radius trên body để header và body trông liền mạch */
-.body-table {
-    border-radius: 0 0 12px 12px;
-}
-.table-wrapper {
-    max-height: 480px;
-    overflow-y: auto;
-    border-radius: 0 0 12px 12px;
-    border: 1px solid #e0e0e0;
-    box-shadow: var(--shadow);
-    /* nếu muốn bóng giống trước, để nguyên */
+    background: var(--green-100);
+    box-shadow: inset 0 -1px 0 #f2f2f2; /* Thêm đường viền dưới cho header */
 }

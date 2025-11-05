@@ -5,6 +5,7 @@ import com.example.fruitmarket.dto.CheckoutRequest;
 import com.example.fruitmarket.mapper.FruitMapper;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.service.*;
+import com.example.fruitmarket.util.AuthUtils;
 import com.example.fruitmarket.util.QrUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -48,6 +49,11 @@ public class BuyController {
             ra.addFlashAttribute("message","You should login first");
             ra.addFlashAttribute("type","danger");
             return "redirect:/auth/login";
+        }
+        if (!AuthUtils.isClient(session)) {
+            ra.addFlashAttribute("message", "Chỉ tài khoản khách hàng (CLIENT) đang hoạt động mới được phép đặt hàng.");
+            ra.addFlashAttribute("type", "warning");
+            return "redirect:/";
         }
 
         var productVariant = FruitMapper.toProductCheckout(productService.findProductVariantById(checkoutRequest.getProduct_variant_id()));

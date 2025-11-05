@@ -39,4 +39,10 @@ public class CategorysServiceImpl implements CategorysService {
             categorysRepository.save(category);
         }
     }
+
+    @Override
+    public Categorys findByName(String name) {
+        return categorysRepository.findByName(name);
+    }
+
 }
