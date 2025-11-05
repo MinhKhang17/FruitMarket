@@ -391,52 +391,60 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void updateFromGhnCallback(long clientOrderCode, String ghnOrderCode, GhnStatus ghnStatus, Integer codAmount) {
+    public boolean updateFromGhnCallback(long clientOrderCode, String ghnOrderCode,
+                                         GhnStatus ghnStatus, Integer codAmount) {
         Order order = orderRepo.findById(clientOrderCode)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng từ clientOrderCode: " + clientOrderCode));
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + clientOrderCode));
 
+        // Nếu GHN chưa set code thì cập nhật
         if (order.getGhnOrderCode() == null || order.getGhnOrderCode().isBlank()) {
             order.setGhnOrderCode(ghnOrderCode);
         }
 
-        switch (ghnStatus.toString().toLowerCase()) {
-            case "ready_to_pick":
-            case "picking":
-            case "picked":
-            case "storing":
-            case "transporting":
-            case "delivering":
-                order.setOrderStauts(OrderStauts.SHIPPING);
-                break;
+        // ====== CỔNG CHẶN ======
+        // Chỉ cho cập nhật nếu trạng thái hiện tại là PAID hoặc SHIPPED,
+        // ngoại lệ: GHN báo cancel/return/returned thì vẫn cho phép
+        boolean allowedCurrent =
+                order.getOrderStauts() == OrderStauts.PAID || order.getOrderStauts() == OrderStauts.SHIPPED;
+        boolean isCancelFlow =
+                ghnStatus == GhnStatus.CANCEL || ghnStatus == GhnStatus.RETURN || ghnStatus == GhnStatus.RETURNED;
 
-            case "delivered":
-                // Nếu đơn hàng đã được giao và trước đó đã SHIPPED hoặc PAID thì cập nhật thành COMPLETED
+        if (!allowedCurrent && !isCancelFlow) {
+            log.info("Bỏ qua GHN status {} vì order {} đang ở trạng thái {} (chỉ cho PAID/SHIPPED).",
+                    ghnStatus, clientOrderCode, order.getOrderStauts());
+            return false; // ❌ Không được cập nhật
+        }
+
+        // ====== CẬP NHẬT ======
+        switch (ghnStatus) {
+            case READY_TO_PICK, PICKING, PICKED, STORING, TRANSPORTING, DELIVERING -> {
+                order.setOrderStauts(OrderStauts.SHIPPING);
+            }
+
+            case DELIVERED -> {
                 if (order.getOrderStauts() == OrderStauts.SHIPPED || order.getOrderStauts() == OrderStauts.PAID) {
                     order.setOrderStauts(OrderStauts.COMPLETED);
                 } else {
                     order.setOrderStauts(OrderStauts.SHIPPED);
                 }
-                break;
+            }
 
-            case "cancel":
-            case "returned":
-            case "return":
+            case CANCEL, RETURNED, RETURN -> {
                 order.setOrderStauts(OrderStauts.CANCELLED);
-                break;
+            }
 
-            default:
-                order.setOrderStauts(OrderStauts.PENDING);
-                break;
+            default -> {
+                log.warn("Bỏ qua GHN status không hỗ trợ: {}", ghnStatus);
+                return false; // ❌ Không được cập nhật
+            }
         }
 
-        try {
-            order.setGhnStatus(ghnStatus);
-        } catch (Exception ex) {
-            log.warn("Unknown GHN status received: {}", ghnStatus);
-        }
-
+        // Ghi nhận trạng thái GHN và lưu
+        order.setGhnStatus(ghnStatus);
         orderRepo.save(order);
+        return true; // ✅ Cập nhật thành công
     }
+
 
 
     // ===== helper =====

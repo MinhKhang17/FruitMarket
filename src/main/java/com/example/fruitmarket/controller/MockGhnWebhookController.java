@@ -18,23 +18,32 @@ public class MockGhnWebhookController {
                               @PathVariable String action,
                               Model model) {
 
-        // map action -> status GHN
         GhnStatus status = switch (action.toLowerCase()) {
             case "delivered" -> GhnStatus.DELIVERED;
             case "cancel"    -> GhnStatus.CANCEL;
             case "picking"   -> GhnStatus.PICKING;
-            default          -> GhnStatus.DELIVERED; // mặc định cho gọn
+            default -> null;
         };
 
-        // cập nhật đơn nội bộ
-        orderService.updateFromGhnCallback(id, null, status, null);
+        if (status == null) {
+            return "unknown action: " + action;
+        }
+
+        boolean updated;
+        try {
+            updated = orderService.updateFromGhnCallback(id, null, status, null);
+        } catch (Exception ex) {
+            return "update status order failed: " + ex.getMessage();
+        }
+
+        if (!updated) {
+            return "update status order not success";
+        }
 
         model.addAttribute("orderId", id);
         model.addAttribute("status", status);
-        // đường dẫn trang chi tiết đơn của bạn (sửa cho khớp app)
         model.addAttribute("orderDetailUrl", "/myOrders/" + id);
-
-        return "mock-result";
+        return "update status order success";
     }
-
 }
+

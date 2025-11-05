@@ -24,7 +24,7 @@ public interface OrderService {
     Order getOrderDetailForUser(Long orderId, HttpSession session);
     List<Order> getAllOrders();
     void attachShippingCode(Long orderId, String ghnOrderCode);
-    void updateFromGhnCallback(long clientOrderCode, String ghnOrderCode, GhnStatus ghnStatus, Integer codAmount);
+    boolean updateFromGhnCallback(long clientOrderCode, String ghnOrderCode, GhnStatus ghnStatus, Integer codAmount);
 
     void updateShippingFee(Long orderId, BigDecimal bigDecimal);
 
