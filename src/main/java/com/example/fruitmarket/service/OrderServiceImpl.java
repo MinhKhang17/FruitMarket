@@ -3,6 +3,7 @@ package com.example.fruitmarket.service;
 import com.example.fruitmarket.dto.OrderRequest;
 import com.example.fruitmarket.enums.OrderStauts;
 import com.example.fruitmarket.enums.PricingMethod;
+import com.example.fruitmarket.enums.Units;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.OrderRepo;
 import jakarta.servlet.http.HttpSession;
@@ -34,7 +35,7 @@ public class OrderServiceImpl implements OrderService{
 
         //xu lu order item
         OrderItem orderItem = new OrderItem();
-        orderItem.setQuanity(quantity);
+        orderItem.setQuantity(quantity);
         orderItem.setProductVariant(productService.findProductVariantById(variant.getId()));
         order.setTotalPrice(orderItem.getProductVariant().getPrice());
         List<OrderItem> orderItems = order.getOrderItemList();
@@ -80,6 +81,7 @@ public class OrderServiceImpl implements OrderService{
         // Build OrderItem list và tính tổng
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal computedTotal = BigDecimal.ZERO;
+        double computedWeight = 0.0;
         int computedQty = 0;
 
         if (orderReq.getItems() == null || orderReq.getItems().isEmpty()) {
@@ -87,53 +89,44 @@ public class OrderServiceImpl implements OrderService{
         }
 
         for (OrderRequest.OrderItem reqItem : orderReq.getItems()) {
-            // Lấy variant (ưu tiên variantId nếu có)
             Long variantId = reqItem.getVariantId();
-            ProductVariant pv = null;
-            if (variantId != null) {
-                pv = productService.findProductVariantById(variantId);
-                if (pv == null) {
-                    throw new IllegalArgumentException("ProductVariant not found: " + variantId);
-                }
-            } else {
-                // Nếu không có variantId, cố gắng tìm variant mặc định theo productId
-                if (reqItem.getProductId() != null) {
-                    pv = productService.findProductVariantById(reqItem.getProductId()); // <-- giả định method
-                }
-                if (pv == null) {
-                    throw new IllegalArgumentException("No variant specified and no default variant found for product: " + reqItem.getProductId());
-                }
+            ProductVariant pv = productService.findProductVariantById(variantId);
+            if (pv == null) {
+                throw new IllegalArgumentException("Không tìm thấy biến thể sản phẩm ID: " + variantId);
             }
-
-            // TODO: nếu bạn có hệ thống tồn kho, kiểm tra stock ở đây
-            // if (pv.getStock() < reqItem.getQuantity()) { throw new IllegalStateException("Insufficient stock"); }
 
             OrderItem oi = new OrderItem();
             oi.setProductVariant(pv);
-            oi.setQuanity(reqItem.getQuantity() == null ? 1 : reqItem.getQuantity());
-            // Lưu lại giá tại thời điểm đặt
-            if (reqItem.getPrice() != null) {
-                oi.setPrice(reqItem.getPrice());
+            oi.setPrice(reqItem.getPrice() != null ? reqItem.getPrice() : pv.getPrice());
+
+            Units unit = reqItem.getUnit() != null ? reqItem.getUnit() : Units.PIECE;
+            oi.setUnit(unit);
+
+            if (unit == Units.KILOGRAM) {
+                double w = reqItem.getWeight() != null ? reqItem.getWeight() : 0.1;
+                oi.setWeight(w);
+                computedWeight += w;
+                oi.setQuantity(null);
             } else {
-                // nếu DTO không có price, lấy từ variant
-                oi.setPrice(pv.getPrice());
+                int q = reqItem.getQuantity() != null ? reqItem.getQuantity() : 1;
+                oi.setQuantity(q);
+                computedQty += q;
+                oi.setWeight(null);
             }
-            oi.setProductVariant(productService.findProductVariantById(reqItem.getVariantId())); // nếu OrderItem có field productName; nếu không, sửa lại
 
-            // tính subtotal
-            BigDecimal price = oi.getProductVariant().getPrice() != null ? oi.getProductVariant().getPrice() : BigDecimal.ZERO;
-            BigDecimal qtyBd = BigDecimal.valueOf(oi.getQuanity());
-            BigDecimal sub = price.multiply(qtyBd);
-
+            BigDecimal sub = oi.getSubTotal();
             computedTotal = computedTotal.add(sub);
-            computedQty += oi.getQuanity();
+            computedQty += (oi.getUnit() == Units.KILOGRAM ? 0 : oi.getQuantity());
 
             orderItems.add(oi);
+            System.out.println("==> unit=" + reqItem.getUnit() + ", weight=" + reqItem.getWeight());
+
         }
 
         // set total trên order
         order.setTotalPrice(computedTotal);
         order.setTotalQuantity(computedQty);
+        order.setTotalWeight(computedWeight);
 
         // gán list order items cho order (nếu order.getOrderItemList() trả null, khởi tạo mới)
         if (order.getOrderItemList() == null) {

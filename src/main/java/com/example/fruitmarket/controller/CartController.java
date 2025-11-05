@@ -1,6 +1,7 @@
 package com.example.fruitmarket.controller;
 
 import com.example.fruitmarket.dto.OrderRequest;
+import com.example.fruitmarket.enums.Units;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.service.*;
 import com.example.fruitmarket.util.QrUtils;
@@ -243,19 +244,28 @@ public class CartController {
         orderReq.setPaymentMethod(paymentMethod);
 
         List<OrderRequest.OrderItem> items = new ArrayList<>();
+
         cart.getItems().forEach(ci -> {
             OrderRequest.OrderItem oi = new OrderRequest.OrderItem();
             oi.setProductId(ci.getProductId());
             oi.setVariantId(ci.getVariantId());
             oi.setName(ci.getName());
             oi.setPrice(ci.getPrice());
+            try {
+                if (ci.getUnit() != null) {
+                    oi.setUnit(Units.valueOf(ci.getUnit().toUpperCase()));
+                } else {
+                    oi.setUnit(Units.PIECE);
+                }
+            } catch (Exception e) {
+                oi.setUnit(Units.PIECE);
+            }
 
             if ("KILOGRAM".equalsIgnoreCase(ci.getUnit())) {
                 oi.setWeight(ci.getWeight());
             } else {
                 oi.setQuantity(ci.getQuantity());
             }
-
             items.add(oi);
         });
 

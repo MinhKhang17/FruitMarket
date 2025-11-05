@@ -8,50 +8,49 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        :root{
+        :root {
             --brand:#198754;
             --soft:#f5f8f6;
         }
-        body{ background:var(--soft); }
-        .orders-wrap{ max-width:1100px; margin:auto; }
-        .toolbar{
+        body { background:var(--soft); }
+        .orders-wrap { max-width:1100px; margin:auto; }
+        .toolbar {
             background:#fff; border-radius:14px; box-shadow:0 8px 18px rgba(0,0,0,.06);
             padding:14px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;
         }
-        .order-card{
+        .order-card {
             border:none; border-radius:16px; overflow:hidden;
             box-shadow:0 10px 22px rgba(0,0,0,.08); transition:transform .18s ease, box-shadow .18s ease;
         }
-        .order-card:hover{ transform:translateY(-2px); box-shadow:0 16px 28px rgba(0,0,0,.12); }
-        .order-head{
-            background:linear-gradient(0deg,#ffffff,#ffffff);
-            padding:14px 16px; display:flex; justify-content:space-between; align-items:center;
+        .order-card:hover { transform:translateY(-2px); box-shadow:0 16px 28px rgba(0,0,0,.12); }
+        .order-head {
+            background:#fff; padding:14px 16px; display:flex; justify-content:space-between; align-items:center;
             border-bottom:1px solid #eef1ef;
         }
-        .order-id{ font-weight:700; color:#333; }
-        .status-badge{ font-size:.85rem; }
-        .status-PENDING{ background:#fff3cd; color:#9a7b00; }
-        .status-COMPLETED{ background:#d1e7dd; color:#0f5132; }
-        .status-CANCELED{ background:#f8d7da; color:#842029; }
-        .order-body{ padding:14px 16px; background:#fff; }
-        .mini-info{ color:#6c757d; font-size:.95rem; }
-        .mini-info i{ color:var(--brand); }
-        .items-table th, .items-table td{ vertical-align:middle; }
-        .items-table th{ color:#6c757d; font-weight:600; }
-        .total-line{
+        .order-id { font-weight:700; color:#333; }
+        .status-badge { font-size:.85rem; }
+        .status-PENDING { background:#fff3cd; color:#9a7b00; }
+        .status-COMPLETED { background:#d1e7dd; color:#0f5132; }
+        .status-CANCELED { background:#f8d7da; color:#842029; }
+        .order-body { padding:14px 16px; background:#fff; }
+        .mini-info { color:#6c757d; font-size:.95rem; }
+        .mini-info i { color:var(--brand); }
+        .items-table th, .items-table td { vertical-align:middle; }
+        .items-table th { color:#6c757d; font-weight:600; }
+        .total-line {
             display:flex; justify-content:flex-end; gap:24px; align-items:center;
             padding-top:10px; border-top:1px dashed #e6ece8; margin-top:6px;
         }
-        .total-amount{ color:var(--brand); font-weight:700; font-size:1.1rem; }
-        .empty{
+        .total-amount { color:var(--brand); font-weight:700; font-size:1.1rem; }
+        .empty {
             background:#fff; border-radius:16px; padding:48px 16px; text-align:center;
             box-shadow:0 10px 20px rgba(0,0,0,.06);
         }
-        .filter-btn{
+        .filter-btn {
             border-radius:999px; padding:6px 14px; border:1px solid #e6ece8; background:#fff;
         }
-        .filter-btn.active, .filter-btn:hover{ background:var(--brand); color:#fff; border-color:var(--brand); }
-        .pay-chip{ background:#eef8f1; color:#2b7f53; border-radius:999px; padding:4px 10px; font-size:.85rem; }
+        .filter-btn.active, .filter-btn:hover { background:var(--brand); color:#fff; border-color:var(--brand); }
+        .pay-chip { background:#eef8f1; color:#2b7f53; border-radius:999px; padding:4px 10px; font-size:.85rem; }
     </style>
 </head>
 <body>
@@ -103,9 +102,10 @@
                             <table class="table table-sm items-table">
                                 <thead>
                                 <tr>
-                                    <th style="width:55%">Sản phẩm</th>
-                                    <th class="text-center" style="width:15%">SL</th>
-                                    <th class="text-end" style="width:30%">Đơn giá</th>
+                                    <th style="width:50%">Sản phẩm</th>
+                                    <th class="text-center" style="width:20%">Đơn vị</th>
+                                    <th class="text-center" style="width:15%">SL/Khối lượng</th>
+                                    <th class="text-end" style="width:15%">Đơn giá</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -113,14 +113,17 @@
                                     <td>
                                         <div class="fw-semibold"
                                              th:text="${item.productVariant.product.productName}">Tên sản phẩm</div>
-                                        <div class="text-muted small" th:if="${item.productVariant.variant_name != null}"
-                                             th:text="${item.productVariant.variant_name}">Phân loại/variant</div>
+                                        <div class="text-muted small"
+                                             th:if="${item.productVariant.variant_name != null}"
+                                             th:text="${item.productVariant.variant_name}">Phân loại</div>
                                     </td>
-                                    <td class="text-center" th:text="${item.quanity}">1</td>
+                                    <td class="text-center" th:text="${item.unit}">PIECE</td>
+                                    <td class="text-center"
+                                        th:text="${item.unit == 'KILOGRAM' ? item.weight + ' kg' : item.quantity}">1</td>
                                     <td class="text-end">
                                         <span th:text="${#numbers.formatDecimal(
-                                                            (item.price != null ? item.price : item.productVariant.price),
-                                                            0,'POINT',0,'COMMA')}">120000</span>đ
+                                            (item.price != null ? item.price : item.productVariant.price),
+                                            0,'POINT',0,'COMMA')}">120000</span>đ
                                     </td>
                                 </tr>
                                 </tbody>
@@ -141,7 +144,7 @@
                                     <span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ
                                 </div>
                             </div>
-                            <!-- Hành động (tùy trạng thái) -->
+                            <!-- Hành động -->
                             <div class="text-end mt-3">
                                 <a class="btn btn-outline-success btn-sm" th:href="@{'/orders/' + ${o.id}}">
                                     <i class="bi bi-receipt-cutoff"></i> Chi tiết
@@ -164,14 +167,14 @@
     // Filter by status (front-end)
     const buttons = document.querySelectorAll('.filter-btn');
     const cards = document.querySelectorAll('[data-status]');
-    buttons.forEach(btn=>{
-        btn.addEventListener('click',()=>{
-            buttons.forEach(b=>b.classList.remove('active'));
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            buttons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const status = btn.getAttribute('data-filter');
-            cards.forEach(c=>{
+            cards.forEach(c => {
                 const s = c.getAttribute('data-status');
-                c.style.display = (status==='ALL' || s===status) ? '' : 'none';
+                c.style.display = (status === 'ALL' || s === status) ? '' : 'none';
             });
         });
     });

@@ -44,4 +44,7 @@ public class Order {
     @Column
     private int totalQuantity;
 
+    @Column
+    private double totalWeight;
+
 }
