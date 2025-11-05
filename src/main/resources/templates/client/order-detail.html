@@ -43,6 +43,70 @@
         @media (max-width: 992px){
             .summary{ grid-template-columns:1fr; }
         }
+        .shipping-timeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin-top: 10px;
+            padding: 20px 10px;
+            flex-wrap: wrap;
+        }
+
+        .ship-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .ship-step .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #dee2e6;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: all .3s ease;
+        }
+
+        .ship-step.active .icon {
+            background: var(--brand);
+            color: #fff;
+            box-shadow: 0 0 8px rgba(25, 135, 84, .4);
+        }
+
+        .ship-step .label {
+            margin-top: 6px;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .ship-step.active .label {
+            color: #1f5e43;
+            font-weight: 600;
+        }
+
+        .line {
+            flex: 1;
+            height: 4px;
+            background: #dee2e6;
+            position: relative;
+            top: -18px;
+            border-radius: 2px;
+            transition: background .3s ease;
+        }
+
+        .line.active {
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+        }
+
     </style>
 </head>
 <body>
@@ -80,25 +144,55 @@
             <!-- Summary + Progress -->
             <div class="row g-3 mb-3">
                 <div class="col-lg-8">
-                    <div class="progress-wrap">
-                        <div class="d-flex justify-content-between">
-                            <div class="section-title m-0">Trạng thái đơn</div>
-                            <span class="hint">Cập nhật theo hệ thống</span>
-                        </div>
-                        <div class="progress-steps mt-2"
-                             th:with="isPending=${o.orderStauts?.name()=='PENDING'},
-                          isCompleted=${o.orderStauts?.name()=='COMPLETED'},
-                          isCanceled=${o.orderStauts?.name()=='CANCELED'}">
-                            <div class="step" th:classappend="${isPending or isCompleted} ? ' active'">
-                                <span class="dot"></span><span>Đã tạo</span>
-                            </div>
-                            <div class="step-line" th:classappend="${isCompleted} ? ' active'"></div>
-                            <div class="step" th:classappend="${isCompleted} ? ' active'">
-                                <span class="dot"></span><span>Hoàn tất</span>
-                            </div>
-                            <div class="step-line" th:if="${isCanceled}"></div>
-                            <div class="step" th:if="${isCanceled}" th:classappend="' active'">
-                                <span class="dot"></span><span>Đã hủy</span>
+                    <div class="progress-wrap" th:if="${o.ghnStatus != null}">
+                        <div class="section-title m-0 mb-3">Tiến độ giao hàng</div>
+
+                        <div class="shipping-progress"
+                             th:with="
+             s=${o.ghnStatus?.name()},
+             step1=${s == 'READY_TO_PICK' or s == 'PICKING' or s == 'PICKED'},
+             step2=${s == 'STORING' or s == 'TRANSPORTING'},
+             step3=${s == 'DELIVERING'},
+             step4=${s == 'DELIVERED'},
+             stepReturn=${s == 'RETURN' or s == 'RETURNED'},
+             stepError=${s == 'CANCEL' or s == 'LOST' or s == 'DELAY' or s == 'EXCEPTION'}
+         ">
+                            <div class="shipping-timeline">
+                                <div class="ship-step" th:classappend="${step1 or step2 or step3 or step4} ? ' active'">
+                                    <div class="icon"><i class="bi bi-receipt"></i></div>
+                                    <div class="label">Đã tạo đơn</div>
+                                </div>
+
+                                <div class="line" th:classappend="${step2 or step3 or step4} ? ' active'"></div>
+
+                                <div class="ship-step" th:classappend="${step2 or step3 or step4} ? ' active'">
+                                    <div class="icon"><i class="bi bi-box-seam"></i></div>
+                                    <div class="label">Đang lấy hàng</div>
+                                </div>
+
+                                <div class="line" th:classappend="${step3 or step4} ? ' active'"></div>
+
+                                <div class="ship-step" th:classappend="${step3 or step4} ? ' active'">
+                                    <div class="icon"><i class="bi bi-truck"></i></div>
+                                    <div class="label">Đang giao hàng</div>
+                                </div>
+
+                                <div class="line" th:classappend="${step4} ? ' active'"></div>
+
+                                <div class="ship-step" th:classappend="${step4} ? ' active'">
+                                    <div class="icon"><i class="bi bi-check-circle"></i></div>
+                                    <div class="label">Giao thành công</div>
+                                </div>
+
+                                <div class="ship-step" th:if="${stepReturn}">
+                                    <div class="icon bg-warning text-white"><i class="bi bi-arrow-repeat"></i></div>
+                                    <div class="label text-warning">Trả hàng</div>
+                                </div>
+
+                                <div class="ship-step" th:if="${stepError}">
+                                    <div class="icon bg-danger text-white"><i class="bi bi-exclamation-triangle"></i></div>
+                                    <div class="label text-danger">Sự cố / Hủy đơn</div>
+                                </div>
                             </div>
                         </div>
                     </div>
