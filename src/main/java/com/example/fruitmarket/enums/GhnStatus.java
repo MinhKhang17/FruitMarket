@@ -1,5 +1,7 @@
 package com.example.fruitmarket.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum GhnStatus {
     READY_TO_PICK,
     PICKING,
@@ -13,5 +15,10 @@ public enum GhnStatus {
     DELAY,
     CANCEL,
     LOST,
-    EXCEPTION
+    EXCEPTION;
+
+    @JsonCreator
+    public static GhnStatus fromString(String value) {
+        return GhnStatus.valueOf(value.toUpperCase());
+    }
 }
