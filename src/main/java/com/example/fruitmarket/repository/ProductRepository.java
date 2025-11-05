@@ -31,7 +31,7 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     @Query("""
        select p from Product p
        where lower(p.productName) like lower(concat('%', :q, '%'))
-          or lower(p.product_description) like lower(concat('%', :q, '%'))
+          or p.product_description like concat('%', :q, '%')
     """)
     List<Product> search(@Param("q") String q);
 }

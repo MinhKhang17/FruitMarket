@@ -34,21 +34,21 @@
         <div class="row g-2 g-md-3 align-items-stretch">
             <!-- Category -->
             <div class="col-6 col-md-4 col-lg-3">
-                <select id="cat" class="form-select">
+                <select id="cat" class="form-select" aria-label="Lọc theo danh mục">
                     <option value="">Tất cả danh mục</option>
                 </select>
             </div>
 
             <!-- Brand -->
             <div class="col-6 col-md-4 col-lg-3">
-                <select id="brand" class="form-select">
+                <select id="brand" class="form-select" aria-label="Lọc theo thương hiệu">
                     <option value="">Tất cả thương hiệu</option>
                 </select>
             </div>
 
             <!-- Sort -->
             <div class="col-6 col-md-4 col-lg-3">
-                <select id="sort" class="form-select">
+                <select id="sort" class="form-select" aria-label="Sắp xếp sản phẩm">
                     <option value="default">Sắp xếp: Mặc định</option>
                     <option value="priceAsc">Giá: thấp → cao</option>
                     <option value="priceDesc">Giá: cao → thấp</option>
@@ -59,7 +59,7 @@
 
             <!-- Page size (mặc định chọn 20 khi load) -->
             <div class="col-6 col-md-4 col-lg-3">
-                <select id="size" class="form-select">
+                <select id="size" class="form-select" aria-label="Số lượng sản phẩm trên mỗi trang">
                     <option value="10">10 / trang</option>
                     <option value="20">20 / trang</option>
                     <option value="40">40 / trang</option>
@@ -198,22 +198,31 @@
             return (d || h2).toLowerCase();
         }
 
+        function priceCompare(a, b, dir) {
+            const pa = getPrice(a), pb = getPrice(b);
+            const fa = Number.isFinite(pa), fb = Number.isFinite(pb);
+            if (!fa && !fb) return 0;      // both unknown -> equal
+            if (!fa) return 1;             // a unknown -> a after b
+            if (!fb) return -1;            // b unknown -> b after a
+            return dir === 'asc' ? (pa - pb) : (pb - pa);
+        }
+
         function apply() {
             let filtered = items.filter(col=>{
                 const card = col.querySelector('.product-card');
                 const c = (card?.dataset.cat || '').trim();
                 const b = (card?.dataset.brand || '').trim();
-                const inC = state.cat ? c === state.cat : true;
-                const inB = state.brand ? b === state.brand : true;
+                const inC = state.cat ? c.toLowerCase() === state.cat.toLowerCase() : true;
+                const inB = state.brand ? b.toLowerCase() === state.brand.toLowerCase() : true;
                 return inC && inB;
             });
 
             const sorted = filtered.slice().sort((a,b)=>{
                 switch(state.sort){
-                    case 'priceAsc': return getPrice(a) - getPrice(b);
-                    case 'priceDesc': return getPrice(b) - getPrice(a);
-                    case 'nameAsc': return getName(a).localeCompare(getName(b));
-                    case 'nameDesc': return getName(b).localeCompare(getName(a));
+                    case 'priceAsc': return priceCompare(a,b,'asc');
+                    case 'priceDesc': return priceCompare(a,b,'desc');
+                    case 'nameAsc': return getName(a).localeCompare(getName(b), 'vi', { sensitivity: 'base' });
+                    case 'nameDesc': return getName(b).localeCompare(getName(a), 'vi', { sensitivity: 'base' });
                     default: return Number(a.dataset.initialIndex) - Number(b.dataset.initialIndex);
                 }
             });
@@ -224,8 +233,15 @@
             const start = (state.page - 1) * state.size;
             const end   = start + state.size;
 
+            // Reorder DOM to reflect current sorting
+            const frag = document.createDocumentFragment();
+            sorted.forEach(el => frag.appendChild(el));
+            grid.appendChild(frag);
+
+            // Show only current page
             items.forEach(el => el.style.display='none');
             sorted.slice(start,end).forEach(el => el.style.display='');
+
             renderPager(pages);
             renderChips(total);
             $count.textContent = total ?
