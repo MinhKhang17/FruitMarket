@@ -391,58 +391,60 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public boolean updateFromGhnCallback(long clientOrderCode, String ghnOrderCode,
-                                         GhnStatus ghnStatus, Integer codAmount) {
+    public boolean updateFromGhnCallback(long clientOrderCode,
+                                         String ghnOrderCode,
+                                         GhnStatus ghnStatus,
+                                         Integer codAmount) {
+
         Order order = orderRepo.findById(clientOrderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + clientOrderCode));
 
-        // Nếu GHN chưa set code thì cập nhật
-        if (order.getGhnOrderCode() == null || order.getGhnOrderCode().isBlank()) {
+        // Cập nhật mã GHN nếu cần
+        if (ghnOrderCode != null && !ghnOrderCode.isBlank()
+                && (order.getGhnOrderCode() == null || !ghnOrderCode.equals(order.getGhnOrderCode()))) {
             order.setGhnOrderCode(ghnOrderCode);
         }
 
-        // ====== CỔNG CHẶN ======
-        // Chỉ cho cập nhật nếu trạng thái hiện tại là PAID hoặc SHIPPED,
-        // ngoại lệ: GHN báo cancel/return/returned thì vẫn cho phép
-        boolean allowedCurrent =
-                order.getOrderStauts() == OrderStauts.PAID || order.getOrderStauts() == OrderStauts.SHIPPED;
-        boolean isCancelFlow =
-                ghnStatus == GhnStatus.CANCEL || ghnStatus == GhnStatus.RETURN || ghnStatus == GhnStatus.RETURNED;
+        // Ghi nhận trạng thái GHN mới nhất
+        order.setGhnStatus(ghnStatus);
 
-        if (!allowedCurrent && !isCancelFlow) {
-            log.info("Bỏ qua GHN status {} vì order {} đang ở trạng thái {} (chỉ cho PAID/SHIPPED).",
-                    ghnStatus, clientOrderCode, order.getOrderStauts());
-            return false; // ❌ Không được cập nhật
-        }
-
-        // ====== CẬP NHẬT ======
+        // Map GHN → OrderStatus theo yêu cầu
         switch (ghnStatus) {
-            case READY_TO_PICK, PICKING, PICKED, STORING, TRANSPORTING, DELIVERING -> {
+            case READY_TO_PICK -> {
+                order.setOrderStauts(OrderStauts.PENDING);
+            }
+
+            case DELIVERING -> {
                 order.setOrderStauts(OrderStauts.SHIPPING);
             }
 
             case DELIVERED -> {
-                if (order.getOrderStauts() == OrderStauts.SHIPPED || order.getOrderStauts() == OrderStauts.PAID) {
+                // ✅ Nếu là COD và chưa thanh toán → tự động hoàn tất & đánh dấu paid
+                if ("COD".equalsIgnoreCase(String.valueOf(order.getPricingMethod())) && !order.isPaid()) {
                     order.setOrderStauts(OrderStauts.COMPLETED);
-                } else {
+                    order.setPaid(true);
+                    log.info("Đơn {} (COD) giao thành công, tự động set COMPLETED + PAID.", clientOrderCode);
+                }
+                // Nếu đã thanh toán trước → hoàn tất
+                else if (order.isPaid()) {
+                    order.setOrderStauts(OrderStauts.COMPLETED);
+                    log.info("Đơn {} đã thanh toán, GHN DELIVERED -> COMPLETED.", clientOrderCode);
+                }
+                // Ngược lại → đánh dấu đã giao (chưa thanh toán)
+                else {
                     order.setOrderStauts(OrderStauts.SHIPPED);
+                    log.info("Đơn {} chưa thanh toán, GHN DELIVERED -> SHIPPED.", clientOrderCode);
                 }
             }
 
-            case CANCEL, RETURNED, RETURN -> {
-                order.setOrderStauts(OrderStauts.CANCELLED);
-            }
-
             default -> {
-                log.warn("Bỏ qua GHN status không hỗ trợ: {}", ghnStatus);
-                return false; // ❌ Không được cập nhật
+                log.info("GHN status {} không thay đổi OrderStauts (giữ {}).",
+                        ghnStatus, order.getOrderStauts());
             }
         }
 
-        // Ghi nhận trạng thái GHN và lưu
-        order.setGhnStatus(ghnStatus);
         orderRepo.save(order);
-        return true; // ✅ Cập nhật thành công
+        return true;
     }
 
 
