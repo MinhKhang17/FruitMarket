@@ -22,8 +22,14 @@ import java.util.Map;
 public class ProductServiceImpl implements ProductService {
     @Autowired private ProductRepository productRepo;
     @Autowired private ProductVariantRepository productVariantRepo;
+
     @Override
     public Product saveProduct(Product product){
+        if (product.getVariants() != null) {
+            for (ProductVariant variant : product.getVariants()) {
+                variant.setProduct(product);
+            }
+        }
         return productRepo.save(product);
     }
 

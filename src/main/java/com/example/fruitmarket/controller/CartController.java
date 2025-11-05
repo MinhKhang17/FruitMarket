@@ -1,39 +1,35 @@
 package com.example.fruitmarket.controller;
 
 import com.example.fruitmarket.dto.OrderRequest;
-import com.example.fruitmarket.util.UserUtil;
-import com.example.fruitmarket.model.Cart;
-import com.example.fruitmarket.model.CartItem;
-import com.example.fruitmarket.model.Order;
-import com.example.fruitmarket.model.User_detail;
-import com.example.fruitmarket.service.CartService;
-import com.example.fruitmarket.service.OrderService;
-import com.example.fruitmarket.service.UserService;
-import com.example.fruitmarket.service.VnPayService;
+import com.example.fruitmarket.model.*;
+import com.example.fruitmarket.service.*;
 import com.example.fruitmarket.util.QrUtils;
+import com.example.fruitmarket.util.UserUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-
-import lombok.RequiredArgsConstructor;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import org.slf4j.Logger;
-
+/**
+ * Controller quản lý giỏ hàng:
+ * - Xem giỏ hàng
+ * - Thêm / Cập nhật / Xoá / Xoá toàn bộ
+ * - Thanh toán chọn lọc hoặc toàn bộ giỏ
+ */
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/cart")
 public class CartController {
+
     private static final Logger log = LoggerFactory.getLogger(CartController.class);
 
     private final CartService cartService;
@@ -42,182 +38,174 @@ public class CartController {
 
     @Autowired
     private VnPayService vnPayService;
+
+    // ======================
+    // 📦 HIỂN THỊ GIỎ HÀNG
+    // ======================
     @GetMapping
-    public String viewCart(Model model,HttpSession session) {
-        if(!UserUtil.isLogin(session)){
+    public String viewCart(Model model, HttpSession session) {
+        if (!UserUtil.isLogin(session)) {
             return "redirect:/auth/login";
         }
+
         Cart cart = cartService.getCart();
         model.addAttribute("cart", cart);
-        return "home/cart/view"; // tạo template cart/view.html
+        return "home/cart/view";
     }
 
+    // ======================
+    // ➕ THÊM SẢN PHẨM VÀO GIỎ
+    // ======================
     @PostMapping("/add")
     public String addToCart(
             @RequestParam Long productId,
             @RequestParam(required = false) Long variantId,
-            @RequestParam(defaultValue = "1") int qty,
+            @RequestParam(name = "qtyOrWeight", required = false) Double qtyOrWeight,
+            @RequestParam(name = "quantity",    required = false) Double quantity,
+            @RequestParam(name = "weight",      required = false) Double weight,
             @RequestHeader(value = "Referer", required = false) String referer
     ) {
-        cartService.addToCart(productId, variantId, qty);
-        // redirect về trang gọi thêm (referer) hoặc /cart
+        double val =
+                (weight     != null ? weight     :
+                        (quantity   != null ? quantity   :
+                                (qtyOrWeight!= null ? qtyOrWeight: 1.0)));
+        log.info("🛒 addToCart: productId={}, variantId={}, qtyOrWeight={}", productId, variantId, qtyOrWeight);
+
+        cartService.addToCart(productId, variantId, val);
         return "redirect:" + (referer != null ? referer : "/cart");
     }
 
+    // ======================
+    // 🔄 CẬP NHẬT SỐ LƯỢNG / KHỐI LƯỢNG
+    // ======================
     @PostMapping("/update")
-    public String updateQty(@RequestParam Long productId,
-                            @RequestParam(required=false) Long variantId,
-                            @RequestParam int qty) {
-        cartService.updateQuantity(productId, variantId, qty);
+    public String updateQty(
+            @RequestParam Long productId,
+            @RequestParam(required = false) Long variantId,
+            @RequestParam double qtyOrWeight
+    ) {
+        log.info("♻️ updateCart: productId={}, variantId={}, qtyOrWeight={}", productId, variantId, qtyOrWeight);
+
+        cartService.updateQuantity(productId, variantId, qtyOrWeight);
         return "redirect:/cart";
     }
 
+    // ======================
+    // 🗑️ XOÁ ITEM
+    // ======================
     @PostMapping("/remove")
-    public String remove(@RequestParam Long productId,
-                         @RequestParam(required=false) Long variantId) {
+    public String remove(
+            @RequestParam Long productId,
+            @RequestParam(required = false) Long variantId
+    ) {
         cartService.remove(productId, variantId);
         return "redirect:/cart";
     }
 
+    // ======================
+    // ❌ XOÁ TOÀN BỘ GIỎ
+    // ======================
     @PostMapping("/clear")
     public String clear() {
         cartService.clear();
         return "redirect:/cart";
     }
-//    @PostMapping("/checkout")
-//    public String checkoutCart(Model model, HttpSession session, RedirectAttributes ra) {
-//        // 1. Kiểm tra login
-//        if (session.getAttribute("loggedUser") == null) {
-//            ra.addFlashAttribute("message", "You should login first");
-//            ra.addFlashAttribute("type", "danger");
-//            return "redirect:/auth/login";
-//        }
-//
-//        // 2. Lấy giỏ hàng
-//        Cart cart = cartService.getCart();
-//        if (cart == null || cart.isEmpty()) {
-//            ra.addFlashAttribute("message", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
-//            ra.addFlashAttribute("type", "warning");
-//            return "redirect:/cart";
-//        }
-//
-//        // 3. Chuẩn bị dữ liệu cho view
-//        model.addAttribute("cart", cart);
-//        model.addAttribute("totalPrice", cart.getTotalPrice());
-//        model.addAttribute("totalQuantity", cart.getTotalQuantity());
-//
-//        // 4. Lấy địa chỉ người dùng (bạn có service userService.getUserDetailFromSession)
-//        List<User_detail> userDetails = userService.getUserDetailFromSession(session);
-//        model.addAttribute("userDetail", userDetails);
-//
-//        // 5. Trả về template dành cho checkout toàn giỏ hàng
-//        return "home/checkout-cart";
-//    }
-@PostMapping("/checkout")
-public String checkoutCart(
-        @RequestParam(name = "variantIds", required = false) List<Long> variantIds,
-        @RequestParam(name = "quantities", required = false) List<Integer> quantities,
-        Model model,
-        HttpSession session,
-        RedirectAttributes ra
-) {
-    // 1. Kiểm tra login
-    if (session.getAttribute("loggedUser") == null) {
-        ra.addFlashAttribute("message", "You should login first");
-        ra.addFlashAttribute("type", "danger");
-        return "redirect:/auth/login";
-    }
 
-    // 2. Lấy giỏ hàng
-    Cart cart = cartService.getCart();
-    if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
-        ra.addFlashAttribute("message", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
-        ra.addFlashAttribute("type", "warning");
-        return "redirect:/cart";
-    }
+    // ======================
+    // 💳 THANH TOÁN CÁC ITEM ĐƯỢC CHỌN HOẶC TOÀN BỘ GIỎ
+    // ======================
+    @PostMapping("/checkout")
+    public String checkoutCart(
+            @RequestParam(name = "variantIds", required = false) List<Long> variantIds,
+            @RequestParam(name = "quantities", required = false) List<Double> quantities,
+            Model model,
+            HttpSession session,
+            RedirectAttributes ra
+    ) {
+        // 1️⃣ Kiểm tra login
+        if (session.getAttribute("loggedUser") == null) {
+            ra.addFlashAttribute("message", "Bạn cần đăng nhập trước khi thanh toán.");
+            ra.addFlashAttribute("type", "danger");
+            return "redirect:/auth/login";
+        }
 
-    // ===== QUAN TRỌNG: Kiểm tra variantIds thay vì productIds =====
-    if (variantIds == null || variantIds.isEmpty()) {
-        // Checkout toàn bộ giỏ
-        model.addAttribute("cart", cart);
-        model.addAttribute("totalPrice", cart.getTotalPrice());
-        model.addAttribute("totalQuantity", cart.getTotalQuantity());
+        // 2️⃣ Lấy giỏ hàng
+        Cart cart = cartService.getCart();
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            ra.addFlashAttribute("message", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
+            ra.addFlashAttribute("type", "warning");
+            return "redirect:/cart";
+        }
+
+        // 3️⃣ Nếu không chọn riêng -> checkout toàn bộ
+        if (variantIds == null || variantIds.isEmpty()) {
+            model.addAttribute("cart", cart);
+            model.addAttribute("totalPrice", cart.getTotalPrice());
+            model.addAttribute("totalQuantity", cart.getTotalQuantity());
+            List<User_detail> userDetails = userService.getUserDetailFromSession(session);
+            model.addAttribute("userDetail", userDetails);
+            return "home/checkout-cart";
+        }
+
+        // 4️⃣ Build danh sách item được chọn
+        Map<Long, CartItem> cartIndex = new HashMap<>();
+        for (CartItem ci : cart.getItems()) {
+            if (ci.getVariantId() != null) {
+                cartIndex.put(ci.getVariantId(), ci);
+            }
+        }
+
+        List<CartItem> selected = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+        int totalQty = 0;
+
+        int n = variantIds.size();
+        for (int i = 0; i < n; i++) {
+            Long vId = variantIds.get(i);
+            Double val = (quantities != null && quantities.size() > i) ? quantities.get(i) : 1.0;
+            CartItem base = cartIndex.get(vId);
+            if (base == null) continue;
+
+            CartItem sel = new CartItem();
+            sel.setProductId(base.getProductId());
+            sel.setVariantId(base.getVariantId());
+            sel.setName(base.getName());
+            sel.setVariantName(base.getVariantName());
+            sel.setPrice(base.getPrice());
+            sel.setImageUrl(base.getImageUrl());
+            sel.setUnit(base.getUnit());
+
+            if ("KILOGRAM".equalsIgnoreCase(base.getUnit())) {
+                sel.setWeight(Math.max(0.1, val));
+            } else {
+                sel.setQuantity((int) Math.max(1, Math.floor(val)));
+            }
+
+            BigDecimal sub = sel.getSubTotal();
+            selected.add(sel);
+            total = total.add(sub);
+            totalQty += ("KILOGRAM".equalsIgnoreCase(sel.getUnit())) ? 0 : sel.getQuantity();
+        }
+
+        if (selected.isEmpty()) {
+            ra.addFlashAttribute("message", "Không có mục hợp lệ để thanh toán.");
+            ra.addFlashAttribute("type", "warning");
+            return "redirect:/cart";
+        }
+
+        model.addAttribute("selectedItems", selected);
+        model.addAttribute("totalPrice", total);
+        model.addAttribute("totalQuantity", totalQty);
+
         List<User_detail> userDetails = userService.getUserDetailFromSession(session);
         model.addAttribute("userDetail", userDetails);
+
         return "home/checkout-cart";
     }
 
-    // 3. Build danh sách item được chọn theo variantId
-    Map<Long, CartItem> cartIndex = new HashMap<>();
-    for (CartItem ci : cart.getItems()) {
-        if (ci.getVariantId() != null) {
-            cartIndex.put(ci.getVariantId(), ci);
-        }
-    }
-
-    log.info("Checkout selected items: variantIds={}, quantities={}", variantIds, quantities);
-
-    List<CartItem> selected = new ArrayList<>();
-    BigDecimal total = BigDecimal.ZERO;
-    int totalQty = 0;
-
-    int n = variantIds.size();
-    for (int i = 0; i < n; i++) {
-        Long vId = variantIds.get(i);
-        Integer q = (quantities != null && quantities.size() > i) ? quantities.get(i) : 1;
-
-        CartItem base = cartIndex.get(vId);
-        if (base == null) {
-            log.warn("VariantId {} not found in cart", vId);
-            continue;
-        }
-
-        // Clone item với quantity được chọn
-        CartItem sel = new CartItem();
-        sel.setProductId(base.getProductId());
-        sel.setVariantId(base.getVariantId());
-        sel.setName(base.getName());
-        sel.setVariantName(base.getVariantName());
-        sel.setPrice(base.getPrice());
-        sel.setImageUrl(base.getImageUrl());
-        sel.setQuantity((q == null || q < 1) ? 1 : q);
-
-        BigDecimal sub = (sel.getPrice() == null) ? BigDecimal.ZERO
-                : sel.getPrice().multiply(BigDecimal.valueOf(sel.getQuantity()));
-        selected.add(sel);
-
-        total = total.add(sub);
-        totalQty += sel.getQuantity();
-    }
-
-    if (selected.isEmpty()) {
-        ra.addFlashAttribute("message", "Không có mục hợp lệ để thanh toán. Vui lòng kiểm tra lại lựa chọn.");
-        ra.addFlashAttribute("type", "warning");
-        return "redirect:/cart";
-    }
-
-    log.info("Selected {} items for checkout, total: {}", selected.size(), total);
-
-    // 4. Đưa dữ liệu ra view
-    model.addAttribute("selectedItems", selected);
-    model.addAttribute("totalPrice", total);
-    model.addAttribute("totalQuantity", totalQty);
-
-    List<User_detail> userDetails = userService.getUserDetailFromSession(session);
-    model.addAttribute("userDetail", userDetails);
-
-    return "home/checkout-cart";
-}
-    // helper key builder: productId#variantId (variantId may be null)
-    private String buildKey(Long productId, Long variantId) {
-        return (productId == null ? "null" : productId.toString()) + "#" + (variantId == null ? "null" : variantId.toString());
-    }
-    /* ======================
-      --- NEW: PROCESS FINAL CHECKOUT (từ form checkout-cart.html)
-      Endpoint: POST /checkout/process-cart
-      Lưu ý: form của bạn gửi tới /checkout/process-cart (theo template bạn đưa).
-      Mình thêm method này vào CartController để gom logic ở cùng 1 chỗ.
-      ====================== */
+    // ======================
+    // 🧾 XỬ LÝ THANH TOÁN THẬT SỰ (TỪ TRANG CHECKOUT)
+    // ======================
     @PostMapping(path = "/process-checkout-from-page", consumes = {"application/x-www-form-urlencoded"})
     public String processCartCheckoutFromCartPage(
             @RequestParam(name = "addressId", required = false) Long addressId,
@@ -227,7 +215,7 @@ public String checkoutCart(
             Model model,
             HttpServletRequest request
     ) {
-        // 1. Kiểm tra đăng nhập
+        // 1️⃣ Kiểm tra đăng nhập
         Object logged = session.getAttribute("loggedUser");
         if (logged == null) {
             ra.addFlashAttribute("message", "Bạn cần đăng nhập để tiếp tục thanh toán.");
@@ -235,23 +223,21 @@ public String checkoutCart(
             return "redirect:/auth/login";
         }
 
-        // 2. Lấy giỏ hàng hiện tại
+        // 2️⃣ Lấy giỏ hàng
         Cart cart = cartService.getCart();
-        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
-            ra.addFlashAttribute("message", "Giỏ hàng trống. Vui lòng thêm sản phẩm trước khi thanh toán.");
+        if (cart == null || cart.getItems().isEmpty()) {
+            ra.addFlashAttribute("message", "Giỏ hàng trống.");
             ra.addFlashAttribute("type", "warning");
             return "redirect:/cart";
         }
 
-        // 3. Kiểm tra addressId
         if (addressId == null) {
-            log.warn("Checkout attempted with null addressId for userId: {}", safeUserId(logged));
             ra.addFlashAttribute("message", "Vui lòng chọn địa chỉ giao hàng.");
             ra.addFlashAttribute("type", "warning");
             return "redirect:/cart";
         }
 
-        // 4. Build OrderRequest từ toàn bộ cart (log thông tin để debug)
+        // 3️⃣ Tạo OrderRequest
         OrderRequest orderReq = new OrderRequest();
         orderReq.setAddressId(addressId);
         orderReq.setPaymentMethod(paymentMethod);
@@ -263,30 +249,32 @@ public String checkoutCart(
             oi.setVariantId(ci.getVariantId());
             oi.setName(ci.getName());
             oi.setPrice(ci.getPrice());
-            oi.setQuantity(ci.getQuantity());
+
+            if ("KILOGRAM".equalsIgnoreCase(ci.getUnit())) {
+                oi.setWeight(ci.getWeight());
+            } else {
+                oi.setQuantity(ci.getQuantity());
+            }
+
             items.add(oi);
         });
+
         orderReq.setItems(items);
         orderReq.setTotalPrice(cart.getTotalPrice() != null ? cart.getTotalPrice() : BigDecimal.ZERO);
         orderReq.setTotalQuantity(cart.getTotalQuantity());
 
-        log.info("Creating order for userId={}, addressId={}, payment={}, totalItems={}, totalPrice={}",
-                safeUserId(logged), addressId, paymentMethod, items.size(), orderReq.getTotalPrice());
-
-        // 5. Gọi OrderService để tạo đơn
+        // 4️⃣ Tạo đơn hàng
         try {
             Long orderId = orderService.createOrderFromCart(orderReq, session);
-
             if (orderId == null || orderId <= 0L) {
-                log.error("OrderService returned invalid orderId: {} for userId: {}", orderId, safeUserId(logged));
-                throw new IllegalStateException("Tạo đơn thất bại (invalid orderId). Vui lòng thử lại.");
+                throw new IllegalStateException("Tạo đơn thất bại. Vui lòng thử lại.");
             }
-            Order order=orderService.getOrderById(orderId);
-            if (paymentMethod.equals("VNPAY")){
-                try {
-                    String orderInfo = "Thanh toan don hang #" + order.getId();
-                    String paymentUrl = vnPayService.createPaymentUrl(request, order.getTotalPrice(), orderInfo, order.getId());
 
+            Order order = orderService.getOrderById(orderId);
+            if ("VNPAY".equalsIgnoreCase(paymentMethod)) {
+                try {
+                    String orderInfo = "Thanh toán đơn hàng #" + order.getId();
+                    String paymentUrl = vnPayService.createPaymentUrl(request, order.getTotalPrice(), orderInfo, order.getId());
                     String qrBase64 = QrUtils.generateQrBase64(paymentUrl);
 
                     model.addAttribute("paymentUrl", paymentUrl);
@@ -302,20 +290,19 @@ public String checkoutCart(
                     return "redirect:/";
                 }
             }
-            // 6. Xóa giỏ hàng sau khi đặt thành công
-            cartService.clear();
 
+            // ✅ Nếu là COD → xoá giỏ và báo thành công
+            cartService.clear();
             ra.addFlashAttribute("message", "Đặt hàng thành công! Mã đơn hàng: " + orderId);
             ra.addFlashAttribute("type", "success");
-
-            log.info("Order created successfully: orderId={}, userId={}", orderId, safeUserId(logged));
             return "redirect:/";
+
         } catch (Exception ex) {
-            log.error("Error creating order for userId={}. msg={}", safeUserId(logged), ex.getMessage(), ex);
-            ra.addFlashAttribute("message", "Có lỗi khi tạo đơn hàng: " + (ex.getMessage() != null ? ex.getMessage() : "Unknown error"));
+            log.error("❌ Lỗi tạo đơn hàng: {}", ex.getMessage(), ex);
+            ra.addFlashAttribute("message", "Lỗi khi tạo đơn hàng: " + ex.getMessage());
             ra.addFlashAttribute("type", "danger");
 
-            // trả về checkout page với dữ liệu hiện tại để người dùng thử lại
+            // giữ nguyên view checkout
             model.addAttribute("cart", cart);
             model.addAttribute("totalPrice", cart.getTotalPrice());
             model.addAttribute("totalQuantity", cart.getTotalQuantity());
@@ -326,20 +313,17 @@ public String checkoutCart(
         }
     }
 
-    /**
-     * Helper safe logger: trả về id hoặc chuỗi an toàn thay vì in toàn object Users
-     */
+    // ======================
+    // 🔐 Helper: tránh log full object
+    // ======================
     private String safeUserId(Object logged) {
         try {
             if (logged == null) return "null";
-            if (logged instanceof com.example.fruitmarket.model.Users) {
-                Integer id = ((com.example.fruitmarket.model.Users) logged).getId();
-                return id != null ? String.valueOf(id) : "unknown-id";
-            }
+            if (logged instanceof com.example.fruitmarket.model.Users u)
+                return String.valueOf(u.getId());
             return String.valueOf(logged);
         } catch (Exception e) {
             return "unknown";
         }
     }
-
 }

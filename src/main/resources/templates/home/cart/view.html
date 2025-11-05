@@ -54,14 +54,13 @@
                         </thead>
                         <tbody>
                         <tr th:each="item, iterStat : ${cart.items}">
-                            <!-- Checkbox với data attributes từ CartItem - dùng variantId làm chính -->
                             <td class="text-center">
                                 <input type="checkbox" class="select-item"
                                        th:attr="data-index=${iterStat.index},
-                                                data-variantid=${item.variantId != null ? item.variantId : ''},
-                                                data-price=${item.price != null ? item.price : 0},
-                                                data-qty=${item.quantity != null ? item.quantity : 1},
-                                                data-subtotal=${item.subTotal != null ? item.subTotal : 0}"
+                        data-variantid=${item.variantId != null ? item.variantId : ''},
+                        data-price=${item.price != null ? item.price : 0},
+                        data-qty=${item.unit == 'KILOGRAM' ? item.weight : item.quantity},
+                        data-unit=${item.unit}"
                                 />
                             </td>
 
@@ -71,7 +70,7 @@
                                          alt="Ảnh sản phẩm"
                                          onerror="this.src='/images/placeholder.png'">
                                     <div class="ms-3">
-                                        <div class="fw-semibold" th:text="${item.name != null ? item.name : 'Không rõ tên'}">Tên sản phẩm</div>
+                                        <div class="fw-semibold" th:text="${item.name}">Tên sản phẩm</div>
                                         <small class="text-muted" th:if="${item.variantName != null}">
                                             Biến thể: <span th:text="${item.variantName}">Variant</span>
                                         </small>
@@ -79,19 +78,29 @@
                                 </div>
                             </td>
 
-                            <td class="align-middle" th:text="${item.price != null ? #numbers.formatDecimal(item.price,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫</td>
+                            <td class="align-middle"
+                                th:text="${item.price != null ? #numbers.formatDecimal(item.price,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫
+                            </td>
 
                             <td>
-                                <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center" th:id="${'updateForm_' + iterStat.index}">
+                                <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                    <input type="hidden" name="productId" th:value="${item.productId != null ? item.productId : ''}" />
-                                    <input type="hidden" name="variantId" th:value="${item.variantId != null ? item.variantId : ''}" />
-                                    <input type="number" class="form-control form-control-sm me-1 text-center qty-input"
-                                           name="qty" min="1"
-                                           th:value="${item.quantity}"
-                                           th:attr="data-index=${iterStat.index}"
-                                           style="width:80px;">
-                                    <button class="btn btn-outline-success btn-sm btn-update" type="submit" title="Cập nhật">
+                                    <input type="hidden" name="productId" th:value="${item.productId}" />
+                                    <input type="hidden" name="variantId" th:value="${item.variantId}" />
+
+                                    <!-- ✅ Có data-index để JS đọc -->
+                                    <div th:if="${item.unit == 'KILOGRAM'}">
+                                        <label class="me-1 small-muted">Khối lượng (kg):</label>
+                                        <input type="number" name="qtyOrWeight" class="form-control form-control-sm text-center qty-input"
+                                               step="0.1" min="0.1" th:value="${item.weight}" th:attr="data-index=${iterStat.index}" style="width:90px;">
+                                    </div>
+
+                                    <div th:if="${item.unit != 'KILOGRAM'}">
+                                        <input type="number" name="qtyOrWeight" class="form-control form-control-sm text-center qty-input"
+                                               min="1" th:value="${item.quantity}" th:attr="data-index=${iterStat.index}" style="width:80px;">
+                                    </div>
+
+                                    <button class="btn btn-outline-success btn-sm btn-update ms-1" type="submit" title="Cập nhật">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
                                 </form>
@@ -106,7 +115,7 @@
                                         <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
                                         <input type="hidden" name="productId" th:value="${item.productId}" />
                                         <input type="hidden" name="variantId" th:value="${item.variantId}" />
-                                        <input type="hidden" name="qty" th:value="${item.quantity}" />
+                                        <input type="hidden" name="qtyOrWeight" th:value="${item.unit == 'KILOGRAM' ? item.weight : item.quantity}" />
                                         <button type="submit" class="btn btn-warning btn-sm text-white" title="Mua ngay">
                                             <i class="bi bi-bag-check"></i>
                                         </button>
@@ -193,190 +202,115 @@
 <!-- JS: tính toán selected total, tạo form POST động gửi selected items -->
 <script th:inline="javascript">
     /*<![CDATA[*/
-    (function () {
-        // lấy CSRF từ meta tags (nếu có)
-        function getCsrf() {
-            var tokenMeta = document.querySelector('meta[name="_csrf"]');
-            var headerMeta = document.querySelector('meta[name="_csrf_header"]');
-            return {
-                token: tokenMeta ? tokenMeta.getAttribute('content') : '',
-                header: headerMeta ? headerMeta.getAttribute('content') : 'X-CSRF-TOKEN'
-            };
-        }
-
+    document.addEventListener('DOMContentLoaded', function () {
+        // Lấy các phần tử chính
         const selectAllCheckbox = document.getElementById('selectAll');
         const selectedTotalEl = document.getElementById('selectedTotal');
         const selectedQtyEl = document.getElementById('selectedQuantity');
         const checkoutBtn = document.getElementById('checkoutSelectedBtn');
 
-        // helper parse number safe
-        function parseNumber(s) {
-            var n = Number(s);
-            return isNaN(n) ? 0 : n;
-        }
+        // Helper parse và format
+        const parseNumber = s => parseFloat(s) || 0;
+        const formatVND = n => Number(n || 0).toLocaleString('vi-VN') + ' ₫';
+        const getItemCheckboxes = () => Array.from(document.querySelectorAll('.select-item'));
 
-        function formatVND(n) {
-            if (isNaN(n)) return '0 ₫';
-            return Number(n).toLocaleString('vi-VN') + ' ₫';
-        }
-
-        function getItemCheckboxes() {
-            return Array.from(document.querySelectorAll('.select-item'));
-        }
-
+        // ✅ Hàm cập nhật tổng tiền và trạng thái nút
         function updateSelectedSummary() {
             const itemCheckboxes = getItemCheckboxes();
             const checked = itemCheckboxes.filter(cb => cb.checked);
             let total = 0;
             let qtySum = 0;
+
             checked.forEach(cb => {
-                const price = parseNumber(cb.getAttribute('data-price') || '0');
-                let qty = parseInt(cb.getAttribute('data-qty') || '1', 10);
-                const idx = cb.getAttribute('data-index');
-                if (idx !== null) {
-                    const qInput = document.querySelector('.qty-input[data-index="'+idx+'"]');
-                    if (qInput) qty = Math.max(1, parseInt(qInput.value || '1', 10));
-                }
-                qtySum += qty;
-                total += (price * qty);
+                const price = parseNumber(cb.dataset.price);
+                const unit = cb.dataset.unit;
+                let qty = parseNumber(cb.dataset.qty);
+                const idx = cb.dataset.index;
+
+                const qInput = document.querySelector(`.qty-input[data-index="${idx}"]`);
+                if (qInput) qty = parseNumber(qInput.value);
+
+                total += price * qty;
+                if (unit !== 'KILOGRAM') qtySum += qty;
             });
+
             selectedTotalEl.textContent = formatVND(total);
             selectedQtyEl.textContent = qtySum;
             checkoutBtn.disabled = checked.length === 0;
         }
 
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function () {
-                const checked = this.checked;
-                const itemCheckboxes = getItemCheckboxes();
-                itemCheckboxes.forEach(cb => cb.checked = checked);
-                updateSelectedSummary();
-            });
-        }
+        // ✅ Sự kiện: chọn tất cả
+        selectAllCheckbox?.addEventListener('change', function () {
+            const all = getItemCheckboxes();
+            all.forEach(cb => cb.checked = this.checked);
+            updateSelectedSummary();
+        });
 
-        // delegate change events
+        // ✅ Sự kiện: tick chọn item
         document.addEventListener('change', function (e) {
-            if (e.target && e.target.classList && e.target.classList.contains('select-item')) {
+            if (e.target.classList.contains('select-item')) {
                 updateSelectedSummary();
             }
         });
 
-        // qty input updates
+        // ✅ Sự kiện: thay đổi số lượng
         document.addEventListener('input', function (e) {
-            if (e.target && e.target.classList && e.target.classList.contains('qty-input')) {
-                const idx = e.target.getAttribute('data-index');
-                if (idx !== null) {
-                    const cb = document.querySelector('.select-item[data-index="'+idx+'"]');
-                    if (cb) cb.setAttribute('data-qty', e.target.value);
-                }
-                const row = e.target.closest('tr');
-                if (row) {
-                    const cb = row.querySelector('.select-item');
-                    const price = parseNumber(cb ? (cb.getAttribute('data-price') || '0') : '0');
-                    const q = Math.max(1, parseInt(e.target.value || '1', 10));
-                    const subCell = row.querySelector('.sub-total-cell');
-                    if (subCell) {
-                        subCell.textContent = formatVND(price * q);
-                    }
-                }
+            if (e.target.classList.contains('qty-input')) {
+                const idx = e.target.dataset.index;
+                const cb = document.querySelector(`.select-item[data-index="${idx}"]`);
+                if (cb) cb.dataset.qty = e.target.value;
                 updateSelectedSummary();
             }
         });
 
-        // Checkout selected items handler (only send selected items by variantId)
-        checkoutBtn.addEventListener('click', function () {
-            const itemCheckboxes = getItemCheckboxes();
-            const checked = itemCheckboxes.filter(cb => cb.checked);
-
-            console.log('[DEBUG] checked checkboxes count:', checked.length);
-
+        // ✅ Nút thanh toán
+        checkoutBtn?.addEventListener('click', function () {
+            const checked = getItemCheckboxes().filter(cb => cb.checked);
             if (checked.length === 0) {
                 alert('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán.');
                 return;
             }
 
-            const variantIds = [];
-            const quantities = [];
-
-            checked.forEach(cb => {
-                let varId = cb.getAttribute('data-variantid');
-                let qty = parseInt(cb.getAttribute('data-qty') || '1', 10);
-                const idx = cb.getAttribute('data-index');
-
-                console.log('[DEBUG] Processing item:', {
-                    varId: varId,
-                    qty: qty,
-                    idx: idx,
-                    element: cb
-                });
-
-                if (idx !== null) {
-                    const qInput = document.querySelector('.qty-input[data-index="'+idx+'"]');
-                    if (qInput) {
-                        const parsed = parseInt(qInput.value || '1', 10);
-                        if (!isNaN(parsed) && parsed > 0) qty = parsed;
-                    }
-                }
-
-                // Chuyển đổi và validate variantId
-                varId = (varId === null || varId === undefined) ? '' : String(varId).trim();
-
-                // Chỉ skip nếu variantId thực sự rỗng HOẶC là string "null"/"undefined"
-                if (varId === '' || varId === 'null' || varId === 'undefined') {
-                    console.warn('[DEBUG] Skipping invalid variantId:', varId, cb);
-                    return;
-                }
-
-                console.log('[DEBUG] Adding valid item:', { varId, qty });
-
-                variantIds.push(varId);
-                quantities.push(String(Math.max(1, isNaN(qty) ? 1 : qty)));
-            });
-
-            console.log('[DEBUG] payload to send', { variantIds, quantities });
-
-            if (variantIds.length === 0) {
-                alert('Không có mục hợp lệ để thanh toán. Vui lòng thử lại.');
-                return;
-            }
+            const csrf = {
+                token: document.querySelector('meta[name="_csrf"]')?.content || '',
+                header: document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN'
+            };
 
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = /*[[ @{/cart/checkout} ]]*/ '/cart/checkout';
 
-            const csrf = getCsrf();
-            if (csrf && csrf.token) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = '_csrf';
-                csrfInput.value = csrf.token;
-                form.appendChild(csrfInput);
+            if (csrf.token) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = '_csrf';
+                input.value = csrf.token;
+                form.appendChild(input);
             }
 
-            variantIds.forEach(vid => {
-                const inp = document.createElement('input');
-                inp.type = 'hidden';
-                inp.name = 'variantIds';
-                inp.value = vid;
-                form.appendChild(inp);
-            });
+            checked.forEach(cb => {
+                const vid = cb.dataset.variantid;
+                const qty = cb.dataset.qty;
+                if (vid && qty) {
+                    const i1 = document.createElement('input');
+                    i1.type = 'hidden'; i1.name = 'variantIds'; i1.value = vid;
+                    form.appendChild(i1);
 
-            quantities.forEach(q => {
-                const inp = document.createElement('input');
-                inp.type = 'hidden';
-                inp.name = 'quantities';
-                inp.value = q;
-                form.appendChild(inp);
+                    const i2 = document.createElement('input');
+                    i2.type = 'hidden'; i2.name = 'quantities'; i2.value = qty;
+                    form.appendChild(i2);
+                }
             });
 
             document.body.appendChild(form);
             form.submit();
         });
 
-        // init
+        // ✅ Khởi tạo ban đầu
         updateSelectedSummary();
-    })();
+    });
     /*]]>*/
 </script>
+
 </body>
 </html>

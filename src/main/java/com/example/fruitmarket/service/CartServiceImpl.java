@@ -22,6 +22,7 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepository;
     private final ProductVariantRepository productVariantRepository;
 
+
     private Cart getOrCreateCart() {
         Cart cart = (Cart) session.getAttribute(SESSION_CART);
         if (cart == null) {
@@ -31,53 +32,77 @@ public class CartServiceImpl implements CartService {
         return cart;
     }
 
-    public void addToCart(Long productId, Long variantId, int qty) {
+    /**
+     * ✅ Thêm sản phẩm vào giỏ (tách rõ logic quantity / weight)
+     */
+    @Override
+    public void addToCart(Long productId, Long variantId, double qtyOrWeight) {
         Cart cart = getOrCreateCart();
-        // get product/variant info to fill CartItem
+
         String name = "Unknown";
         BigDecimal price = BigDecimal.ZERO;
         String img = "/images/placeholder.png";
+        String unit = "PIECE";
+        String variantName = null;
 
         if (variantId != null) {
-            Optional<ProductVariant> v = productVariantRepository.findById(variantId);
-            if (v.isPresent()) {
-                ProductVariant pv = v.get();
-                price = pv.getPrice();
-                name = pv.getVariant_name(); // or combine product name + variant
-                if (pv.getImage() != null) img = pv.getImage().getUrl();
+            Optional<ProductVariant> optVar = productVariantRepository.findById(variantId);
+            if (optVar.isPresent()) {
+                ProductVariant v = optVar.get();
+                price = (v.getPrice() != null) ? v.getPrice() : BigDecimal.ZERO;
+                name = v.getProduct().getProductName();
+                variantName = v.getVariant_name();
+                unit = v.getProduct().getUnit().toString();
+                if (v.getImage() != null && v.getImage().getUrl() != null) {
+                    img = v.getImage().getUrl();
+                }
             }
         } else {
-            Optional<Product> p = productRepository.findById(productId);
-            if (p.isPresent()) {
-                Product prod = p.get();
+            Optional<Product> optProd = productRepository.findById(productId);
+            if (optProd.isPresent()) {
+                Product prod = optProd.get();
                 name = prod.getProductName();
+                unit = prod.getUnit().toString();
                 if (prod.getVariants() != null && !prod.getVariants().isEmpty()) {
-                    price = prod.getVariants().get(0).getPrice();
+                    price = prod.getVariants().get(0).getPrice() != null
+                            ? prod.getVariants().get(0).getPrice()
+                            : BigDecimal.ZERO;
                 }
             }
         }
 
-        CartItem item = new CartItem(variantId, name, price, qty, img);
+        CartItem item;
+        if ("KILOGRAM".equalsIgnoreCase(unit)) {
+            double w = (qtyOrWeight > 0) ? qtyOrWeight : 0.1;
+            item = new CartItem(productId, variantId, name, variantName, price, 0, w, img, unit);
+        } else {
+            int q = (int) Math.max(1, Math.floor(qtyOrWeight));
+            item = new CartItem(productId, variantId, name, variantName, price, q, null, img, unit);
+        }
+
+
         cart.addItem(item);
         session.setAttribute(SESSION_CART, cart);
     }
-
+    @Override
     public Cart getCart() {
         return getOrCreateCart();
     }
 
-    public void updateQuantity(Long productId, Long variantId, int qty) {
+    /** ✅ Cho phép update cả số lượng lẫn khối lượng */
+    @Override
+    public void updateQuantity(Long productId, Long variantId, double qtyOrWeight) {
         Cart cart = getOrCreateCart();
-        cart.updateQuantity(productId, variantId, qty);
+        cart.updateQuantity(productId, variantId, qtyOrWeight);
         session.setAttribute(SESSION_CART, cart);
     }
-
+    @Override
     public void remove(Long productId, Long variantId) {
         Cart cart = getOrCreateCart();
         cart.removeItem(productId, variantId);
         session.setAttribute(SESSION_CART, cart);
     }
-
+    @Override
     public void clear() {
         Cart cart = getOrCreateCart();
         cart.clear();
