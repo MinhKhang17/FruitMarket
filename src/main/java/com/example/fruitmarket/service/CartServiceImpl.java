@@ -65,9 +65,12 @@ public class CartServiceImpl implements CartService {
                 name = prod.getProductName();
                 unit = prod.getUnit().toString();
                 if (prod.getVariants() != null && !prod.getVariants().isEmpty()) {
-                    price = prod.getVariants().get(0).getPrice() != null
-                            ? prod.getVariants().get(0).getPrice()
-                            : BigDecimal.ZERO;
+                    ProductVariant firstVar = prod.getVariants().get(0);
+                    variantId = firstVar.getId(); // ✅ THÊM DÒNG NÀY
+                    price = firstVar.getPrice() != null ? firstVar.getPrice() : BigDecimal.ZERO;
+                    if (firstVar.getImage() != null && firstVar.getImage().getUrl() != null) {
+                        img = firstVar.getImage().getUrl();
+                    }
                 }
             }
         }

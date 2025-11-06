@@ -51,4 +51,7 @@ public class Order {
     @Column
     private long totalQuantity;
 
+    @Column
+    private double totalWeight;
+
 }

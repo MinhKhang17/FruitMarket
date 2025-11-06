@@ -1,12 +1,12 @@
 package com.example.fruitmarket.dto;
 
-import lombok.Data;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+@Getter
 public class OrderRequest {
     private Long addressId;
     private String paymentMethod;
@@ -32,5 +32,7 @@ public class OrderRequest {
 
         // Tuỳ chọn: cân nặng từng item (nếu có)
         private Double weight;
+        private Units unit;
     }
 }
+
