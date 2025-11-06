@@ -34,7 +34,7 @@ public class ProductVariant {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "image_id", referencedColumnName = "id")
+    @OneToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id")
     private Image image;
 }

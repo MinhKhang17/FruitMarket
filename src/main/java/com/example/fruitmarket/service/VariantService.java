@@ -15,5 +15,9 @@ public interface VariantService {
                                  ImageType imageType) throws IOException;
 
     void updateStatusToInactive(Long variantId);
+    void updateStatusToActive(Long variantId);
     ProductVariant findById(Long variantId);
+    ProductVariant update(ProductVariant variant,
+                          List<MultipartFile> files,
+                          ImageType imageType) throws IOException;
 }

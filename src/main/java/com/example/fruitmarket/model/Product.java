@@ -35,7 +35,7 @@ public class Product {
     private Brands brand;
 
     // One product -> many variants
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product", cascade = { CascadeType.MERGE, CascadeType.PERSIST }, fetch = FetchType.LAZY)
     private List<ProductVariant> variants = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

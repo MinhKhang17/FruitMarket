@@ -36,6 +36,6 @@ public interface ProductService {
     List<Product> findByCategoryAndBrand(Long categoryId, Long brandId);
     List<Product> search(String keyword);
     void updateProductStatusToInactive(Long productId);
+    void updateProductStatusToActive(Long productId);
 
-    void deleteById(Long id);
 }

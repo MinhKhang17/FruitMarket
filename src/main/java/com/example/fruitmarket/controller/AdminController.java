@@ -259,7 +259,7 @@ public class AdminController {
         model.addAttribute("product", product);
         model.addAttribute("categories", categorysService.findAll());
         model.addAttribute("brands", brandsService.findAll());
-        return "admin/createProduct";
+        return "admin/editProduct";
     }
 
     @PostMapping("/products/update")
@@ -273,7 +273,16 @@ public class AdminController {
         String redirect = checkAdminAccess(session);
         if (redirect != null) return redirect;
 
-        productService.deleteById(id);
+        productService.updateProductStatusToInactive(id);
+        return "redirect:/admin/products";
+    }
+
+    @GetMapping("products/restore/{id}")
+    public String restoreProduct(@PathVariable Long id, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        productService.updateProductStatusToActive(id);
         return "redirect:/admin/products";
     }
 
@@ -312,12 +321,49 @@ public class AdminController {
         return "redirect:/admin/products/" + productId + "/variants/list";
     }
 
+
+    @GetMapping("/productVariant/edit/{id}")
+    public String editProductVariant(@PathVariable Long id, Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        ProductVariant variant = variantService.findById(id);
+        model.addAttribute("variant", variant);
+        model.addAttribute("product", variant.getProduct());
+        return "admin/editVariant";
+    }
+
+    @PostMapping("/editVariant/update")
+    public String updateProductVariant(@ModelAttribute ProductVariant variant,
+                                       @RequestParam(value = "files", required = false) List<MultipartFile> files,
+                                       HttpSession session)
+            throws IOException {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+        variantService.update(variant, files, ImageType.PRODUCT_VARIANT);
+        Long productId = variant.getProduct().getId();
+        return "redirect:/admin/products/" + productId + "/variants/list";
+    }
+
+    @GetMapping("/productVariant/restore/{id}")
+    public String restoreProductVariant(@PathVariable Long id) {
+        ProductVariant variant = variantService.findById(id);
+        Long productId = variant.getProduct().getId();
+
+        variantService.updateStatusToActive(id);
+
+        return "redirect:/admin/products/" + productId + "/variants/list";
+    }
+
     @GetMapping("/products/{id}/variants/list")
     public String viewVariantList(@PathVariable Long id, Model model) {
         Product product = productService.findById(id);
         model.addAttribute("product", product);
         return "admin/variantList";
     }
+
+
+
     @GetMapping("/orders")
     public String adminOrders(Model model, HttpSession session) {
         String redirect = checkAdminAccess(session);

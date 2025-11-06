@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Cập nhật biến thể | FruitMarket</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/variant-list.css}" rel="stylesheet"/>
+</head>
+
+<body>
+<div class="container">
+    <div class="card mx-auto mt-4" style="max-width:700px;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>Cập nhật biến thể</h2>
+            <a th:href="@{'/admin/products/' + ${product.id} + '/variants/list'}" class="btn btn-accent btn-sm">
+                ← Quay lại danh sách
+            </a>
+        </div>
+
+        <!-- Thông tin sản phẩm -->
+        <p class="text-muted" th:text="'Sản phẩm: ' + ${product.productName}"></p>
+        <p class="text-muted" th:text="'Mã sản phẩm: ' + ${product.id}"></p>
+        <hr/>
+
+        <!-- Form cập nhật -->
+        <form th:action="@{/admin/editVariant/update}" th:object="${variant}" method="post" enctype="multipart/form-data">
+            <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{product.id}">
+
+            <!-- Variant Name -->
+            <div class="mb-3">
+                <label for="variantName" class="form-label">Tên biến thể</label>
+                <input type="text" th:field="*{variant_name}" id="variantName" class="form-control"
+                       placeholder="Nhập tên biến thể" required>
+            </div>
+
+            <!-- Price -->
+            <div class="mb-3">
+                <label for="price" class="form-label">Giá (₫)</label>
+                <input type="number" th:field="*{price}" id="price" class="form-control" placeholder="Nhập giá" min="0" step="100" required>
+            </div>
+
+            <!-- Stock -->
+            <div class="mb-3">
+                <label for="stock" class="form-label">Số lượng tồn</label>
+                <input type="number" th:field="*{stock}" id="stock" class="form-control" placeholder="Nhập tồn kho" min="0" required>
+            </div>
+
+            <!-- Image Preview -->
+            <div class="mb-3">
+                <label class="form-label">Ảnh biến thể</label>
+                <div class="d-flex align-items-center gap-3">
+                    <img th:if="${variant.image != null}" th:src="${variant.image.url}" class="thumb" alt="preview">
+                    <span th:if="${variant.image == null}" class="text-muted">Chưa có ảnh</span>
+                    <input type="file" name="files" class="form-control" accept="image/*">
+                </div>
+            </div>
+
+            <hr/>
+            <div class="d-flex justify-content-end gap-2">
+                <a th:href="@{'/admin/products/' + ${product.id} + '/variants/list'}" class="btn btn-outline-secondary">Hủy</a>
+                <button type="submit" class="btn btn-green">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>
