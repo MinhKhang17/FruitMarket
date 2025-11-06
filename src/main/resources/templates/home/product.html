@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8"/>
     <title>Products</title>
@@ -12,15 +12,27 @@
 
     <!-- Page CSS -->
     <link th:href="@{/product.css}" rel="stylesheet"/>
+    <style>
+        .products-page .chip{display:inline-flex;align-items:center;gap:.35rem;padding:.25rem .5rem;border:1px solid #e5e7eb;border-radius:999px;background:#fff;font-size:.85rem}
+        .products-page .chip-dismiss{cursor:pointer}
+        .btn-outline-leaf{--bs-btn-color:#2f9e44;--bs-btn-border-color:#2f9e44;--bs-btn-hover-bg:#2f9e44;--bs-btn-hover-color:#fff}
+        .btn-leaf{background:#2f9e44;color:#fff}
+        .btn-leaf:hover{opacity:.95;color:#fff}
+        .col-xl-2p4{flex:0 0 20%;max-width:20%}@media(max-width:1199.98px){.col-xl-2p4{flex:0 0 25%;max-width:25%}}
+        .pagination-soft .page-link{border-radius:8px;margin:0 .125rem}
+        .empty-illustration{opacity:.6}
+        .clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .price{font-weight:700;color:#2f9e44}
+    </style>
 </head>
 <body>
 <div th:replace="~{fragments/header :: header}"></div>
 
-<main class="container products-page">
+<main class="container products-page my-4">
     <!-- Heading -->
-    <div class="simple-heading">
-        <h1 class="page-title">All Products</h1>
-        <p class="page-subtitle">Bộ sưu tập sản phẩm mới nhất</p>
+    <div class="simple-heading mb-3">
+        <h1 class="page-title h3 mb-1">All Products</h1>
+        <p class="page-subtitle text-secondary">Bộ sưu tập sản phẩm mới nhất</p>
     </div>
 
     <!-- Empty state -->
@@ -29,9 +41,22 @@
         <p>Hiện chưa có sản phẩm để trưng bày.</p>
     </div>
 
-    <!-- Toolbar: Filters + Sort + Page size -->
+    <!-- Toolbar: Search + Price range + Filters + Sort + Page size -->
     <section class="toolbar" th:if="${!#lists.isEmpty(products)}">
         <div class="row g-2 g-md-3 align-items-stretch">
+            <!-- Search -->
+            <div class="col-12 col-md-4 col-lg-3">
+                <input id="search" class="form-control" placeholder="Tìm theo tên sản phẩm...">
+            </div>
+
+            <!-- Price range -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <input id="minPrice" type="number" min="0" step="1000" class="form-control" placeholder="Giá tối thiểu (₫)">
+            </div>
+            <div class="col-6 col-md-4 col-lg-3">
+                <input id="maxPrice" type="number" min="0" step="1000" class="form-control" placeholder="Giá tối đa (₫)">
+            </div>
+
             <!-- Category -->
             <div class="col-6 col-md-4 col-lg-3">
                 <select id="cat" class="form-select">
@@ -57,7 +82,7 @@
                 </select>
             </div>
 
-            <!-- Page size (mặc định chọn 20 khi load) -->
+            <!-- Page size (mặc định 20 khi load) -->
             <div class="col-6 col-md-4 col-lg-3">
                 <select id="size" class="form-select">
                     <option value="10">10 / trang</option>
@@ -120,7 +145,7 @@
                           <span class="price"
                                 th:text="${
                                   (p.variants != null and !#lists.isEmpty(p.variants) and p.variants[0].price != null)
-                                    ? '₫ ' + #numbers.formatDecimal(p.variants[0].price, 0, 'COMMA', 0, 'POINT')
+                                    ? '₫ ' + #numbers.formatDecimal(p.variants[0].price, 0, 'POINT', 0, 'COMMA')
                                     : 'Liên hệ'
                                 }">₫ 0</span>
                         </div>
@@ -142,11 +167,14 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Filter + Sort + Pagination (no search) -->
+<!-- Filter + Sort + Pagination (Front-end only) -->
 <script>
     (function () {
         const grid   = document.getElementById('grid');
         const pager  = document.getElementById('pager');
+        const $search= document.getElementById('search');
+        const $min   = document.getElementById('minPrice');
+        const $max   = document.getElementById('maxPrice');
         const $cat   = document.getElementById('cat');
         const $brand = document.getElementById('brand');
         const $sort  = document.getElementById('sort');
@@ -177,7 +205,7 @@
         });
 
         // Mặc định 20 / trang
-        const state = { cat:'', brand:'', sort:'default', size:20, page:1 };
+        const state = { q:'', min:'', max:'', cat:'', brand:'', sort:'default', size:20, page:1 };
         $size.value = String(state.size);
 
         function getPrice(col){
@@ -199,38 +227,52 @@
         }
 
         function apply() {
-            let filtered = items.filter(col=>{
+            const kw  = (state.q || '').toLowerCase().trim();
+            const min = state.min === '' ? -Infinity : Number(state.min);
+            const max = state.max === '' ?  Infinity : Number(state.max);
+
+            // FILTER
+            let filtered = items.filter(col => {
                 const card = col.querySelector('.product-card');
-                const c = (card?.dataset.cat || '').trim();
-                const b = (card?.dataset.brand || '').trim();
-                const inC = state.cat ? c === state.cat : true;
-                const inB = state.brand ? b === state.brand : true;
-                return inC && inB;
+                const cat = (card?.dataset.cat || '').trim();
+                const brand = (card?.dataset.brand || '').trim();
+                const name = getName(col);
+                const price = getPrice(col);
+
+                if (kw && !name.includes(kw)) return false;
+                if (state.cat && cat !== state.cat) return false;
+                if (state.brand && brand !== state.brand) return false;
+                if (Number.isFinite(price) && (price < min || price > max)) return false;
+                return true;
             });
 
-            const sorted = filtered.slice().sort((a,b)=>{
+            // SORT
+            filtered.sort((a, b) => {
                 switch(state.sort){
-                    case 'priceAsc': return getPrice(a) - getPrice(b);
+                    case 'priceAsc':  return getPrice(a) - getPrice(b);
                     case 'priceDesc': return getPrice(b) - getPrice(a);
-                    case 'nameAsc': return getName(a).localeCompare(getName(b));
-                    case 'nameDesc': return getName(b).localeCompare(getName(a));
-                    default: return Number(a.dataset.initialIndex) - Number(b.dataset.initialIndex);
+                    case 'nameAsc':   return getName(a).localeCompare(getName(b));
+                    case 'nameDesc':  return getName(b).localeCompare(getName(a));
+                    default:          return Number(a.dataset.initialIndex) - Number(b.dataset.initialIndex);
                 }
             });
 
-            const total = sorted.length;
+            // PAGINATION
+            const total = filtered.length;
             const pages = Math.max(1, Math.ceil(total / state.size));
             if (state.page > pages) state.page = pages;
+
             const start = (state.page - 1) * state.size;
             const end   = start + state.size;
 
+            // RENDER
             items.forEach(el => el.style.display='none');
-            sorted.slice(start,end).forEach(el => el.style.display='');
+            filtered.slice(start,end).forEach(el => el.style.display='');
             renderPager(pages);
             renderChips(total);
-            $count.textContent = total ?
-                `Hiển thị ${Math.min(total,end)-start} / ${total} sản phẩm` :
-                'Không có sản phẩm phù hợp';
+            $count.textContent = total
+                ? `Hiển thị ${Math.min(total,end)-start} / ${total} sản phẩm`
+                : 'Không có sản phẩm phù hợp';
         }
 
         function renderPager(pages){
@@ -256,6 +298,9 @@
         function renderChips(total){
             $chips.innerHTML='';
             const defs=[];
+            if(state.q) defs.push({k:'q',label:`Từ khoá: ${state.q}`});
+            if(state.min!=='') defs.push({k:'min',label:`Từ: ${Number(state.min).toLocaleString('vi-VN')} ₫`});
+            if(state.max!=='') defs.push({k:'max',label:`Đến: ${Number(state.max).toLocaleString('vi-VN')} ₫`});
             if(state.cat) defs.push({k:'cat',label:`Danh mục: ${state.cat}`});
             if(state.brand) defs.push({k:'brand',label:`Thương hiệu: ${state.brand}`});
             if(state.sort!=='default'){
@@ -269,6 +314,9 @@
                 b.type='button';b.className='chip chip-dismiss';
                 b.innerHTML=`<i class="bi bi-x"></i> ${def.label}`;
                 b.addEventListener('click',()=>{
+                    if(def.k==='q'){state.q='';$search.value='';}
+                    if(def.k==='min'){state.min='';$min.value='';}
+                    if(def.k==='max'){state.max='';$max.value='';}
                     if(def.k==='cat'){state.cat='';$cat.value='';}
                     if(def.k==='brand'){state.brand='';$brand.value='';}
                     if(def.k==='sort'){state.sort='default';$sort.value='default';}
@@ -280,16 +328,24 @@
 
             $reset.classList.toggle('d-none', defs.length===0 && total===items.length);
             $reset.onclick=()=>{
-                state.cat='';state.brand='';state.sort='default';state.size=20;state.page=1;
+                state.q='';state.min='';state.max='';
+                state.cat='';state.brand='';
+                state.sort='default';state.size=20;state.page=1;
+                $search.value='';$min.value='';$max.value='';
                 $cat.value='';$brand.value='';$sort.value='default';$size.value='20';
                 apply();
             };
         }
 
+        // Events
+        $search.addEventListener('input',()=>{state.q=$search.value;state.page=1;apply();});
+        $min.addEventListener('input',()=>{state.min=$min.value;state.page=1;apply();});
+        $max.addEventListener('input',()=>{state.max=$max.value;state.page=1;apply();});
         $cat.addEventListener('change',()=>{state.cat=$cat.value;state.page=1;apply();});
         $brand.addEventListener('change',()=>{state.brand=$brand.value;state.page=1;apply();});
         $sort.addEventListener('change',()=>{state.sort=$sort.value;state.page=1;apply();});
         $size.addEventListener('change',()=>{state.size=parseInt($size.value,10);state.page=1;apply();});
+
         apply();
     })();
 </script>
