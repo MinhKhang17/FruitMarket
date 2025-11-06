@@ -15,7 +15,7 @@ public class FruitMapper {
         result.setProductPrice(product.getVariants().get(0).getPrice());
         result.setDescription(product.getProduct_description());
         result.setProductVariants(product.getVariants());
-        result.setUnits(product.getUnit());
+        result.setUnit(product.getUnit());
         if (product.getVariants().get(0) != null && product.getVariants().get(0).getImage() != null) {
 
         result.setImageUrl(product.getVariants().get(0).getImage().getUrl());

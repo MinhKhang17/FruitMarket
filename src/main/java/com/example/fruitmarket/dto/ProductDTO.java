@@ -21,7 +21,7 @@ public class ProductDTO {
     private String brandName;
     private BigDecimal productPrice;       // fallback price (nếu không dùng variant)
     private List<ProductVariant> productVariants;
-    private Units units;
+    private Units unit;
 
 
 
