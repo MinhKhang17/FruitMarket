@@ -164,6 +164,110 @@
             </div>
 
             <!-- ĐỊA CHỈ GIAO HÀNG -->
+            <div class="mt-4">
+                <div class="card profile-card">
+                    <div class="card-header bg-success text-white fw-semibold">
+                        <i class="bi bi-geo-alt-fill me-2"></i>Địa chỉ giao hàng
+                    </div>
+
+                    <div class="card-body">
+
+                        <div th:if="${#lists.isEmpty(addresses)}" class="text-muted">
+                            Bạn chưa có địa chỉ nào.
+                        </div>
+
+                        <div class="list-group" th:if="${!#lists.isEmpty(addresses)}">
+                            <!-- Mỗi địa chỉ là 1 item có 3 dropdown Province/District/Ward -->
+                            <div class="list-group-item border-0 mb-3 rounded-3 shadow-sm" th:each="addr : ${addresses}">
+                                <div class="fw-semibold mb-1">
+                                    <i class="bi bi-house-door me-1"></i>
+                                    <span th:text="${addr.user != null && addr.user.username != null ? addr.user.username : 'Người nhận'}">Người nhận</span>
+                                    <span class="text-muted">•</span>
+                                    <span th:text="${addr.phone}">SĐT</span>
+                                </div>
+
+                                <div class="text-muted small mb-3">
+                                    <div><strong>Địa chỉ:</strong> <span th:text="${addr.address}">Số nhà/đường</span></div>
+                                    <div><strong>Tỉnh/Thành:</strong> <span th:text="${addr.province != null ? addr.province.provinceName : '—'}">Province</span></div>
+                                    <div><strong>Quận/Huyện:</strong> <span th:text="${addr.district != null ? addr.district.districtName : '—'}">District</span></div>
+                                    <div><strong>Phường/Xã:</strong> <span th:text="${addr.ward != null ? addr.ward.wardName : '—'}">Ward</span></div>
+                                </div>
+
+                                <!-- Form cập nhật GEO -->
+                                <form th:action="@{|/client/address/${addr.id}/geo|}" method="post" class="p-3 rounded" style="background:#f8fbf8;">
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold mb-1">Tỉnh/Thành</label>
+                                            <select name="provinceId"
+                                                    class="form-select province-select"
+                                                    th:attr="data-addr-id=${addr.id}"
+                                                    data-placeholder="-- Chọn tỉnh/thành --">
+                                                <option th:if="${addr.province != null}"
+                                                        th:value="${addr.province.provinceId}"
+                                                        th:text="${addr.province.provinceName}"
+                                                        selected></option>
+                                                <option value="">-- Chọn tỉnh/thành --</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold mb-1">Quận/Huyện</label>
+                                            <select name="districtId"
+                                                    class="form-select district-select"
+                                                    th:attr="data-addr-id=${addr.id}"
+                                                    data-placeholder="-- Chọn quận/huyện --"
+                                                    th:disabled="${addr.province == null}">
+                                                <option th:if="${addr.district != null}"
+                                                        th:value="${addr.district.districtId}"
+                                                        th:text="${addr.district.districtName}"
+                                                        selected></option>
+                                                <option value="">-- Chọn quận/huyện --</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold mb-1">Phường/Xã</label>
+                                            <select name="wardCode"
+                                                    class="form-select ward-select"
+                                                    th:attr="data-addr-id=${addr.id}"
+                                                    data-placeholder="-- Chọn phường/xã --"
+                                                    th:disabled="${addr.district == null}">
+                                                <option th:if="${addr.ward != null}"
+                                                        th:value="${addr.ward.wardCode}"
+                                                        th:text="${addr.ward.wardName}"
+                                                        selected></option>
+                                                <option value="">-- Chọn phường/xã --</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row g-2 mt-2">
+                                        <div class="col-md-8">
+                                            <label class="form-label fw-semibold mb-1">Địa chỉ cụ thể</label>
+                                            <input name="address" type="text" class="form-control"
+                                                   placeholder="Số nhà, đường..."
+                                                   th:value="${addr.address}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-semibold mb-1">Số điện thoại</label>
+                                            <input name="phone" type="text" class="form-control"
+                                                   placeholder="Nhập số điện thoại"
+                                                   th:value="${addr.phone}">
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end mt-3">
+                                        <button class="btn btn-save" disabled>
+                                            <i class="bi bi-geo-alt me-2"></i>Lưu thay đổi địa chỉ
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
 
 
         </div>
@@ -171,5 +275,160 @@
 </div>
 <div th:replace="fragments/footer :: footer"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        const qsa = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+        const makeOption = (value, label, selected=false) => {
+            const o = document.createElement('option');
+            o.value = value ?? '';
+            o.textContent = label ?? '';
+            if (selected) o.selected = true;
+            return o;
+        };
+        const setDisabled = (el, disabled) => { el.disabled = !!disabled; };
+
+        // ------- API helpers -------
+        async function fetchJSON(url) {
+            const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return await res.json();
+        }
+
+        // provinces: [{id,name}]
+        async function loadProvinces(sel) {
+            const current = sel.value;
+            const placeholder = sel.getAttribute('data-placeholder') || '-- Chọn tỉnh/thành --';
+            sel.innerHTML = '';
+            sel.appendChild(makeOption('', placeholder, !current));
+            const list = await fetchJSON('/api/geo/provinces');
+            list.forEach(p => sel.appendChild(makeOption(p.id, p.name, String(p.id) === String(current))));
+            setDisabled(sel, false);
+            // nếu current không còn hợp lệ
+            if (!list.some(p => String(p.id) === String(current))) sel.selectedIndex = 0;
+        }
+
+        // districts: [{id,name}]
+        async function loadDistricts(sel, provinceId) {
+            const current = sel.value;
+            const placeholder = sel.getAttribute('data-placeholder') || '-- Chọn quận/huyện --';
+            sel.innerHTML = '';
+            sel.appendChild(makeOption('', placeholder, !current));
+            if (!provinceId) { setDisabled(sel, true); return; }
+            const list = await fetchJSON(`/api/geo/districts?provinceId=${encodeURIComponent(provinceId)}`);
+            list.forEach(d => sel.appendChild(makeOption(d.id, d.name, String(d.id) === String(current))));
+            setDisabled(sel, false);
+            if (!list.some(d => String(d.id) === String(current))) sel.selectedIndex = 0;
+        }
+
+        // wards: kỳ vọng [{code,name}] (nếu BE trả {id,name} thì dùng w.id)
+        async function loadWards(sel, districtId) {
+            const current = sel.value;
+            const placeholder = sel.getAttribute('data-placeholder') || '-- Chọn phường/xã --';
+            sel.innerHTML = '';
+            sel.appendChild(makeOption('', placeholder, !current));
+            if (!districtId) { setDisabled(sel, true); return; }
+            const list = await fetchJSON(`/api/geo/wards?districtId=${encodeURIComponent(districtId)}`);
+            list.forEach(w => sel.appendChild(makeOption(w.code ?? w.id, w.name, String((w.code ?? w.id)) === String(current))));
+            setDisabled(sel, false);
+            if (!list.some(w => String((w.code ?? w.id)) === String(current))) sel.selectedIndex = 0;
+        }
+
+        // ------- Validate + enable submit -------
+        function phoneOkVN(phone) {
+            // đơn giản: bắt đầu 0, tổng 9-11 số
+            return /^0\d{8,10}$/.test((phone || '').trim());
+        }
+
+        function syncSubmitButton(form) {
+            const provinceSel = form.querySelector('.province-select');
+            const districtSel = form.querySelector('.district-select');
+            const wardSel     = form.querySelector('.ward-select');
+            const addressInp  = form.querySelector('input[name="address"]');
+            const phoneInp    = form.querySelector('input[name="phone"]');
+            const btn         = form.querySelector('button.btn.btn-save');
+
+            const hasProvince = !!(provinceSel && provinceSel.value);
+            const hasDistrict = !!(districtSel && districtSel.value);
+            const hasWard     = !!(wardSel && wardSel.value);
+            const hasAddress  = !!(addressInp && addressInp.value && addressInp.value.trim().length >= 3);
+            const phoneOK     = !!(phoneInp && phoneOkVN(phoneInp.value));
+
+            // Bắt buộc: tỉnh, quận, phường, địa chỉ, phone hợp lệ
+            const ok = hasProvince && hasDistrict && hasWard && hasAddress && phoneOK;
+            if (btn) btn.disabled = !ok;
+        }
+
+        // ------- Wire từng item địa chỉ -------
+        qsa('.list-group-item').forEach(item => {
+            const form        = item.querySelector('form');
+            const provinceSel = item.querySelector('.province-select');
+            const districtSel = item.querySelector('.district-select');
+            const wardSel     = item.querySelector('.ward-select');
+            if (!form || !provinceSel || !districtSel || !wardSel) return;
+
+            const addressInp  = form.querySelector('input[name="address"]');
+            const phoneInp    = form.querySelector('input[name="phone"]');
+
+            // Load provinces ngay lần đầu
+            loadProvinces(provinceSel).catch(console.error);
+
+            // Nếu có sẵn province/district -> preload danh sách tương ứng
+            if (provinceSel.value) {
+                loadDistricts(districtSel, provinceSel.value).catch(console.error);
+                if (districtSel.value) {
+                    loadWards(wardSel, districtSel.value).catch(console.error);
+                }
+            } else {
+                setDisabled(districtSel, true);
+                setDisabled(wardSel, true);
+            }
+
+            // Khi đổi TỈNH: reset quận/phường
+            provinceSel.addEventListener('change', async () => {
+                // reset dưới
+                districtSel.innerHTML = '';
+                districtSel.appendChild(makeOption('', '-- Chọn quận/huyện --', true));
+                wardSel.innerHTML = '';
+                wardSel.appendChild(makeOption('', '-- Chọn phường/xã --', true));
+
+                setDisabled(districtSel, true);
+                setDisabled(wardSel, true);
+
+                const pid = provinceSel.value || '';
+                if (pid) {
+                    try { await loadDistricts(districtSel, pid); }
+                    catch (e) { console.error('loadDistricts:', e); }
+                }
+                syncSubmitButton(form);
+            });
+
+            // Khi đổi QUẬN: reset phường, mở khóa sau khi load
+            districtSel.addEventListener('change', async () => {
+                wardSel.innerHTML = '';
+                wardSel.appendChild(makeOption('', '-- Chọn phường/xã --', true));
+                setDisabled(wardSel, true);
+
+                const did = districtSel.value || '';
+                if (did) {
+                    try {
+                        await loadWards(wardSel, did);
+                        wardSel.disabled = false; // ép mở khóa
+                    } catch(e) { console.error('loadWards:', e); }
+                }
+                syncSubmitButton(form);
+            });
+
+            // Khi đổi PHƯỜNG
+            wardSel.addEventListener('change', () => syncSubmitButton(form));
+
+            // Validate input địa chỉ/phone realtime
+            addressInp && addressInp.addEventListener('input', () => syncSubmitButton(form));
+            phoneInp   && phoneInp.addEventListener('input',   () => syncSubmitButton(form));
+
+            // Init
+            syncSubmitButton(form);
+        });
+    })();
+</script>
 </body>
 </html>

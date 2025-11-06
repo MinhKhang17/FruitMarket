@@ -110,7 +110,17 @@
                                  onerror="this.src='/images/placeholder.png'">
                         </div>
                         <div class="product-body">
-                            <div class="text-muted small text-uppercase" th:text="${p.brand != null ? p.brand.name : 'No Brand'}"></div>
+                            <div class="text-muted small text-uppercase d-flex gap-2 align-items-center">
+                                <!-- Brand -->
+                                <span>
+                                    <a th:if="${p.brand != null}"
+                                       th:href="@{/products(brand=${p.brand.id})}"
+                                       class="text-reset text-decoration-none">
+                                      <span th:text="${p.brand.name}">Brand</span>
+                                    </a>
+                                    <span th:if="${p.brand == null}">No Brand</span>
+                                  </span>
+                            </div>
                             <h6 class="mb-1" th:text="${p.productName}">Product name</h6>
                             <p class="text-secondary small mb-2" th:text="${p.product_description}"></p>
                             <div class="product-footer">
@@ -177,7 +187,17 @@
                                          onerror="this.src='/images/placeholder.png'">
                                 </div>
                                 <div class="product-body">
-                                    <div class="text-muted small text-uppercase" th:text="${p.brand != null ? p.brand.name : 'No Brand'}"></div>
+                                    <div class="text-muted small text-uppercase d-flex gap-2 align-items-center">
+                                        <!-- Brand -->
+                                        <span>
+                                            <a th:if="${p.brand != null}"
+                                               th:href="@{/products(brand=${p.brand.id})}"
+                                               class="text-reset text-decoration-none">
+                                              <span th:text="${p.brand.name}">Brand</span>
+                                            </a>
+                                            <span th:if="${p.brand == null}">No Brand</span>
+                                        </span>
+                                    </div>
                                     <h6 class="mb-1" th:text="${p.productName}">Name</h6>
                                     <p class="text-secondary small mb-2" th:text="${p.product_description}">Description</p>
                                     <div class="product-footer">
@@ -222,7 +242,17 @@
                                      onerror="this.src='/images/placeholder.png'">
                             </div>
                             <div class="product-body">
-                                <div class="text-muted small text-uppercase" th:text="${p.brand != null ? p.brand.name : 'No Brand'}"></div>
+                                <div class="text-muted small text-uppercase d-flex gap-2 align-items-center">
+                                    <!-- Brand -->
+                                    <span>
+                                            <a th:if="${p.brand != null}"
+                                               th:href="@{/products(brand=${p.brand.id})}"
+                                               class="text-reset text-decoration-none">
+                                              <span th:text="${p.brand.name}">Brand</span>
+                                            </a>
+                                            <span th:if="${p.brand == null}">No Brand</span>
+                                        </span>
+                                </div>
                                 <h6 class="mb-1" th:text="${p.productName}">Product</h6>
                                 <p class="text-secondary small mb-2" th:text="${p.product_description}"></p>
                                 <div class="product-footer">

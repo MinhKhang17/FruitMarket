@@ -326,7 +326,7 @@ public class CartController {
 
             if (ghnCond) {
                 // Cập nhật geo cho địa chỉ
-                userService.updateAddressGeo(addressId, toDistrictId, toWardCode);
+                userService.updateAddress(addressId, null, toDistrictId, toWardCode, null, null);
 
                 // 1) Lấy service_id
                 var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);

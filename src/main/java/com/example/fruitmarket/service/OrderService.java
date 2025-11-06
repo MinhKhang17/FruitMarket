@@ -40,4 +40,6 @@ public interface OrderService {
     void updateShippingFee(Long orderId, BigDecimal bigDecimal);
 
     void addShippingToTotal(Long orderId, BigDecimal fee);
+
+    void cancelOrderForUser(Long orderId, HttpSession session);
 }

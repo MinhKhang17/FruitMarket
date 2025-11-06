@@ -15,4 +15,5 @@ public interface GhnClientService {
     OrderDetailRes getOrderDetail(String orderCode);
 
     Optional<String> createOrderAndGetOrderCode(CreateOrderReq req);
+    void cancelOrder(String orderCode);
 }

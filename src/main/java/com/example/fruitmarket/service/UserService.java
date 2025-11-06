@@ -28,5 +28,10 @@ public interface UserService {
     List<UserResponse> getAllUsers();
     UserResponse findUserById(int id);
 
-    void updateAddressGeo(Long addressId, Integer toDistrictId, String toWardCode);
+    void updateAddress(Long addressId,
+                       Integer provinceId,
+                       Integer districtId,
+                       String wardCode,
+                       String address,
+                       String phone);
 }

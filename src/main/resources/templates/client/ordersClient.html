@@ -28,10 +28,54 @@
             border-bottom:1px solid #eef1ef;
         }
         .order-id { font-weight:700; color:#333; }
-        .status-badge { font-size:.85rem; }
-        .status-PENDING { background:#fff3cd; color:#9a7b00; }
-        .status-COMPLETED { background:#d1e7dd; color:#0f5132; }
-        .status-CANCELED { background:#f8d7da; color:#842029; }
+        .status-badge {
+            padding: .4rem .75rem;
+            border-radius: .65rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            background-image: linear-gradient(to bottom right, rgba(255,255,255,0.15), rgba(0,0,0,0.05));
+        }
+
+        /* CHỜ XỬ LÝ */
+        .status-PENDING {
+            background: #ffe082;        /* vàng đậm hơn */
+            color: #5c4400;
+            border-color: #ffd54f;
+        }
+
+        /* HOÀN TẤT */
+        .status-COMPLETED {
+            background: #81c784;        /* xanh lá đậm hơn */
+            color: #0a3d18;
+            border-color: #66bb6a;
+        }
+
+        /* HUỶ ĐƠN (CANCELLED hoặc CANCELED) */
+        .status-CANCELED,
+        .status-CANCELLED {
+            background: #ef9a9a;        /* đỏ nhạt đậm hơn */
+            color: #5a0000;
+            border-color: #e57373;
+        }
+
+        /* ĐANG GIAO (tuỳ nếu có thêm) */
+        .status-SHIPPING {
+            background: #4fc3f7;
+            color: #013d57;
+            border-color: #29b6f6;
+        }
+
+        /* ĐÃ GỬI / ĐÃ NHẬN */
+        .status-SHIPPED {
+            background: #bdbdbd;
+            color: #212121;
+            border-color: #9e9e9e;
+        }
+
         .order-body { padding:14px 16px; background:#fff; }
         .mini-info { color:#6c757d; font-size:.95rem; }
         .mini-info i { color:var(--brand); }
@@ -80,7 +124,8 @@
     <!-- Danh sách đơn -->
     <div class="row g-4" th:if="${!#lists.isEmpty(orders)}">
         <div class="col-12" th:each="o : ${orders}">
-            <div class="card order-card" th:attr="data-status=${o.orderStauts}">
+            <!-- Đặt data-status theo ENUM.NAME() để đảm bảo không có khoảng trắng/lệch chính tả -->
+            <div class="card order-card" th:attr="data-status=${o.orderStauts != null ? o.orderStauts.name() : ''}">
                 <!-- Header -->
                 <div class="order-head">
                     <div class="d-flex flex-wrap align-items-center gap-3">
@@ -159,13 +204,24 @@
                                 </div>
                             </div>
                             <!-- Hành động -->
-                            <div class="text-end mt-3">
+                            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+                                <!-- Huỷ đơn (đi trước) -->
+                                <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
+                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
+                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"
+                                      th:action="@{|/orders/${o.id}/cancel|}" method="post"
+                                      class="m-0"
+                                      th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-x-circle"></i> Huỷ đơn hàng
+                                    </button>
+                                </form>
+
+                                <!-- Chi tiết (đi sau) -->
                                 <a class="btn btn-outline-success btn-sm" th:href="@{'/myOrders/' + ${o.id}}">
                                     <i class="bi bi-receipt-cutoff"></i> Chi tiết
                                 </a>
-                                <button class="btn btn-success btn-sm" th:if="${o.orderStauts?.name() == 'PENDING'}">
-                                    <i class="bi bi-cash-coin"></i> Thanh toán lại
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -177,21 +233,55 @@
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    // Filter by status (front-end)
     const buttons = document.querySelectorAll('.filter-btn');
-    const cards = document.querySelectorAll('[data-status]');
+    const cards   = document.querySelectorAll('[data-status]');
+
+    function norm(s) {
+        s = (s || '').toUpperCase().trim();
+        if (s === 'CANCELLED') s = 'CANCELED'; // đồng bộ 2 cách viết
+        return s;
+    }
+    const isEqual = (a, b) => norm(a) === norm(b);
+
+    function applyFilter(status){
+        const target = norm(status);
+        cards.forEach(c => {
+            const s = c.getAttribute('data-status');
+            const show = target === 'ALL' ? true : isEqual(s, target);
+            c.style.display = show ? '' : 'none';
+        });
+    }
+
+    // Gán click cho các nút filter
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             buttons.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            const status = btn.getAttribute('data-filter');
-            cards.forEach(c => {
-                const s = c.getAttribute('data-status');
-                c.style.display = (status === 'ALL' || s === status) ? '' : 'none';
-            });
+            applyFilter(btn.getAttribute('data-filter'));
         });
     });
+
+    // 👉 Nếu có đơn COMPLETED thì chọn luôn filter COMPLETED
+    let hasCompleted = false;
+    cards.forEach(c => {
+        if (isEqual(c.getAttribute('data-status'), 'COMPLETED')) {
+            hasCompleted = true;
+        }
+    });
+
+    if (hasCompleted) {
+        const btnCompleted = document.querySelector('[data-filter="COMPLETED"]');
+        if (btnCompleted) {
+            buttons.forEach(b => b.classList.remove('active'));
+            btnCompleted.classList.add('active');
+            applyFilter('COMPLETED');
+        }
+    } else {
+        // Ngược lại: hiện tất cả như cũ
+        applyFilter('ALL');
+    }
 </script>
 </body>
 </html>

@@ -17,7 +17,7 @@ public class Brands {
     @Column(name = "brand_id")
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 200, columnDefinition = "NVARCHAR(255)")
     private String name;
 
     @Column(nullable = false)

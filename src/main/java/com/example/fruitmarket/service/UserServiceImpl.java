@@ -31,6 +31,7 @@ public class UserServiceImpl implements UserService {
     private final UserDetailRepo userDetailRepo;
     private final DistrictRepo districtRepo;
     private final WardRepo wardRepo;
+    private final ProvinceRepo provinceRepo;
 
 
     @Value("${app.base-url}")
@@ -208,22 +209,87 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void updateAddressGeo(Long addressId, Integer districtId, String wardCode) {
+    @Transactional
+    public void updateAddress(Long addressId,
+                              Integer provinceId,
+                              Integer districtId,
+                              String wardCode,
+                              String address,
+                              String phone) {
+
         User_detail ud = userDetailRepo.findById(addressId)
                 .orElseThrow(() -> new IllegalArgumentException("Address not found: " + addressId));
 
-        if (districtId != null) {
-            District district = districtRepo.findById(districtId)
-                    .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtId));
-            ud.setDistrict(district);
-            // Gán province theo district (nếu cần)
-            ud.setProvince(district.getProvince());
+        // ===== 1) Cập nhật text fields =====
+        if (address != null) {
+            ud.setAddress(address.trim());
+        }
+        if (phone != null) {
+            ud.setPhone(phone.trim());
         }
 
-        if (wardCode != null && !wardCode.isBlank()) {
-            Ward ward = wardRepo.findById(wardCode)
-                    .orElseThrow(() -> new IllegalArgumentException("Ward not found: " + wardCode));
-            ud.setWard(ward);
+        // Lấy hiện trạng
+        District currentDistrict = ud.getDistrict();
+        Ward currentWard = ud.getWard();
+
+        // ===== 2) Cập nhật theo provinceId (nếu có) =====
+        if (provinceId != null) {
+            Province newProvince = provinceRepo.findById(provinceId)
+                    .orElseThrow(() -> new IllegalArgumentException("Province not found: " + provinceId));
+            ud.setProvince(newProvince);
+
+            // Nếu quận hiện tại không thuộc tỉnh mới -> clear district/ward
+            if (currentDistrict != null &&
+                    !currentDistrict.getProvince().getProvinceId().equals(provinceId)) {
+                ud.setDistrict(null);
+                ud.setWard(null);
+                currentWard = null;
+            }
+        }
+
+        // ===== 3) Cập nhật theo districtId (nếu có) =====
+        if (districtId != null) {
+            District newDistrict = districtRepo.findById(districtId)
+                    .orElseThrow(() -> new IllegalArgumentException("District not found: " + districtId));
+
+            // Đồng bộ province theo district nếu cần
+            if (ud.getProvince() == null ||
+                    !newDistrict.getProvince().getProvinceId().equals(ud.getProvince().getProvinceId())) {
+                ud.setProvince(newDistrict.getProvince());
+            }
+            ud.setDistrict(newDistrict);
+
+            // Nếu ward hiện tại không thuộc district mới -> clear ward
+            if (currentWard != null &&
+                    !currentWard.getDistrict().getDistrictId().equals(districtId)) {
+                ud.setWard(null);
+            }
+        } else if (provinceId != null) {
+            // Có set tỉnh nhưng không set quận -> bắt buộc clear quận/phường (vì lệ thuộc tỉnh)
+            ud.setDistrict(null);
+            ud.setWard(null);
+        }
+
+        // ===== 4) Cập nhật theo wardCode (nếu có) =====
+        if (wardCode != null) {
+            String code = wardCode.trim();
+            if (code.isEmpty()) {
+                ud.setWard(null);
+            } else {
+                Ward newWard = wardRepo.findById(code)
+                        .orElseThrow(() -> new IllegalArgumentException("Ward not found: " + code));
+                // Nếu chưa có district hoặc ward không cùng district -> set lại district
+                if (ud.getDistrict() == null ||
+                        !newWard.getDistrict().getDistrictId().equals(ud.getDistrict().getDistrictId())) {
+                    ud.setDistrict(newWard.getDistrict());
+                }
+                // Đồng bộ province theo ward->district nếu cần
+                if (ud.getProvince() == null ||
+                        !newWard.getDistrict().getProvince().getProvinceId().equals(ud.getProvince().getProvinceId())) {
+                    ud.setProvince(newWard.getDistrict().getProvince());
+                }
+                ud.setWard(newWard);
+            }
         }
 
         userDetailRepo.save(ud);

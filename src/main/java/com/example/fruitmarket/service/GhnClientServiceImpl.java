@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
 import java.io.UnsupportedEncodingException;
@@ -29,11 +30,19 @@ public class GhnClientServiceImpl implements GhnClientService {
     private final String shopId;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(com.fasterxml.jackson.core.JsonGenerator.Feature.ESCAPE_NON_ASCII, false);
+    private final WebClient webClient;
+
+    @Value("${ghn.base-url}")
+    private String baseUrl;
+
+    @Value("${ghn.token}")
+    private String token;
 
     public GhnClientServiceImpl(WebClient ghnClient,
-                                @Value("${ghn.shop-id}") String shopId) {
+                                @Value("${ghn.shop-id}") String shopId, WebClient webClient) {
         this.ghnClient = ghnClient;
         this.shopId = shopId;
+        this.webClient = webClient;
     }
 
     @Override
@@ -260,4 +269,106 @@ public class GhnClientServiceImpl implements GhnClientService {
             // won't happen for UTF-8 on standard JVM
         }
     }
+
+    @Override
+    public void cancelOrder(String orderCode) {
+        if (orderCode == null || orderCode.isBlank()) {
+            throw new IllegalArgumentException("orderCode rỗng/không hợp lệ");
+        }
+        final String cancelV2Switch = normalize(baseUrl) + "/v2/switch-status/cancel";
+        final String cancelV2Single = normalize(baseUrl) + "/v2/shipping-order/cancel";
+
+        // ===== Cách 1: /v2/switch-status/cancel (mới — mảng order_codes) =====
+        Map<String, Object> bodyArray = Map.of("order_codes", List.of(orderCode));
+        try {
+            GhnCancelResp resp = webClient.post()
+                    .uri(cancelV2Switch)
+                    .headers(h -> {
+                        h.set("Token", token);
+                        if (shopId != null) h.set("ShopId", String.valueOf(shopId));
+                        h.set("Content-Type", "application/json");
+                        h.set("Accept", "application/json");
+                    })
+                    .bodyValue(bodyArray)
+                    .retrieve()
+                    .bodyToMono(GhnCancelResp.class)
+                    .block();
+
+            if (!isSuccess(resp)) {
+                String msg = "GHN cancel (switch-status) trả về lỗi: " + safeMsg(resp);
+                log.warn(msg);
+                // tuỳ chiến lược: ném lỗi hay bỏ qua
+                // throw new IllegalStateException(msg);
+            } else {
+                log.info("Huỷ GHN thành công (switch-status) cho orderCode={}", orderCode);
+            }
+            return;
+        } catch (WebClientResponseException ex) {
+            // Nếu endpoint không tồn tại/không hỗ trợ → thử fallback
+            if (ex.getStatusCode().value() == 404 || ex.getStatusCode().value() == 405) {
+                log.info("Endpoint switch-status/cancel không khả dụng, thử fallback shipping-order/cancel");
+            } else {
+                // Các lỗi khác vẫn thử fallback, nhưng log rõ
+                log.warn("GHN cancel switch-status lỗi {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
+            }
+        } catch (Exception ex) {
+            log.warn("GHN cancel switch-status gặp lỗi: {}", ex.getMessage(), ex);
+        }
+
+        // ===== Cách 2 (fallback): /v2/shipping-order/cancel (cũ — order_code đơn) =====
+        Map<String, Object> bodySingle = Map.of("order_code", orderCode);
+        try {
+            GhnCancelResp resp = webClient.post()
+                    .uri(cancelV2Single)
+                    .headers(h -> {
+                        h.set("Token", token);
+                        if (shopId != null) h.set("ShopId", String.valueOf(shopId));
+                        h.set("Content-Type", "application/json");
+                        h.set("Accept", "application/json");
+                    })
+                    .bodyValue(bodySingle)
+                    .retrieve()
+                    .bodyToMono(GhnCancelResp.class)
+                    .block();
+
+            if (!isSuccess(resp)) {
+                String msg = "GHN cancel (shipping-order) trả về lỗi: " + safeMsg(resp);
+                log.warn(msg);
+                // tuỳ chọn: throw new IllegalStateException(msg);
+            } else {
+                log.info("Huỷ GHN thành công (shipping-order) cho orderCode={}", orderCode);
+            }
+        } catch (WebClientResponseException ex) {
+            log.warn("GHN cancel shipping-order lỗi {}: {}", ex.getStatusCode(), ex.getResponseBodyAsString());
+            // tuỳ chọn: throw ex;
+        } catch (Exception ex) {
+            log.warn("GHN cancel shipping-order gặp lỗi: {}", ex.getMessage(), ex);
+            // tuỳ chọn: throw ex;
+        }
+    }
+
+    // ===== Helpers =====
+
+    private String normalize(String url) {
+        if (url == null || url.isBlank()) return "";
+        return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
+
+    private boolean isSuccess(GhnCancelResp resp) {
+        if (resp == null) return false;
+        // Một số API GHN trả {code:200, message:...}
+        if (resp.getCode() != null) return resp.getCode() == 200;
+        // Có API chỉ trả success=true
+        if (resp.getSuccess() != null) return resp.getSuccess();
+        // Hoặc data != null coi là OK
+        return resp.getData() != null;
+    }
+
+    private String safeMsg(GhnCancelResp resp) {
+        if (resp == null) return "<null>";
+        if (resp.getMessage() != null) return resp.getMessage();
+        if (resp.getError() != null) return resp.getError();
+        return String.valueOf(resp);
+    }
+
 }
