@@ -43,6 +43,6 @@ public class Product {
     @Column
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column
+    @Enumerated(EnumType.STRING)
     private Units unit;
 }

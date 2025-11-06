@@ -5,6 +5,7 @@ import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.model.Order;
 import com.example.fruitmarket.model.ProductVariant;
 import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +16,16 @@ import java.util.List;
 
 @Service
 public interface OrderService {
+    /* ============================
+     * createOrder (OVERLOAD 1) — tương thích code cũ
+     * ============================ */
+    @Transactional
+    Order createOrder(HttpSession session,
+                      ProductVariant variant,
+                      Integer quantity,
+                      Long addressId,
+                      String paymentMethod);
+
     Order createOrder(HttpSession session, ProductVariant variant, Integer quantity, Long addressId, String paymentMethod, BigDecimal shippingFee, Integer serviceId);
 
     Long createOrderFromCart(OrderRequest orderReq, HttpSession session);

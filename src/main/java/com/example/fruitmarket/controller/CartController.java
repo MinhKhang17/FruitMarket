@@ -360,7 +360,7 @@ public class CartController {
                         .map(oi -> {
                             CreateOrderReq.Item it = new CreateOrderReq.Item();
                             it.setName(oi.getProductVariant().getProduct().getProductName());
-                            it.setQuantity(oi.getQuanity());
+                            it.setQuantity(oi.getQuantity());
                             return it;
                         })
                         .collect(Collectors.toList());

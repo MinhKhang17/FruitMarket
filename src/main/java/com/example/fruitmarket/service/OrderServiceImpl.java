@@ -1,7 +1,6 @@
 package com.example.fruitmarket.service;
 
 import com.example.fruitmarket.dto.CreateOrderReq;
-import com.example.fruitmarket.dto.OrderDetailRes;
 import com.example.fruitmarket.dto.OrderRequest;
 import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.enums.OrderStauts;
@@ -35,10 +34,10 @@ public class OrderServiceImpl implements OrderService {
     private int fromDistrictId;
 
     /* ============================
-     * createOrder (OVERLOAD 1) — đơn giản, tương thích code cũ
+     * createOrder (OVERLOAD 1) — tương thích code cũ
      * ============================ */
-    @Override
     @Transactional
+    @Override
     public Order createOrder(HttpSession session,
                              ProductVariant variant,
                              Integer quantity,
@@ -48,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /* =============================================
-     * createOrder (OVERLOAD 2) — bản đầy đủ (bản 1)
+     * createOrder (OVERLOAD 2) — bản đầy đủ
      * ============================================= */
     @Override
     @Transactional
@@ -59,6 +58,7 @@ public class OrderServiceImpl implements OrderService {
                              String paymentMethod,
                              BigDecimal shippingFee,
                              Integer serviceId) {
+
         Users user = (Users) session.getAttribute("loggedUser");
         if (user == null) throw new IllegalStateException("User not logged in");
 
@@ -80,7 +80,8 @@ public class OrderServiceImpl implements OrderService {
 
         // item
         OrderItem oi = new OrderItem();
-        oi.setQuanity(quantity != null && quantity > 0 ? quantity : 1);
+        int q = (quantity != null && quantity > 0) ? quantity : 1;
+        oi.setQuantity(q);
         oi.setProductVariant(variant);
         oi.setPrice(variant.getPrice() != null ? variant.getPrice() : BigDecimal.ZERO);
 
@@ -88,12 +89,12 @@ public class OrderServiceImpl implements OrderService {
         order.getOrderItemList().add(oi);
 
         // totals
-        BigDecimal goodsTotal = oi.getPrice().multiply(BigDecimal.valueOf(oi.getQuanity()));
+        BigDecimal goodsTotal = oi.getPrice().multiply(BigDecimal.valueOf(q));
         BigDecimal safeShip = (shippingFee != null && shippingFee.signum() >= 0) ? shippingFee : BigDecimal.ZERO;
 
         order.setShippingFee(safeShip);
         order.setTotalPrice(goodsTotal.add(safeShip));
-        order.setTotalQuantity(oi.getQuanity());
+        order.setTotalQuantity(q);
         order.setGhnStatus(GhnStatus.READY_TO_PICK);
 
         Order saved = orderRepo.save(order);
@@ -106,7 +107,9 @@ public class OrderServiceImpl implements OrderService {
                         ? serviceId
                         : svRes.getData().get(0).getServiceId();
 
-                long weight = Math.max(1, saved.getTotalQuantity()) * 500L; // 500g/đơn vị
+                long weightGram = Math.max(1, saved.getTotalQuantity()) * 500L; // 500g/đơn vị
+                if (weightGram < 100) weightGram = 100;
+
                 int length = 20, width = 15, height = 10;
 
                 int cod = (saved.getPricingMethod() == PricingMethod.COD)
@@ -119,7 +122,7 @@ public class OrderServiceImpl implements OrderService {
                 req.setToWardCode(ud.getWard().getWardCode());
                 req.setToDistrictId(ud.getDistrict().getDistrictId());
                 req.setServiceId(useServiceId);
-                req.setWeight(weight);
+                req.setWeight(weightGram);
                 req.setLength(length);
                 req.setWidth(width);
                 req.setHeight(height);
@@ -135,7 +138,7 @@ public class OrderServiceImpl implements OrderService {
                 List<CreateOrderReq.Item> items = new ArrayList<>();
                 CreateOrderReq.Item item = new CreateOrderReq.Item();
                 item.setName(variant.getProduct().getProductName());
-                item.setQuantity(quantity != null && quantity > 0 ? quantity : 1);
+                item.setQuantity(q);
                 items.add(item);
                 req.setItems(items);
 
@@ -218,16 +221,15 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> items = new ArrayList<>();
         BigDecimal goodsTotal = BigDecimal.ZERO;
 
-        int totalQtyPiece = 0;           // tổng theo "cái"
-        double totalWeightKg = 0.0;      // tổng theo "kg"
+        int totalQtyPiece = 0;      // tổng số "cái"
+        double totalWeightKg = 0.0; // tổng số kg
 
         for (OrderRequest.OrderItem reqItem : orderReq.getItems()) {
             ProductVariant pv = null;
-
             if (reqItem.getVariantId() != null) {
                 pv = productService.findProductVariantById(reqItem.getVariantId());
             } else if (reqItem.getProductId() != null) {
-                // nếu cần: lấy variant mặc định theo productId
+                // TODO: nếu có method lấy variant mặc định theo productId thì dùng; tạm fallback
                 pv = productService.findProductVariantById(reqItem.getProductId());
             }
             if (pv == null) throw new IllegalArgumentException("ProductVariant not found");
@@ -242,19 +244,18 @@ public class OrderServiceImpl implements OrderService {
             oi.setProductVariant(pv);
             oi.setPrice(unitPrice);
 
-            // Nếu có weight > 0 -> bán theo kg; ngược lại theo cái
             if (weightKg != null && weightKg > 0) {
+                // Bán theo kg
                 oi.setWeight(weightKg);
-                oi.setQuanity(null);
-                BigDecimal sub = unitPrice.multiply(BigDecimal.valueOf(weightKg));
-                goodsTotal = goodsTotal.add(sub);
+                oi.setQuantity(null);
+                goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(weightKg)));
                 totalWeightKg += weightKg;
             } else {
+                // Bán theo cái
                 int q = (quantity != null && quantity > 0) ? quantity : 1;
-                oi.setQuanity(q);
+                oi.setQuantity(q);
                 oi.setWeight(null);
-                BigDecimal sub = unitPrice.multiply(BigDecimal.valueOf(q));
-                goodsTotal = goodsTotal.add(sub);
+                goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(q)));
                 totalQtyPiece += q;
             }
 
@@ -263,12 +264,8 @@ public class OrderServiceImpl implements OrderService {
 
         order.setOrderItemList(new ArrayList<>(items));
         order.setTotalQuantity(totalQtyPiece);
-        try {
-            // Nếu entity Order có trường totalWeight(Double), set; nếu không có trình biên dịch sẽ báo — bạn có thể xoá 2 dòng dưới.
-            order.setTotalWeight(totalWeightKg);
-        } catch (NoSuchMethodError | Exception ignore) {
-            // bỏ qua nếu Order không có setter totalWeight
-        }
+        // Nếu entity Order có trường totalWeight(Double) thì set; nếu không, có thể bỏ.
+        try { order.setTotalWeight(totalWeightKg); } catch (Throwable ignore) {}
 
         // 2) TÍNH PHÍ SHIP GHN (có trọng lượng thực)
         BigDecimal shippingFee = BigDecimal.ZERO;
@@ -280,14 +277,9 @@ public class OrderServiceImpl implements OrderService {
             if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
                 int serviceId = svRes.getData().get(0).getServiceId();
 
-                // Quy đổi cân nặng:
-                // - Hàng theo kg: totalWeightKg * 1000
-                // - Hàng theo cái: giả định 500g / cái (giữ logic cũ)
                 long weightGram =
                         Math.max(0, Math.round(totalWeightKg * 1000))
                                 + (long) Math.max(0, totalQtyPiece) * 500L;
-
-                // Tối thiểu GHN yêu cầu > 0
                 if (weightGram < 100) weightGram = 100;
 
                 int length = 20, width = 15, height = 10;
@@ -312,9 +304,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 4) (tuỳ chọn) tạo đơn GHN sau khi lưu thành công
         try {
-            String toName = user.getUsername();
-            String toPhone = userDetail.getPhone();
-            String toAddr  = userDetail.getAddress();
+            String toName       = user.getUsername();
+            String toPhone      = userDetail.getPhone();
+            String toAddr       = userDetail.getAddress();
             String toWardCode   = userDetail.getWard().getWardCode();
             Integer toDistrictId= userDetail.getDistrict().getDistrictId();
 
@@ -347,7 +339,7 @@ public class OrderServiceImpl implements OrderService {
                 req.setCodAmount(cod);
                 req.setClientOrderCode("ORD-" + saved.getId());
 
-                // Bắt buộc GHN — thêm note & items
+                // Bắt buộc GHN
                 req.setPayment_type_id(1); // shop trả ship
                 req.setRequired_note("KHONGCHOXEMHANG");
                 req.setNote("Đơn hàng FruitMarket #" + saved.getId());
@@ -356,8 +348,8 @@ public class OrderServiceImpl implements OrderService {
                 for (OrderItem it : saved.getOrderItemList()) {
                     CreateOrderReq.Item item = new CreateOrderReq.Item();
                     item.setName(it.getProductVariant().getProduct().getProductName());
-                    // GHN yêu cầu quantity là int; với hàng theo kg ta vẫn gửi 1 (đơn vị) để đạt yêu cầu
-                    item.setQuantity(it.getQuanity() != null ? it.getQuanity() : 1);
+                    // GHN cần quantity int; với hàng theo kg gửi 1 để hợp lệ
+                    item.setQuantity(it.getQuantity() != null ? it.getQuantity() : 1);
                     itemsGhn.add(item);
                 }
                 req.setItems(itemsGhn);

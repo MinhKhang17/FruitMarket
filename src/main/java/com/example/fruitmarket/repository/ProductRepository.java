@@ -34,4 +34,6 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
           or p.product_description like concat('%', :q, '%')
     """)
     List<Product> search(@Param("q") String q);
+
+    Product findByProductName(String productName);
 }

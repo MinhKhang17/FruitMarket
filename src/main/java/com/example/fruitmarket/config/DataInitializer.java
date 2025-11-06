@@ -43,7 +43,7 @@ public class DataInitializer implements CommandLineRunner {
         seedCategories();
         seedBrands();
         seedDefaultUser();
-        seedProducts();
+//        seedProducts();
     }
 
     // ==========================================
@@ -188,128 +188,153 @@ public class DataInitializer implements CommandLineRunner {
         }
     }
 
-    private void seedProducts() {
-        // prepare categories & brands (use first saved ones)
-        var savedCategories = categorysRepository.findAll();
-        var savedBrands = brandsRepository.findAll();
-        if (savedCategories.isEmpty() || savedBrands.isEmpty()) {
-            log.warn("No categories or brands found - skipping product seeding");
-            return;
-        }
-        Categorys defaultCategory = savedCategories.get(0);
-        Brands defaultBrand = savedBrands.get(0);
+    // ======================
+// 🥭 Seed products + link ảnh static/images
+// ======================
+//    private void seedProducts() {
+//        var savedCategories = categorysRepository.findAll();
+//        var savedBrands = brandsRepository.findAll();
+//        if (savedCategories.isEmpty() || savedBrands.isEmpty()) {
+//            log.warn("No categories or brands found - skipping product seeding");
+//            return;
+//        }
+//        Categorys defaultCategory = savedCategories.get(0);
+//        Brands defaultBrand = savedBrands.get(0);
+//
+//        // Đường dẫn ảnh đúng với src/main/resources/static/images
+//        final String IMG_APPLE       = "/images/red_apple.jpg";
+//        final String IMG_SPINACH     = "/images/baby_spinach.jpg";
+//        final String IMG_DRIED_MANGO = "/images/dried_mango.jpg";
+//
+//        // Upsert sản phẩm + biến thể (tránh duplicate)
+//        upsertProductWithVariant(
+//                "Red Apple",
+//                "Crisp, sweet red apples - fresh and juicy.",
+//                defaultCategory,
+//                defaultBrand,
+//                Units.KILOGRAM,
+//                "1kg",
+//                new BigDecimal("49000.00"),
+//                100,
+//                IMG_APPLE
+//        );
+//
+//        upsertProductWithVariant(
+//                "Baby Spinach",
+//                "Fresh baby spinach - tender leaves, great for salads.",
+//                defaultCategory,
+//                defaultBrand,
+//                Units.KILOGRAM,
+//                "1kg",
+//                new BigDecimal("24000.00"),
+//                80,
+//                IMG_SPINACH
+//        );
+//
+//        upsertProductWithVariant(
+//                "Dried Mango",
+//                "Sweet dried mango slices - tasty snack.",
+//                defaultCategory,
+//                defaultBrand,
+//                Units.KILOGRAM,
+//                "1kg",
+//                new BigDecimal("55000.00"),
+//                120,
+//                IMG_DRIED_MANGO
+//        );
+//
+//        log.info("✅ Product seeding complete (images linked to /static/images)");
+//    }
 
-        // helper để tạo product nhanh
-        BiConsumer<Product, String> setImageIfPossible = (product, imagePath) -> {
-            try {
-                // set image on product if setter exists
-                product.getClass().getMethod("setImageUrl", String.class).invoke(product, imagePath);
-            } catch (NoSuchMethodException ignored) {
-                // entity does not have setImageUrl - ignore
-            } catch (Exception e) {
-                log.warn("Failed to set product image via reflection: {}", e.getMessage());
+/* ==========================================================
+   Helpers
+   ========================================================== */
+
+    /** Tạo/cập nhật product + 1 variant theo tên (idempotent, không trùng). */
+    private void upsertProductWithVariant(
+            String productName,
+            String description,
+            Categorys category,
+            Brands brand,
+            Units unit,
+            String variantName,
+            BigDecimal price,
+            int stock,
+            String imagePath
+    ) {
+        Product product = productRepository.findByProductName(productName);
+        if (product == null) {
+            product = new Product();
+            product.setProductName(productName);
+            product.setProduct_description(description);
+            product.setCategory(category);
+            product.setBrand(brand);
+            product.setStatus(com.example.fruitmarket.enums.ProductStatus.ACTIVE);
+            product.setUnit(unit);
+            trySetImageUrl(product, imagePath); // nếu Product có setImageUrl(String)
+
+            // chuẩn bị list variants nếu null
+            if (product.getVariants() == null) {
+                product.setVariants(new java.util.ArrayList<>());
             }
-        };
-
-        // ---- Red Apple ----
-        if (!productRepository.existsByProductName("Red Apple")) {
-            Product p1 = new Product();
-            p1.setProductName("Red Apple");
-            p1.setProduct_description("Crisp, sweet red apples - fresh and juicy.");
-            p1.setCategory(defaultCategory);
-            p1.setBrand(defaultBrand);
-            p1.setStatus(ProductStatus.ACTIVE);
-            p1.setUnit(Units.KILOGRAM);
-
-            setImageIfPossible.accept(p1, "/images/red_apple.jpg");
-
-            ProductVariant v11 = new ProductVariant();
-            v11.setVariant_name("1kg");
-            v11.setPrice(new BigDecimal("49000.00"));
-            v11.setProduct(p1);
-            v11.setStock(100);
-            v11.setImage(new Image());
-            Image image = new Image();
-            image.setUrl("/images/red_apple.jpg");
-            v11.setImage(image);
-            v11.setStatus(ProductStatus.ACTIVE);
-            try {
-                v11.getClass().getMethod("setImageUrl", String.class).invoke(v11, "/images/red_apple.jpg");
-            } catch (Exception ignored) {
-            }
-
-            p1.getVariants().add(v11);
-
-            productRepository.save(p1);
-            log.info("Seeded product Red Apple with variants");
-        } else {
-            log.info("Product 'Red Apple' exists, skipping");
-        }
-
-        // ---- Baby Spinach ----
-        if (!productRepository.existsByProductName("Baby Spinach")) {
-            Product p2 = new Product();
-            p2.setProductName("Baby Spinach");
-            p2.setProduct_description("Fresh baby spinach - tender leaves, great for salads.");
-            p2.setCategory(defaultCategory);
-            p2.setBrand(defaultBrand);
-            p2.setStatus(ProductStatus.ACTIVE);
-            p2.setUnit(Units.KILOGRAM);
-
-            setImageIfPossible.accept(p2, "/images/baby_spinach.jpg");
-
-            ProductVariant s21 = new ProductVariant();
-            s21.setVariant_name("1kg");
-            s21.setPrice(new BigDecimal("24000.00"));
-            s21.setProduct(p2);
-            s21.setStock(80);
-            s21.setStatus(ProductStatus.ACTIVE);
-            try {
-                s21.getClass().getMethod("setImageUrl", String.class).invoke(s21, "/images/baby_spinach.jpg");
-            } catch (Exception ignored) {
-            }
-
-            p2.getVariants().add(s21);
-
-            productRepository.save(p2);
-            log.info("Seeded product Baby Spinach with variants");
-        } else {
-            log.info("Product 'Baby Spinach' exists, skipping");
-        }
-
-        // ---- Dried Mango ----
-        if (!productRepository.existsByProductName("Dried Mango")) {
-            Product p3 = new Product();
-            p3.setProductName("Dried Mango");
-            p3.setProduct_description("Sweet dried mango slices - tasty snack.");
-            p3.setCategory(defaultCategory);
-            p3.setBrand(defaultBrand);
-            p3.setStatus(ProductStatus.ACTIVE);
-            p3.setUnit(Units.KILOGRAM);
-
-            setImageIfPossible.accept(p3, "/images/dried_mango.jpg");
-
-            ProductVariant m31 = new ProductVariant();
-            m31.setVariant_name("1kg");
-            m31.setPrice(new BigDecimal("55000.00"));
-            m31.setProduct(p3);
-            m31.setStock(120);
-            m31.setStatus(ProductStatus.ACTIVE);
-            try {
-                m31.getClass().getMethod("setImageUrl", String.class).invoke(m31, "/images/dried_mango.jpg");
-            } catch (Exception ignored) {
-            }
-
-            p3.getVariants().add(m31);
-
-            productRepository.save(p3);
-            log.info("Seeded product Dried Mango with variants");
-        } else {
-            log.info("Product 'Dried Mango' exists, skipping");
         }
 
-        // NOTE: do not link placeholder.png except as fallback in UI/templates
-        log.info("Product seeding complete");
+        // kiểm tra variant theo tên trong product
+        ProductVariant variant = findVariantByName(product, variantName);
+        if (variant == null) {
+            variant = new ProductVariant();
+            variant.setVariant_name(variantName);
+            variant.setProduct(product); // 🔴 bắt buộc
+            product.getVariants().add(variant);
+        }
+
+        // cập nhật dữ liệu variant (safe cập nhật nếu đã tồn tại)
+        variant.setPrice(price);
+        variant.setStock(stock);
+        variant.setStatus(com.example.fruitmarket.enums.ProductStatus.ACTIVE);
+
+        // Link ảnh cho variant:
+        // - Nếu entity có setImageUrl(String) → dùng trực tiếp
+        // - Ngược lại nếu có quan hệ Image → đảm bảo chỉ tạo 1 Image và set url
+        boolean usedSetter = trySetImageUrl(variant, imagePath);
+        if (!usedSetter) {
+            if (variant.getImage() == null) {
+                Image img = new Image();
+                img.setUrl(imagePath);
+                variant.setImage(img); // cascade từ variant
+            } else {
+                variant.getImage().setUrl(imagePath);
+            }
+        }
+
+        // Lưu: chỉ cần save(product) (Cascade.ALL với variants) là đủ
+        productRepository.save(product);
+        log.info("Upserted product '{}' with variant '{}'", productName, variantName);
+    }
+
+    /** Tìm variant theo tên trong 1 product (không cần repo riêng). */
+    private ProductVariant findVariantByName(Product product, String variantName) {
+        if (product.getVariants() == null) return null;
+        for (ProductVariant v : product.getVariants()) {
+            if (v.getVariant_name() != null && v.getVariant_name().equalsIgnoreCase(variantName)) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    /** Thử gọi setImageUrl(String) nếu entity có, trả true nếu gọi được. */
+    private boolean trySetImageUrl(Object target, String url) {
+        try {
+            var m = target.getClass().getMethod("setImageUrl", String.class);
+            m.invoke(target, url);
+            return true;
+        } catch (NoSuchMethodException ignored) {
+            return false;
+        } catch (Exception e) {
+            log.warn("Failed to call setImageUrl on {}: {}", target.getClass().getSimpleName(), e.getMessage());
+            return false;
+        }
     }
 
 
