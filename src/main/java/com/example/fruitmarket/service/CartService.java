@@ -10,9 +10,9 @@ import java.math.BigDecimal;
 public interface CartService {
     Cart getCart();
 
-    void addToCart(Long productId, Long variantId, int qty);
+    void addToCart(Long productId, Long variantId, double qty);
 
-    void updateQuantity(Long productId, Long variantId, int qty);
+    void updateQuantity(Long productId, Long variantId, double qty);
 
     void remove(Long productId, Long variantId);
 

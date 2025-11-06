@@ -2,53 +2,44 @@ package com.example.fruitmarket.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
 public class CartItem {
-    // product id (bắt buộc để form gửi productId tới controller)
     private Long productId;
-
-    // variant id nếu có (nullable)
     private Long variantId;
-
-    // hiển thị tên sản phẩm
-    private String name;         // tương đương productName
-
-    // tên biến thể (nếu muốn hiển thị)
+    private String name;
     private String variantName;
-
-    // đơn giá (unit price)
     private BigDecimal price = BigDecimal.ZERO;
-
-    // số lượng
     private Integer quantity = 1;
-
-    // url ảnh hiển thị
+    private Double weight;
     private String imageUrl;
+    private String unit;
 
     public CartItem(Long productId, Long variantId, String name, String variantName,
-                    BigDecimal price, int quantity, String imageUrl) {
+                    BigDecimal price, int quantity, Double weight, String imageUrl, String unit) {
         this.productId = productId;
         this.variantId = variantId;
         this.name = name;
         this.variantName = variantName;
         this.price = (price != null) ? price : BigDecimal.ZERO;
-        this.quantity = Math.max(1, quantity);
+        this.quantity = (quantity > 0) ? quantity : 1;
+        this.weight = (weight != null && weight > 0) ? weight : null; // ✅ chỉ set khi có giá trị thật
         this.imageUrl = imageUrl;
+        this.unit = unit;
     }
 
-    // backward-compatible constructors (giữ tương thích với code cũ)
-    public CartItem(Long variantId, String name, BigDecimal price, int quantity, String imageUrl) {
-        this(null, variantId, name, null, price, quantity, imageUrl);
-    }
-
-    // tính subtotal an toàn
     public BigDecimal getSubTotal() {
         if (price == null) return BigDecimal.ZERO;
-        int q = (quantity == null || quantity < 1) ? 1 : quantity;
-        return price.multiply(BigDecimal.valueOf(q));
+        if ("KILOGRAM".equalsIgnoreCase(unit)) {
+            return price.multiply(BigDecimal.valueOf(getWeight()));
+        } else {
+            return price.multiply(BigDecimal.valueOf(getQuantity()));
+        }
+    }
+
+    public double getWeight() {
+        return (weight != null && weight > 0) ? weight : 0.0;
     }
 }

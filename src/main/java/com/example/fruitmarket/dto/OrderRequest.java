@@ -1,57 +1,36 @@
 package com.example.fruitmarket.dto;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+@Data
 public class OrderRequest {
     private Long addressId;
     private String paymentMethod;
     private List<OrderItem> items = new ArrayList<>();
     private BigDecimal totalPrice;
     private Integer totalQuantity;
+
+    // Thông tin cho GHN/địa chỉ chi tiết
     private Integer toDistrictId;
     private String toWardCode;
+
+    // Mở rộng để lưu phí & dịch vụ GHN nếu cần
     private BigDecimal shippingFee;
     private Integer serviceId;
 
-    public Long getAddressId() { return addressId; }
-    public void setAddressId(Long addressId) { this.addressId = addressId; }
-    public String getPaymentMethod() { return paymentMethod; }
-    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
-    public List<OrderItem> getItems() { return items; }
-    public void setItems(List<OrderItem> items) { this.items = items; }
-    public BigDecimal getTotalPrice() { return totalPrice; }
-    public void setTotalPrice(BigDecimal totalPrice) { this.totalPrice = totalPrice; }
-    public Integer getTotalQuantity() { return totalQuantity; }
-    public void setTotalQuantity(Integer totalQuantity) { this.totalQuantity = totalQuantity; }
-    public Integer getToDistrictId() { return toDistrictId; }
-    public void setToDistrictId(Integer toDistrictId) { this.toDistrictId = toDistrictId; }
-    public String getToWardCode() { return toWardCode; }
-    public void setToWardCode(String toWardCode) { this.toWardCode = toWardCode; }
-    public BigDecimal getShippingFee() { return shippingFee; }
-    public void setShippingFee(BigDecimal shippingFee) { this.shippingFee = shippingFee; }
-    public Integer getServiceId() { return serviceId; }
-    public void setServiceId(Integer serviceId) { this.serviceId = serviceId; }
-
+    @Data
     public static class OrderItem {
         private Long productId;
         private Long variantId;
         private String name;
-        private java.math.BigDecimal price;
+        private BigDecimal price;
         private Integer quantity;
 
-
-        public Long getProductId() { return productId; }
-        public void setProductId(Long productId) { this.productId = productId; }
-        public Long getVariantId() { return variantId; }
-        public void setVariantId(Long variantId) { this.variantId = variantId; }
-        public String getName() { return name; }
-        public void setName(String name) { this.name = name; }
-        public java.math.BigDecimal getPrice() { return price; }
-        public void setPrice(java.math.BigDecimal price) { this.price = price; }
-        public Integer getQuantity() { return quantity; }
-        public void setQuantity(Integer quantity) { this.quantity = quantity; }
+        // Tuỳ chọn: cân nặng từng item (nếu có)
+        private Double weight;
     }
 }
-

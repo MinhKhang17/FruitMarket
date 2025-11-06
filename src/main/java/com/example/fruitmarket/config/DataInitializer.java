@@ -2,6 +2,7 @@ package com.example.fruitmarket.config;
 
 import com.example.fruitmarket.controller.GeoJsonLoader;
 import com.example.fruitmarket.enums.ProductStatus;
+import com.example.fruitmarket.enums.Units;
 import com.example.fruitmarket.enums.UserStatus;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.*;
@@ -218,8 +219,8 @@ public class DataInitializer implements CommandLineRunner {
             p1.setCategory(defaultCategory);
             p1.setBrand(defaultBrand);
             p1.setStatus(ProductStatus.ACTIVE);
+            p1.setUnit(Units.KILOGRAM);
 
-            // set product image (served from /images/red_apple.jpg)
             setImageIfPossible.accept(p1, "/images/red_apple.jpg");
 
             ProductVariant v11 = new ProductVariant();
@@ -237,20 +238,7 @@ public class DataInitializer implements CommandLineRunner {
             } catch (Exception ignored) {
             }
 
-            ProductVariant v12 = new ProductVariant();
-            v12.setVariant_name("500g");
-            v12.setPrice(new BigDecimal("25000.00"));
-            v12.setProduct(p1);
-            v12.setStock(100);
-            v12.setImage(new Image("/images/baby_spinach"));
-            v12.setStatus(ProductStatus.ACTIVE);
-            try {
-                v12.getClass().getMethod("setImageUrl", String.class).invoke(v12, "/images/red_apple.jpg");
-            } catch (Exception ignored) {
-            }
-
             p1.getVariants().add(v11);
-            p1.getVariants().add(v12);
 
             productRepository.save(p1);
             log.info("Seeded product Red Apple with variants");
@@ -266,11 +254,12 @@ public class DataInitializer implements CommandLineRunner {
             p2.setCategory(defaultCategory);
             p2.setBrand(defaultBrand);
             p2.setStatus(ProductStatus.ACTIVE);
+            p2.setUnit(Units.KILOGRAM);
 
             setImageIfPossible.accept(p2, "/images/baby_spinach.jpg");
 
             ProductVariant s21 = new ProductVariant();
-            s21.setVariant_name("250g");
+            s21.setVariant_name("1kg");
             s21.setPrice(new BigDecimal("24000.00"));
             s21.setProduct(p2);
             s21.setStock(80);
@@ -280,19 +269,7 @@ public class DataInitializer implements CommandLineRunner {
             } catch (Exception ignored) {
             }
 
-            ProductVariant s22 = new ProductVariant();
-            s22.setVariant_name("500g");
-            s22.setPrice(new BigDecimal("42000.00"));
-            s22.setProduct(p2);
-            s22.setStock(60);
-            s22.setStatus(ProductStatus.ACTIVE);
-            try {
-                s22.getClass().getMethod("setImageUrl", String.class).invoke(s22, "/images/baby_spinach.jpg");
-            } catch (Exception ignored) {
-            }
-
             p2.getVariants().add(s21);
-            p2.getVariants().add(s22);
 
             productRepository.save(p2);
             log.info("Seeded product Baby Spinach with variants");
@@ -308,11 +285,12 @@ public class DataInitializer implements CommandLineRunner {
             p3.setCategory(defaultCategory);
             p3.setBrand(defaultBrand);
             p3.setStatus(ProductStatus.ACTIVE);
+            p3.setUnit(Units.KILOGRAM);
 
             setImageIfPossible.accept(p3, "/images/dried_mango.jpg");
 
             ProductVariant m31 = new ProductVariant();
-            m31.setVariant_name("200g");
+            m31.setVariant_name("1kg");
             m31.setPrice(new BigDecimal("55000.00"));
             m31.setProduct(p3);
             m31.setStock(120);
@@ -322,19 +300,7 @@ public class DataInitializer implements CommandLineRunner {
             } catch (Exception ignored) {
             }
 
-            ProductVariant m32 = new ProductVariant();
-            m32.setVariant_name("500g");
-            m32.setPrice(new BigDecimal("120000.00"));
-            m32.setProduct(p3);
-            m32.setStock(60);
-            m32.setStatus(ProductStatus.ACTIVE);
-            try {
-                m32.getClass().getMethod("setImageUrl", String.class).invoke(m32, "/images/dried_mango.jpg");
-            } catch (Exception ignored) {
-            }
-
             p3.getVariants().add(m31);
-            p3.getVariants().add(m32);
 
             productRepository.save(p3);
             log.info("Seeded product Dried Mango with variants");
