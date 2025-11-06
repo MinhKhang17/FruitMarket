@@ -242,11 +242,19 @@ public class AdminController {
 
     // ✅ POST mapping gọn gàng, thống nhất
     @PostMapping("/products/save")
-    public String saveProduct(@ModelAttribute Product product, HttpSession session) {
+    public String saveProduct(@ModelAttribute Product product, HttpSession session, RedirectAttributes ra) {
         String redirect = checkAdminAccess(session);
         if (redirect != null) return redirect;
-
-        productService.saveProduct(product);
+        try {
+            boolean isNew = (product.getId() == null);
+            productService.saveProduct(product);
+            ra.addFlashAttribute("message",
+                    isNew ? "Thêm sản phẩm mới thành công!" : "Cập nhật sản phẩm thành công!");
+            ra.addFlashAttribute("type", "success");
+        } catch (Exception e) {
+            ra.addFlashAttribute("message", "Lỗi khi lưu sản phẩm: " + e.getMessage());
+            ra.addFlashAttribute("type", "danger");
+        }
         return "redirect:/admin/products";
     }
 

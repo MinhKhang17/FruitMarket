@@ -46,9 +46,9 @@ public class BuyController {
         // 1. Kiểm tra login trước
 
         if (session.getAttribute("loggedUser")==null) {
-            ra.addFlashAttribute("message","You should login first");
+            ra.addFlashAttribute("message","Bạn phải đăng nhập trước");
             ra.addFlashAttribute("type","danger");
-            return "redirect:/auth/login";
+            return "redirect:/";
         }
         if (!AuthUtils.isClient(session)) {
             ra.addFlashAttribute("message", "Chỉ tài khoản khách hàng (CLIENT) đang hoạt động mới được phép đặt hàng.");

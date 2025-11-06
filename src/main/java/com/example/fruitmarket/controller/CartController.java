@@ -95,7 +95,7 @@ public class CartController {
         // Ưu tiên weight > quantity > qtyOrWeight, default 1.0
         double val = (weight != null ? weight : (quantity != null ? quantity : (qtyOrWeight != null ? qtyOrWeight : 1.0)));
         log.info("🛒 addToCart: productId={}, variantId={}, val={}", productId, variantId, val);
-
+        ra.addFlashAttribute("success", "Đã thêm sản phẩm vào giỏ hàng thành công!");
         // CartService của bạn cần hỗ trợ double (đã có ở controller cũ). Nếu chỉ có int, đổi Math.floor(val).
         cartService.addToCart(productId, variantId, val);
         return "redirect:" + (referer != null ? referer : "/cart");

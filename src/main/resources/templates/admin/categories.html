@@ -10,12 +10,6 @@
     <h2>Danh sách danh mục</h2>
     <p>Quản lý danh mục — xem, sửa, xóa hoặc tạo mới.</p>
 
-    <!-- Thông báo flash -->
-    <div th:if="${message}"
-         th:class="'alert ' + (${type} == 'success' ? 'alert-success' : 'alert-danger')"
-         class="alert">
-        <p th:text="${message}">Thông báo</p>
-    </div>
 
     <!-- Nút thêm mới -->
     <div class="actions-bar">
@@ -60,4 +54,5 @@
     </p>
 </div>
 </body>
+<div th:replace="~{fragments/notification :: notification}"></div>
 </html>
