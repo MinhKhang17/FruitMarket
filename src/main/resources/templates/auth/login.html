@@ -3,36 +3,255 @@
 <head>
     <meta charset="UTF-8" />
     <title>Đăng nhập - FruitMarket</title>
-    <link rel="stylesheet" th:href="@{/login.css}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+        /* ===== Reset cơ bản ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root{
+            --green-600:#2e7d32;
+            --green-500:#43a047;
+            --green-400:#66bb6a;
+            --amber-400:#ffca28;
+            --slate-700:#334155;
+            --slate-500:#64748b;
+            --border:#e2e8f0;
+            --shadow:0 6px 20px rgba(0,0,0,.15);
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background:
+                    radial-gradient(1200px 600px at -10% -10%, #e8f5e9 0%, transparent 60%),
+                    radial-gradient(900px 500px at 110% 110%, #fff8e1 0%, transparent 60%),
+                    linear-gradient(135deg, #f1f8e9, #fff8e1);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+
+        /* ===== Khung login ===== */
+        .login-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: min(980px, 96vw);
+            min-height: 560px;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeIn .8s ease;
+            position: relative;
+            isolation: isolate;
+        }
+
+        /* ===== Cột trái (hero trái cây) ===== */
+        .login-left {
+            position: relative;
+            overflow: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            color: #fff;
+            padding: 28px;
+            background: #1b5e20;
+        }
+        /* Ảnh nền trái cây độ phân giải cao (Unsplash) */
+        .login-left::before{
+            content:"";
+            position:absolute; inset:0;
+            background:
+                    linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.45) 100%),
+                    url('https://images.unsplash.com/photo-1623065425901-2548b2ac9f1d?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+            z-index:-2;
+            transform: scale(1.04);
+            filter: saturate(1.1) contrast(1.05);
+        }
+        /* Hạt “bokeh” chuyển động dịu */
+        .floaters{
+            position:absolute; inset:0; pointer-events:none; z-index:-1;
+            background:
+                    radial-gradient(120px 120px at 10% 20%, rgba(255,255,255,.12), transparent 60%),
+                    radial-gradient(140px 140px at 80% 15%, rgba(255,255,255,.10), transparent 60%),
+                    radial-gradient(180px 180px at 20% 80%, rgba(255,255,255,.10), transparent 60%),
+                    radial-gradient(140px 140px at 90% 70%, rgba(255,255,255,.12), transparent 60%);
+            animation: drift 16s ease-in-out infinite alternate;
+            filter: blur(1px);
+        }
+        @keyframes drift{
+            0%   { transform: translateY(0) translateX(0) scale(1); }
+            100% { transform: translateY(-8px) translateX(6px) scale(1.02); }
+        }
+
+        .brand-row{
+            display:flex; align-items:center; gap:12px; margin-bottom: 10px;
+        }
+        .brand-logo{
+            width:42px; height:42px; border-radius:12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,.25);
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,.65);
+            background: #fff;
+        }
+        .brand-name{
+            font-size: 26px; font-weight: 800; letter-spacing:.2px;
+            text-shadow: 0 2px 10px rgba(0,0,0,.25);
+        }
+        .headline{
+            font-size: 28px; font-weight: 700; line-height: 1.2; margin-bottom: 6px;
+            text-shadow: 0 2px 10px rgba(0,0,0,.25);
+        }
+        .subcopy{
+            font-size: 15px; opacity: .95; max-width: 520px;
+        }
+        .badges{
+            margin-top: 16px; display:flex; gap: 10px; flex-wrap: wrap;
+        }
+        .chip{
+            backdrop-filter: blur(6px);
+            background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.1));
+            border: 1px solid rgba(255,255,255,.35);
+            color:#fff; padding: 6px 10px; border-radius: 999px; font-size: 13px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+        }
+
+        /* ===== Cột phải (form) ===== */
+        .login-right {
+            padding: 48px 56px;
+            display: flex; flex-direction: column; justify-content: center;
+            position: relative;
+            background:
+                    radial-gradient(600px 300px at 120% -10%, rgba(255,202,40,.18), transparent 60%),
+                    radial-gradient(600px 300px at -20% 110%, rgba(102,187,106,.18), transparent 60%),
+                    #fff;
+        }
+        .login-right h3 {
+            font-size: 24px; color: var(--green-600);
+            margin-bottom: 22px; text-align: center;
+        }
+
+        /* ===== Form ===== */
+        .form-group { margin-bottom: 16px; }
+        label {
+            font-weight: 600; color: #333; display: block; margin-bottom: 6px;
+        }
+        .field{
+            position: relative;
+        }
+        .field input[type="text"],
+        .field input[type="password"]{
+            width: 100%; padding: 12px 40px 12px 44px;
+            border: 1.5px solid var(--border); border-radius: 12px; font-size: 15px;
+            transition: border-color .25s ease, box-shadow .25s ease;
+            background: #fff;
+        }
+        .field input:focus{
+            border-color: var(--green-400);
+            box-shadow: 0 0 0 4px rgba(102,187,106,.18);
+            outline: none;
+        }
+        /* Icon hình ảnh ngoài cho input (không dùng emoji) */
+        .icon{
+            position:absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            width: 20px; height: 20px; opacity: .8;
+        }
+        .icon img{ width:100%; height:100%; object-fit: contain; filter: saturate(1) contrast(1.05); }
+
+        /* ===== Nút ===== */
+        .btn-login{
+            width: 100%;
+            background: linear-gradient(180deg, var(--green-500), #2e7d32);
+            color: #fff; border: none; padding: 12px;
+            border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: transform .15s ease, filter .15s ease, box-shadow .2s ease;
+            box-shadow: 0 8px 20px rgba(67,160,71,.25);
+        }
+        .btn-login:hover{ transform: translateY(-1px); filter: brightness(1.02); }
+        .btn-login:active{ transform: translateY(0); }
+
+        /* ===== Liên kết ===== */
+        .register-link{ text-align: center; margin-top: 16px; font-size: 14px; color: var(--slate-500); }
+        .register-link a{ color: var(--green-500); font-weight: 700; text-decoration: none; }
+        .register-link a:hover{ text-decoration: underline; }
+
+        /* ===== Thông báo ===== */
+        .error{ color:#c62828; font-size: 13px; margin-top: 6px; }
+        .alert { margin-top: 15px; border-radius: 10px; padding: 10px 15px; font-size: 14px; text-align: center; }
+        .alert-success { background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
+        .alert-danger { background:#ffebee; color:#c62828; border:1px solid #ffcdd2; }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 900px){
+            .login-container{ grid-template-columns: 1fr; min-height: auto; }
+            .login-left{ min-height: 220px; padding: 20px; }
+            .login-right{ padding: 28px 22px 32px; }
+        }
+
+        /* ===== Animation ===== */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-<span style="color:red;">Tai khoan user<br>user<br>password </span>
+
+<!-- Gợi ý tài khoản demo (có thể xoá) -->
+<div style="position:fixed; top:10px; left:10px; font-size:13px; color:#b42318; background:#fff; border:1px dashed #ffb4a2; padding:8px 10px; border-radius:8px; z-index:50;">
+    Tài khoản demo: <b>user / password</b>
+</div>
 
 <div th:replace="~{fragments/notification :: notification}"></div>
 
-<section class="login-section">
+<section class="login-section" style="width:100%;">
     <div class="login-container">
+        <!-- Cột trái: Hero trái cây -->
         <div class="login-left">
-            <div class="brand">
-                🍊 <span>FruitMarket</span>
+            <div class="floaters"></div>
+
+            <div class="brand-row">
+                <!-- Logo dạng hình ảnh ngoài (PNG, không dùng emoji) -->
+                <img class="brand-logo"
+                     src="https://cdn-icons-png.flaticon.com/512/415/415733.png"
+                     alt="FruitMarket logo">
+                <div class="brand-name">FruitMarket</div>
             </div>
-            <h2>Chào mừng trở lại!</h2>
-            <p>Đăng nhập để tiếp tục mua sắm những loại trái cây tươi ngon nhất 🌿</p>
+
+            <h1 class="headline">Trái cây tươi mỗi ngày</h1>
+            <p class="subcopy">Đăng nhập để tận hưởng ưu đãi mùa vụ, chọn lựa những loại quả ngon nhất được thu hoạch trong ngày.</p>
+
+            <!-- Một vài chip điểm nhấn -->
+            <div class="badges">
+                <span class="chip">Tươi 100%</span>
+                <span class="chip">Giao nhanh 2h</span>
+                <span class="chip">Giá theo mùa</span>
+            </div>
         </div>
 
+        <!-- Cột phải: Form -->
         <div class="login-right">
             <h3>Đăng nhập</h3>
 
             <form th:action="@{/auth/login}" method="post" th:object="${user}">
+                <!-- Nếu dùng Spring Security, có thể cần CSRF:
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                -->
                 <div class="form-group">
-                    <label>Tên đăng nhập</label>
-                    <input type="text" th:field="*{username}" placeholder="Nhập tên đăng nhập" required />
+                    <label for="username">Tên đăng nhập</label>
+                    <div class="field">
+              <span class="icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/1077/1077114.png" alt="">
+              </span>
+                        <input id="username" type="text" th:field="*{username}" placeholder="Nhập tên đăng nhập" required />
+                    </div>
                     <div class="error" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
                 </div>
 
                 <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <input type="password" th:field="*{password}" placeholder="Nhập mật khẩu" required />
+                    <label for="password">Mật khẩu</label>
+                    <div class="field">
+              <span class="icon">
+                <img src="https://cdn-icons-png.flaticon.com/512/3064/3064155.png" alt="">
+              </span>
+                        <input id="password" type="password" th:field="*{password}" placeholder="Nhập mật khẩu" required />
+                    </div>
                     <div class="error" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
                 </div>
 
@@ -43,8 +262,9 @@
                 Chưa có tài khoản? <a th:href="@{/auth/register}">Đăng ký ngay</a>
             </p>
 
-<!--            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>-->
-<!--            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>-->
+            <!-- Thông báo -->
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
         </div>
     </div>
 </section>
