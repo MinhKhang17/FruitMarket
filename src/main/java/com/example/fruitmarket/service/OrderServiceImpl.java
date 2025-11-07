@@ -5,6 +5,7 @@ import com.example.fruitmarket.dto.OrderRequest;
 import com.example.fruitmarket.enums.GhnStatus;
 import com.example.fruitmarket.enums.OrderStauts;
 import com.example.fruitmarket.enums.PricingMethod;
+import com.example.fruitmarket.enums.Units;
 import com.example.fruitmarket.model.*;
 import com.example.fruitmarket.repository.OrderRepo;
 import jakarta.servlet.http.HttpSession;
@@ -248,6 +249,7 @@ public class OrderServiceImpl implements OrderService {
                 // Bán theo kg
                 oi.setWeight(weightKg);
                 oi.setQuantity(null);
+                oi.setUnit(Units.KILOGRAM); // ✅ Thêm dòng này
                 goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(weightKg)));
                 totalWeightKg += weightKg;
             } else {
@@ -255,9 +257,11 @@ public class OrderServiceImpl implements OrderService {
                 int q = (quantity != null && quantity > 0) ? quantity : 1;
                 oi.setQuantity(q);
                 oi.setWeight(null);
+                oi.setUnit(Units.PIECE); // ✅ Thêm dòng này
                 goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(q)));
                 totalQtyPiece += q;
             }
+
 
             items.add(oi);
         }

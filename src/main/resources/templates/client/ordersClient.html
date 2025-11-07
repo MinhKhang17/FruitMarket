@@ -117,9 +117,21 @@
                                              th:if="${item.productVariant.variant_name != null}"
                                              th:text="${item.productVariant.variant_name}">Phân loại</div>
                                     </td>
-                                    <td class="text-center" th:text="${item.unit}">PIECE</td>
                                     <td class="text-center"
-                                        th:text="${item.unit == 'KILOGRAM' ? item.weight + ' kg' : item.quantity}">1</td>
+                                        th:text="${item != null && item.unit != null && item.unit.toString() == 'KILOGRAM' ? 'Kg' : 'Cái'}">
+                                        PIECE
+                                    </td>
+
+                                    <td class="text-center"
+                                        th:text="${item != null ?
+        (item.unit != null && item.unit.toString() == 'KILOGRAM'
+            ? (item.weight != null ? item.weight + ' kg' : '0 kg')
+            : (item.quantity != null ? item.quantity : 0)
+        )
+        : 'N/A'}">
+                                        1
+                                    </td>
+
                                     <td class="text-end">
                                         <span th:text="${#numbers.formatDecimal(
                                             (item.price != null ? item.price : item.productVariant.price),
