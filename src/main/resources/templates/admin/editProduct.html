@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Tạo Product mới</title>
+    <title>Chỉnh sửa sản phẩm</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
@@ -14,18 +14,20 @@
 <div class="container" style="max-width:900px">
     <div class="card mt-3 border-0 shadow-sm">
         <div class="card-body">
-            <h4 class="card-title mb-2">Tạo Product mới</h4>
+            <h4 class="card-title mb-2">Chỉnh sửa sản phẩm</h4>
             <p class="text-muted mb-4">
-                Form này chỉ tạo sản phẩm <strong>chung</strong>. Sau khi lưu, bạn có thể thêm
-                <strong>variant</strong> riêng cho sản phẩm.
+                Cập nhật thông tin cơ bản của sản phẩm. Những thay đổi này sẽ áp dụng cho toàn bộ <strong>variant</strong> liên quan.
             </p>
 
-            <!-- ✅ Form tạo sản phẩm -->
-            <form th:action="@{/admin/products/save}" th:object="${product}" method="post">
+            <!-- ✅ Form chỉnh sửa sản phẩm -->
+            <form th:action="@{/admin/products/update}" th:object="${product}" method="post">
+                <!-- ID ẩn -->
+                <input type="hidden" th:field="*{id}"/>
+
                 <!-- Tên sản phẩm -->
                 <div class="mb-3">
                     <label class="form-label">Tên sản phẩm</label>
-                    <input type="text" th:field="*{productName}" class="form-control" placeholder="VD: Mít sấy" required/>
+                    <input type="text" th:field="*{productName}" class="form-control" required/>
                     <div class="text-danger small" th:if="${#fields.hasErrors('productName')}" th:errors="*{productName}"></div>
                 </div>
 
@@ -33,7 +35,7 @@
                 <div class="mb-3">
                     <label class="form-label">Mô tả</label>
                     <textarea th:field="*{product_description}" class="form-control" rows="4"
-                              placeholder="Nhập mô tả ngắn gọn về sản phẩm..."></textarea>
+                              placeholder="Cập nhật mô tả cho sản phẩm..."></textarea>
                 </div>
 
                 <!-- Category & Brand -->
@@ -44,7 +46,6 @@
                             <option value="">-- Chọn Category --</option>
                             <option th:each="c : ${categories}" th:value="${c.id}" th:text="${c.name}"></option>
                         </select>
-                        <div class="text-danger small" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
                     </div>
 
                     <div class="col-md-6">
@@ -53,10 +54,10 @@
                             <option value="">-- Chọn Brand --</option>
                             <option th:each="b : ${brands}" th:value="${b.id}" th:text="${b.name}"></option>
                         </select>
-                        <div class="text-danger small" th:if="${#fields.hasErrors('brand')}" th:errors="*{brand}"></div>
                     </div>
                 </div>
 
+                <!-- ✅ Đơn vị tính -->
                 <div class="mt-3">
                     <label class="form-label">Đơn vị tính</label>
                     <select th:field="*{unit}" class="form-select" required>
@@ -65,19 +66,29 @@
                         <option th:value="KILOGRAM">Kilogram (kg)</option>
                         <option th:value="BASKET">Rổ / Giỏ</option>
                     </select>
-                    <div class="text-danger small" th:if="${#fields.hasErrors('unit')}" th:errors="*{unit}"></div>
+                </div>
+
+                <!-- ✅ Trạng thái -->
+                <div class="mt-3">
+                    <label class="form-label">Trạng thái</label>
+                    <select th:field="*{status}" class="form-select">
+                        <option th:value="${null}">-- Chọn trạng thái --</option>
+                        <option th:value="ACTIVE">ACTIVE</option>
+                        <option th:value="INACTIVE">INACTIVE</option>
+                        <option th:value="OUT_OF_STOCK">OUT_OF_STOCK</option>
+                    </select>
                 </div>
 
                 <!-- Buttons -->
                 <div class="mt-4 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary px-4">Cập nật sản phẩm</button>
+                    <button type="submit" class="btn btn-primary px-4">💾 Lưu thay đổi</button>
                     <a th:href="@{/admin/products}" class="btn btn-outline-secondary px-4">↩ Quay lại</a>
                 </div>
             </form>
 
             <hr class="my-4"/>
             <div class="text-muted small">
-                Sau khi tạo xong, vào trang chi tiết để thêm <em>variant</em> (giá/ảnh/stock…)
+                Bạn có thể quản lý các <em>variant</em> (giá, hình ảnh, tồn kho…) trong trang chi tiết sản phẩm.
             </div>
         </div>
     </div>

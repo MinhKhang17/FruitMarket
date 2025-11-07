@@ -10,6 +10,8 @@
     --danger-dark: #c62828;
     --purple: #8b5cf6;
     --purple-dark: #7c3aed;
+    --blue-btn: #4da3ff;
+    --blue-btn-hover: #1b82f1;
 }
 
 body {
@@ -151,6 +153,14 @@ tbody tr:hover {
     background-color: var(--danger-dark);
 }
 
+.actions a.restore {
+    background-color: var(--purple);
+    color: var(--purple-dark);
+}
+.actions a.restore:hover {
+    background-color: var(--blue-btn-hover);
+}
+
 /* View Variant */
 .actions a.btn-view {
     background-color: var(--purple);
@@ -166,3 +176,4 @@ tbody tr:hover {
 .actions a.btn-create:hover {
     background-color: var(--accent-dark);
 }
+

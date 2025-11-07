@@ -10,36 +10,36 @@
 </head>
 
 <body>
-<div class="card">
+<div class="card p-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
         <div>
             <h3 th:text="'Danh sách biến thể của: ' + ${product.productName}"></h3>
             <p class="text-muted" th:text="'Mã sản phẩm: ' + ${product.id}"></p>
         </div>
         <div class="d-flex gap-2">
-            <a th:href="@{/admin/products}" class="btn btn-outline-light btn-sm">← Danh sách sản phẩm</a>
+            <a th:href="@{/admin/products}" class="btn btn-outline-secondary btn-sm">← Danh sách sản phẩm</a>
             <a th:href="@{'/admin/products/' + ${product.id} + '/variants'}" class="btn btn-green btn-sm">+ Thêm biến thể</a>
         </div>
     </div>
 
-    <div th:if="${#lists.isEmpty(product.variants)}" class="empty">
+    <div th:if="${#lists.isEmpty(product.variants)}" class="text-center text-muted py-4">
         Chưa có biến thể nào.
     </div>
 
-    <table th:if="${!#lists.isEmpty(product.variants)}">
-        <thead>
+    <table th:if="${!#lists.isEmpty(product.variants)}" class="table table-bordered align-middle text-center">
+        <thead class="table-light">
         <tr>
             <th>#</th>
-            <th>Image</th>
-            <th>Type of variant</th>
-            <th>Price (₫)</th>
-            <th>Stock</th>
-            <th>Action</th>
+            <th>Ảnh</th>
+            <th>Tên biến thể</th>
+            <th>Giá (₫)</th>
+            <th>Tồn kho</th>
+            <th>Trạng thái</th>
+            <th>Hành động</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="v,iter : ${product.variants}"
-            th:if="${v.status != T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}">
+        <tr th:each="v,iter : ${product.variants}">
             <td th:text="${iter.index + 1}"></td>
             <td>
                 <img th:if="${v.image != null}" th:src="${v.image.url}" class="thumb" alt="variant"
@@ -49,14 +49,43 @@
             <td th:text="${v.variant_name}">Variant</td>
             <td th:text="${#numbers.formatDecimal(v.price, 0, 'COMMA', 2, 'POINT')}"></td>
             <td th:text="${v.stock}"></td>
+
+            <!-- Status -->
             <td>
-                <a th:href="@{'/admin/productVariant/delete/' + ${v.id}}"
-                   class="text-danger"
-                   onclick="return confirm('Xác nhận xóa biến thể này?')">Xóa</a>
+                <span th:classappend="${v.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE} ? 'badge bg-success' : 'badge bg-secondary'"
+                      th:text="${v.status}"></span>
+            </td>
+
+            <!-- Actions -->
+            <td class="d-flex justify-content-center gap-2 flex-wrap">
+                <!-- ✅ Edit -->
+                <a th:href="@{'/admin/productVariant/edit/' + ${v.id}}"
+                   class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-pencil"></i> Sửa
+                </a>
+
+                <!-- ✅ Delete -->
+                <a th:if="${v.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE}"
+                   th:href="@{'/admin/productVariant/delete/' + ${v.id}}"
+                   class="btn btn-outline-danger btn-sm"
+                   onclick="return confirm('Xác nhận xóa biến thể này?')">
+                    <i class="bi bi-trash"></i> Xóa
+                </a>
+
+                <!-- ✅ Restore -->
+                <a th:if="${v.status == T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}"
+                   th:href="@{'/admin/productVariant/restore/' + ${v.id}}"
+                   class="btn btn-outline-success btn-sm"
+                   onclick="return confirm('Khôi phục biến thể này?')">
+                    <i class="bi bi-arrow-clockwise"></i> Khôi phục
+                </a>
             </td>
         </tr>
         </tbody>
     </table>
 </div>
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </body>
 </html>

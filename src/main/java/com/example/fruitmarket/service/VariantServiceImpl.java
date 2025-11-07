@@ -50,7 +50,42 @@ public class VariantServiceImpl implements VariantService {
     }
 
     @Override
+    public void updateStatusToActive(Long variantId) {
+        ProductVariant variant = productVariantRepository.findById(variantId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể có ID: " + variantId));
+        variant.setStatus(ProductStatus.ACTIVE);
+        productVariantRepository.save(variant);
+    }
+
+    @Override
     public ProductVariant findById(Long variantId) {
         return productVariantRepository.findById(variantId).orElse(null);
+    }
+
+    @Override
+    public ProductVariant update(ProductVariant variant, List<MultipartFile> files, ImageType imageType) throws IOException {
+        // 🔍 Lấy bản gốc từ DB
+        ProductVariant existing = productVariantRepository.findById(variant.getId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy biến thể có ID: " + variant.getId()));
+
+        existing.setVariant_name(variant.getVariant_name());
+        existing.setPrice(variant.getPrice());
+        existing.setStock(variant.getStock());
+
+        // Nếu có Product trong variant thì cập nhật lại (nếu không thì giữ nguyên)
+        if (variant.getProduct() != null) {
+            Product product = productRepository.findById(variant.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm cho biến thể này"));
+            existing.setProduct(product);
+        }
+
+        // ✅ Upload lại ảnh nếu có file mới
+        if (files != null && !files.isEmpty() && !files.get(0).isEmpty()) {
+            MultipartFile firstFile = files.get(0);
+            imageService.uploadImageForVariant(existing.getId(), firstFile, imageType);
+        }
+
+        // ✅ Lưu lại biến thể đã cập nhật
+        return productVariantRepository.save(existing);
     }
 }

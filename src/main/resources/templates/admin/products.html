@@ -11,7 +11,7 @@
     <div class="top-row">
         <div>
             <h2>Danh sách Products</h2>
-            <div class="subtitle">Quản lý sản phẩm — xem, sửa, xóa hoặc tạo mới.</div>
+            <div class="subtitle">Quản lý sản phẩm — xem, sửa, xóa hoặc khôi phục.</div>
         </div>
         <div>
             <a class="btn btn-main" th:href="@{/admin/products/create}">Thêm sản phẩm mới</a>
@@ -30,31 +30,53 @@
                 <th>Description</th>
                 <th>Category</th>
                 <th>Brand</th>
+                <th>Status</th>
                 <th>Action</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="p,iter : ${products}"
-                th:if="${p.status != T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}">
+            <tr th:each="p, iter : ${products}">
                 <td th:text="${iter.index + 1}">1</td>
                 <td>
                     <img th:src="${!#lists.isEmpty(p.variants) && p.variants.get(0).image != null ?
-                                p.variants.get(0).image.url :
-                                '/images/placeholder.png'}"
-                         alt="thumb" class="thumb"/>
+                        p.variants.get(0).image.url :
+                        '/images/placeholder.png'}"
+                         alt="thumb" class="thumb" />
                 </td>
 
                 <td th:text="${p.productName}">Product name</td>
-                <td class="product-desc" th:text="${p.product_description != null ? p.product_description : '-'}">Description...</td>
+                <td class="product-desc"
+                    th:text="${p.product_description != null ? p.product_description : '-'}">Description</td>
                 <td th:text="${p.category != null ? p.category.name : '—'}">Category</td>
                 <td th:text="${p.brand != null ? p.brand.name : '—'}">Brand</td>
 
+                <!-- STATUS -->
+                <td>
+          <span th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE}"
+                class="badge-active">Active</span>
+                    <span th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}"
+                          class="badge-inactive">InActive</span>
+                </td>
+
+                <!-- ACTIONS -->
                 <td class="actions">
                     <a th:href="@{'/admin/products/edit/' + ${p.id}}" class="edit">Edit</a>
-                    <a th:href="@{'/admin/products/delete/' + ${p.id}}" class="delete"
+
+                    <a th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE}"
+                       th:href="@{'/admin/products/delete/' + ${p.id}}"
+                       class="delete"
                        onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">Delete</a>
-                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants/list'}" class="btn-view">View Variants</a>
-                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}" class="btn-create">Create Variant</a>
+
+                    <a th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}"
+                       th:href="@{'/admin/products/restore/' + ${p.id}}"
+                       class="restore"
+                       onclick="return confirm('Bạn có muốn khôi phục sản phẩm này?');">Restore</a>
+
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants/list'}"
+                       class="btn-view">View Variants</a>
+
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}"
+                       class="btn-create">Create Variant</a>
                 </td>
             </tr>
             </tbody>

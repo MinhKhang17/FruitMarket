@@ -57,11 +57,6 @@
                 <h2 id="pageTitle" class="m-0">Danh sách Products</h2>
                 <div id="pageDesc" class="small-muted">Quản lý sản phẩm: xem, sửa, tạo, xóa.</div>
             </div>
-
-            <div>
-                <a id="btnCreate" class="btn btn-sm btn-success" href="#" role="button">➕ Thêm sản phẩm</a>
-                <a id="btnProducts" class="btn btn-sm btn-outline-primary" href="#" role="button">🧾 Danh sách sản phẩm</a>
-            </div>
         </div>
 
         <div id="frameWrap">
@@ -93,12 +88,6 @@
                 frame.src = src;
             });
         });
-
-        document.getElementById('btnCreate').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.querySelector('aside.sidebar .nav-link[data-src="/admin/products/create"]').click();
-        });
-        document.getElementById('btnProducts').addEventListener('click', function (e) { e.preventDefault(); document.querySelector('aside.sidebar .nav-link[data-src="/admin/products"]').click(); });
 
         function adjustFrameHeight() {
             const available = window.innerHeight - 220;

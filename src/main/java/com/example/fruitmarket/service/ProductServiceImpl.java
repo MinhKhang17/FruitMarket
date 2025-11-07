@@ -25,6 +25,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product saveProduct(Product product){
+        if (product.getVariants() != null) {
+            for (ProductVariant variant : product.getVariants()) {
+                variant.setProduct(product);
+            }
+        }
+
         return productRepo.save(product);
     }
 
@@ -119,7 +125,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public void deleteById(Long id) {
-        productRepo.deleteById(id);
+    public void updateProductStatusToActive(Long productId) {
+        Product product = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        product.setStatus(ProductStatus.ACTIVE);
+        productRepo.save(product);
     }
+
 }
