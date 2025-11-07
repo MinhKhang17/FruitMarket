@@ -10,6 +10,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.util.List;
 
@@ -57,5 +58,20 @@ public class OrderController {
             model.addAttribute("error", ex.getMessage());
             return "client/order-detail";
         }
+    }
+
+    @PostMapping("/orders/{id}/cancel")
+    public String cancelOrder(@PathVariable("id") Long orderId,
+                              HttpSession session,
+                              org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        try {
+            orderService.cancelOrderForUser(orderId, session);
+            ra.addFlashAttribute("success", "Huỷ đơn hàng #" + orderId + " thành công.");
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            ra.addFlashAttribute("error", ex.getMessage());
+        } catch (Exception ex) {
+            ra.addFlashAttribute("error", "Có lỗi xảy ra khi huỷ đơn. Vui lòng thử lại.");
+        }
+        return "redirect:/myOrders";
     }
 }

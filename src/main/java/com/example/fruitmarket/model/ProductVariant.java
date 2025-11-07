@@ -22,7 +22,7 @@ public class ProductVariant {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @Column
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String variant_name;
 
     @Column

@@ -16,10 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -447,21 +444,46 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderRepo.findById(clientOrderCode)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng: " + clientOrderCode));
 
-        // Cập nhật GHN code nếu có
+        // 1) GHN code
         if (ghnOrderCode != null && !ghnOrderCode.isBlank()
                 && (order.getGhnOrderCode() == null || !ghnOrderCode.equals(order.getGhnOrderCode()))) {
             order.setGhnOrderCode(ghnOrderCode);
         }
 
-        // Ghi nhận GHN status
+        // 2) Chặn callback đi lùi
+        GhnStatus oldGhn = order.getGhnStatus();
+        if (oldGhn != null) {
+            int oldRank = GHN_RANK.getOrDefault(oldGhn, 0);
+            int newRank = GHN_RANK.getOrDefault(ghnStatus, 0);
+            if (newRank < oldRank) {
+                log.warn("BỎ QUA callback GHN: {} < {} cho đơn {}", ghnStatus, oldGhn, clientOrderCode);
+                return false; // không cập nhật gì
+            }
+        }
+
+        // 3) Ghi nhận GHN status (đã qua kiểm tra không đi lùi)
         order.setGhnStatus(ghnStatus);
 
-        // Map GHN -> OrderStatus
+        // 4) Map GHN -> OrderStatus (chỉ tiến tới, không kéo lùi OrderStatus)
         switch (ghnStatus) {
-            case READY_TO_PICK -> order.setOrderStauts(OrderStauts.PENDING);
-            case DELIVERING    -> order.setOrderStauts(OrderStauts.SHIPPING);
+            case READY_TO_PICK -> {
+                // chỉ set PENDING nếu chưa vượt qua PENDING
+                if (order.getOrderStauts() == null ||
+                        order.getOrderStauts().rank() <= OrderStauts.PENDING.rank()) {
+                    order.setOrderStauts(OrderStauts.PENDING);
+                }
+            }
+            case DELIVERING -> {
+                // khi đang giao thì coi như SHIPPING
+                if (order.getOrderStauts() == null ||
+                        order.getOrderStauts().rank() < OrderStauts.SHIPPING.rank()) {
+                    order.setOrderStauts(OrderStauts.SHIPPING);
+                }
+            }
             case DELIVERED -> {
-                if ("COD".equalsIgnoreCase(String.valueOf(order.getPricingMethod())) && !order.isPaid()) {
+                // khi đã giao: hoàn tất/đã thu COD thì COMPLETED, chưa thu thì SHIPPED
+                boolean isCOD = "COD".equalsIgnoreCase(String.valueOf(order.getPricingMethod()));
+                if (isCOD && !order.isPaid()) {
                     order.setOrderStauts(OrderStauts.COMPLETED);
                     order.setPaid(true);
                     log.info("Đơn {} (COD) giao thành công, set COMPLETED + PAID.", clientOrderCode);
@@ -469,7 +491,11 @@ public class OrderServiceImpl implements OrderService {
                     order.setOrderStauts(OrderStauts.COMPLETED);
                     log.info("Đơn {} đã thanh toán, GHN DELIVERED -> COMPLETED.", clientOrderCode);
                 } else {
-                    order.setOrderStauts(OrderStauts.SHIPPED);
+                    // chưa thanh toán online + GHN báo delivered: đánh dấu đã giao
+                    if (order.getOrderStauts() == null ||
+                            order.getOrderStauts().rank() < OrderStauts.SHIPPED.rank()) {
+                        order.setOrderStauts(OrderStauts.SHIPPED);
+                    }
                     log.info("Đơn {} chưa thanh toán, GHN DELIVERED -> SHIPPED.", clientOrderCode);
                 }
             }
@@ -497,4 +523,79 @@ public class OrderServiceImpl implements OrderService {
     public void addShippingToTotal(Long orderId, BigDecimal fee) {
         orderRepo.addShippingToTotal(orderId, (fee != null) ? fee : BigDecimal.ZERO);
     }
+
+    @Override
+    @Transactional
+    public void cancelOrderForUser(Long orderId, HttpSession session) {
+        Users user = (Users) session.getAttribute("loggedUser");
+        if (user == null) throw new IllegalStateException("Bạn cần đăng nhập trước.");
+
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng #" + orderId));
+
+        // Quyền: chỉ chủ đơn hoặc admin
+        boolean isOwner = order.getUsers() != null && Objects.equals(order.getUsers().getId(), user.getId());
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(String.valueOf(user.getRole()));
+        if (!isOwner && !isAdmin) throw new IllegalStateException("Bạn không có quyền huỷ đơn hàng này.");
+
+        // Không cho huỷ khi không thoả điều kiện
+        if (!canCancel(order)) {
+            throw new IllegalStateException("Đơn hiện tại không thể huỷ (trạng thái: " + order.getOrderStauts() + ").");
+        }
+
+        // Best-effort huỷ bên GHN (nếu có mã)
+        String ghnCode = order.getGhnOrderCode();
+        if (ghnCode != null && !ghnCode.isBlank()) {
+            try {
+                ghnClientService.cancelOrder(ghnCode);
+                log.info("GHN cancel OK for order {}, code {}", orderId, ghnCode);
+            } catch (WebClientResponseException wcre) {
+                log.warn("Huỷ GHN thất bại: status={} body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
+            } catch (Exception ex) {
+                log.warn("Huỷ GHN thất bại: {}", ex.getMessage(), ex);
+            }
+        }
+
+        // Cập nhật trạng thái nội bộ
+        order.setOrderStauts(OrderStauts.CANCELLED); // ❗Nếu enum bạn là CANCELLED thì đổi tại đây
+        order.setGhnStatus(GhnStatus.CANCEL);       // nếu có giá trị tương ứng
+        // Nếu cần: xử lý hoàn tiền tại đây (tuỳ cổng thanh toán)
+
+        orderRepo.save(order);
+    }
+
+    /** Chỉ cho phép huỷ khi vẫn còn ở giai đoạn trước giao hàng.
+     *  - KHÔNG HUỶ nếu Order ở: SHIPPING, SHIPPED, COMPLETED, CANCELED
+     *  - KHÔNG HUỶ nếu GHN ở: DELIVERING, DELIVERED
+     *  -> Cho huỷ khi: PENDING hoặc GHN READY_TO_PICK/PICKING, v.v.
+     */
+    private boolean canCancel(Order order) {
+        if (order == null) return false;
+
+        // Dựa trên enum thay vì so sánh chuỗi
+        OrderStauts os = order.getOrderStauts();
+        if (os != null) {
+            // Những trạng thái đơn nội bộ không được phép huỷ
+            EnumSet<OrderStauts> nonCancelableOrder =
+                    EnumSet.of(OrderStauts.SHIPPING, OrderStauts.SHIPPED, OrderStauts.COMPLETED, OrderStauts.CANCELLED);
+            if (nonCancelableOrder.contains(os)) return false;
+        }
+
+        // GHN từ DELIVERING trở đi thì chặn huỷ
+        GhnStatus gs = order.getGhnStatus();
+        if (gs != null) {
+            EnumSet<GhnStatus> nonCancelableGhn = EnumSet.of(GhnStatus.DELIVERING, GhnStatus.DELIVERED);
+            if (nonCancelableGhn.contains(gs)) return false;
+        }
+
+        // Còn lại cho phép huỷ
+        return true;
+    }
+
+    private static final Map<GhnStatus, Integer> GHN_RANK = Map.of(
+            GhnStatus.READY_TO_PICK, 1,
+            GhnStatus.PICKING,       2,
+            GhnStatus.DELIVERING,    3,
+            GhnStatus.DELIVERED,     4
+    );
 }

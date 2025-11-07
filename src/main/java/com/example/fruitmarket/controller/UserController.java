@@ -98,4 +98,25 @@ public class UserController {
         model.addAttribute("profileForm", new ProfileUpdateRequest(fresh.getEmail(), fresh.getPhone()));
         return "client/profile";
     }
+
+    @PostMapping("/address/{addressId}/geo")
+    public String updateAddressGeo(@PathVariable Long addressId,
+                                   @RequestParam(required = false) Integer districtId,
+                                   @RequestParam(required = false) String wardCode,
+                                   HttpSession session,
+                                   org.springframework.web.servlet.mvc.support.RedirectAttributes ra) {
+        Users logged = (Users) session.getAttribute("loggedUser");
+        if (logged == null) return "redirect:/auth/login";
+
+        try {
+            // Cập nhật district/ward cho địa chỉ
+            userService.updateAddress(addressId, null, districtId, wardCode, null, null);
+            ra.addFlashAttribute("success", "Cập nhật khu vực địa lý cho địa chỉ thành công!");
+        } catch (IllegalArgumentException ex) {
+            ra.addFlashAttribute("error", ex.getMessage());
+        }
+
+        // Quay lại trang hồ sơ để hiển thị lại thông tin mới nhất
+        return "redirect:/client/profile";
+    }
 }

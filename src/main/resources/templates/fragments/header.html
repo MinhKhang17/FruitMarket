@@ -104,6 +104,7 @@
 
                         <ul th:if="${session != null and session.loggedUser != null}"
                             class="dropdown-menu dropdown-menu-end">
+
                             <li>
                                 <a class="dropdown-item" th:href="@{/client/profile}">
                                     <i class="bi bi-person-lines-fill text-success me-2"></i> Hồ sơ cá nhân
@@ -114,6 +115,14 @@
                                     <i class="bi bi-basket2-fill text-success me-2"></i> Đơn hàng của tôi
                                 </a>
                             </li>
+
+                            <!-- ✅ THÊM MỤC NÀY: Chỉ hiện nếu là admin -->
+                            <li th:if="${session.loggedUser != null and session.loggedUser.role == 'ADMIN'}">
+                                <a class="dropdown-item" th:href="@{/admin}">
+                                    <i class="bi bi-gear-fill text-success me-2"></i> Quản lý trang web
+                                </a>
+                            </li>
+
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item text-danger" th:href="@{/auth/logout}">
