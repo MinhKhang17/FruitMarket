@@ -19,6 +19,7 @@ public class MockGhnWebhookController {
                               Model model) {
 
         GhnStatus status = switch (action.toLowerCase()) {
+            case "delivering" -> GhnStatus.DELIVERING;
             case "delivered" -> GhnStatus.DELIVERED;
             case "cancel"    -> GhnStatus.CANCEL;
             case "picking"   -> GhnStatus.PICKING;

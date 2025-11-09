@@ -16,6 +16,10 @@ public class CreateOrderReq {
     private String toWardCode;     // bắt buộc
     @JsonProperty("to_district_id")
     private Integer toDistrictId;  // bắt buộc
+    @JsonProperty("from_district_id")
+    private Integer fromDistrictId; // bắt buộc
+    @JsonProperty("from_ward_code")
+    private String fromWardCode;
 
     @JsonProperty("service_id")
     private Integer serviceId;     // dùng service_id
