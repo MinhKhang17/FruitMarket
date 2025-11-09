@@ -113,6 +113,8 @@ public class GhnClientServiceImpl implements GhnClientService {
         body.put("to_address", req.getToAddress());
         body.put("to_ward_code", req.getToWardCode());
         body.put("to_district_id", req.getToDistrictId());
+        body.put("from_district_id", req.getFromDistrictId());
+        body.put("from_ward_code",   req.getFromWardCode());
         body.put("service_id", req.getServiceId());
         body.put("weight", req.getWeight());
         body.put("length", req.getLength());

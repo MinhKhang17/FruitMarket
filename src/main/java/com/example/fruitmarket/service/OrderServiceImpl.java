@@ -30,6 +30,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Value("${ghn.from-district-id}")
     private int fromDistrictId;
+    @Value("${ghn.from-ward-code}")
+    private String fromWardCode;
 
     /* ============================
      * createOrder (OVERLOAD 1) — tương thích code cũ
@@ -116,8 +118,10 @@ public class OrderServiceImpl implements OrderService {
                 CreateOrderReq req = new CreateOrderReq();
                 req.setToName(user.getUsername());
                 req.setToPhone(ud.getPhone());
-                req.setToAddress(ud.getAddress());
+                req.setToAddress(normalizeVi(ud.getAddress()));
                 req.setToWardCode(ud.getWard().getWardCode());
+                req.setFromWardCode(fromWardCode);
+                req.setFromDistrictId(fromDistrictId);
                 req.setToDistrictId(ud.getDistrict().getDistrictId());
                 req.setServiceId(useServiceId);
                 req.setWeight(weightGram);
@@ -602,4 +606,12 @@ public class OrderServiceImpl implements OrderService {
             GhnStatus.DELIVERING,    3,
             GhnStatus.DELIVERED,     4
     );
+
+    private static String normalizeVi(String s) {
+        if (s == null) return null;
+        s = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFC);
+        // Ð/ð -> Đ/đ (tránh ký tự lạ trong dữ liệu)
+        s = s.replace('\u00D0', '\u0110').replace('\u00F0', '\u0111');
+        return s.replaceAll("\\s+", " ").trim();
+    }
 }
