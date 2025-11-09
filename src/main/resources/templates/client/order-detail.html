@@ -148,33 +148,15 @@
 
                         <div class="shipping-progress"
                              th:with="
-                                    s=${o.ghnStatus?.name()},
-                                    step1=${s == 'READY_TO_PICK' or s == 'PICKING' or s == 'PICKED'},
-                                    step2=${s == 'STORING' or s == 'TRANSPORTING'},
-                                    step3=${s == 'DELIVERING'},
-                                    step4=${s == 'DELIVERED'},
-                                    stepReturn=${s == 'RETURN' or s == 'RETURNED'},
-                                    stepError=${s == 'LOST' or s == 'DELAY' or s == 'EXCEPTION'},
-                                    isCancel=${s == 'CANCEL'}
-                                 ">
-                            <!-- ===== Trường hợp HUỶ: nối nhanh từ tạo đơn -> huỷ ===== -->
-                            <div class="shipping-timeline" th:if="${isCancel}">
-                                <div class="ship-step active">
-                                    <div class="icon"><i class="bi bi-receipt"></i></div>
-                                    <div class="label">Đã tạo đơn</div>
-                                </div>
-
-                                <!-- đường nối thẳng -->
-                                <div class="line active"></div>
-
-                                <div class="ship-step active">
-                                    <div class="icon bg-danger text-white"><i class="bi bi-x-octagon"></i></div>
-                                    <div class="label text-danger">Đã huỷ đơn</div>
-                                </div>
-                            </div>
-
-                            <!-- ===== Các trạng thái bình thường ===== -->
-                            <div class="shipping-timeline" th:if="${!isCancel}">
+             s=${o.ghnStatus?.name()},
+             step1=${s == 'READY_TO_PICK' or s == 'PICKING' or s == 'PICKED'},
+             step2=${s == 'STORING' or s == 'TRANSPORTING'},
+             step3=${s == 'DELIVERING'},
+             step4=${s == 'DELIVERED'},
+             stepReturn=${s == 'RETURN' or s == 'RETURNED'},
+             stepError=${s == 'CANCEL' or s == 'LOST' or s == 'DELAY' or s == 'EXCEPTION'}
+         ">
+                            <div class="shipping-timeline">
                                 <div class="ship-step" th:classappend="${step1 or step2 or step3 or step4} ? ' active'">
                                     <div class="icon"><i class="bi bi-receipt"></i></div>
                                     <div class="label">Đã tạo đơn</div>
@@ -208,7 +190,7 @@
 
                                 <div class="ship-step" th:if="${stepError}">
                                     <div class="icon bg-danger text-white"><i class="bi bi-exclamation-triangle"></i></div>
-                                    <div class="label text-danger">Sự cố</div>
+                                    <div class="label text-danger">Sự cố / Hủy đơn</div>
                                 </div>
                             </div>
                         </div>
@@ -257,18 +239,23 @@
                                  subTotal=${unitPrice * (item.unit == T(com.example.fruitmarket.enums.Units).KILOGRAM ? item.weight : item.quantity)}">
                                     <td>
                                         <div class="fw-semibold"
-                                             th:text="${item.productVariant != null and item.productVariant.product != null} ?
-                                 item.productVariant.product.productName : 'Sản phẩm'">Tên SP</div>
+                                             th:text="${(item.productVariant != null and item.productVariant.product != null) ? item.productVariant.product.productName : 'Sản phẩm'}">
+                                            Tên SP
+                                        </div>
+
                                         <div class="text-muted small"
                                              th:if="${item.productVariant != null and item.productVariant.variant_name != null}"
                                              th:text="${item.productVariant.variant_name}">Biến thể</div>
                                     </td>
-                                    <td class="text-center" th:text="${item.unit}">PIECE</td>
                                     <td class="text-center"
-                                        th:text="${item.unit != null and item.unit.name() == 'KILOGRAM' ?
-                                                  #numbers.formatDecimal(item.weight != null ? item.weight : 0, 1, 'POINT', 1, 'COMMA') + ' kg' :
-                                                  (item.quantity != null ? item.quantity : 0)}">
+                                        th:text="${item != null && item.unit != null && item.unit.toString() == 'KILOGRAM' ? 'Kg' : 'Cái'}">
+                                        PIECE
+                                    </td>                                    <td class="text-center"
+                                        th:text="${item.unit != null and item.unit.name() == 'KILOGRAM'
+        ? #numbers.formatDecimal((item.weight != null ? item.weight : 0), 1, 'POINT', 1, 'COMMA') + ' kg'
+        : (item.quantity != null ? item.quantity : 0)}">
                                     </td>
+
 
 
                                     <td class="text-end"
@@ -335,6 +322,9 @@
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-3">
+                            <a class="btn btn-outline-success btn-sm" th:if="${o.orderStauts?.name()=='PENDING'}">
+                                <i class="bi bi-cash-coin"></i> Thanh toán lại
+                            </a>
                             <a class="btn btn-outline-secondary btn-sm" th:href="@{/myOrders}">
                                 <i class="bi bi-list-ul"></i> Danh sách đơn
                             </a>

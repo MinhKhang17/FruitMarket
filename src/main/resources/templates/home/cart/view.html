@@ -47,7 +47,7 @@
                             </th>
                             <th scope="col">Sản phẩm</th>
                             <th scope="col">Giá</th>
-                            <th scope="col" style="width: 150px;">Số lượng</th>
+                            <th scope="col" style="width: 150px;">Số lượng/khối lượng (kg)</th>
                             <th scope="col">Thành tiền</th>
                             <th scope="col" class="text-center">Hành động</th>
                         </tr>
@@ -90,7 +90,6 @@
 
                                     <!-- ✅ Có data-index để JS đọc -->
                                     <div th:if="${item.unit == 'KILOGRAM'}">
-                                        <label class="me-1 small-muted">Khối lượng (kg):</label>
                                         <input type="number" name="qtyOrWeight" class="form-control form-control-sm text-center qty-input"
                                                step="0.1" min="0.1" th:value="${item.weight}" th:attr="data-index=${iterStat.index}" style="width:90px;">
                                     </div>
@@ -231,7 +230,7 @@
                 if (qInput) qty = parseNumber(qInput.value);
 
                 total += price * qty;
-                if (unit !== 'KILOGRAM') qtySum += qty;
+                qtySum += 1;
             });
 
             selectedTotalEl.textContent = formatVND(total);
