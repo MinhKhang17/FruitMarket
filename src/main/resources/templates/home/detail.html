@@ -25,7 +25,7 @@
 </head>
 <body>
 
-<!-- header -->
+<!-- Header -->
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main class="page py-4">
@@ -50,7 +50,7 @@
                                  onerror="this.src='/images/placeholder.jpg'"/>
                         </div>
 
-                        <!-- thumbnails -->
+                        <!-- Thumbnails -->
                         <div class="d-flex justify-content-center gap-2 flex-wrap" id="variantThumbnails"
                              th:if="${product.productVariants != null and !#lists.isEmpty(product.productVariants)}">
                             <button type="button"
@@ -91,9 +91,7 @@
                         <!-- Variant section -->
                         <div class="variant-options mb-3">
                             <div th:if="${product.unit != null and product.unit.name() == 'KILOGRAM'}">
-                                <p class="fw-semibold mb-1" style="color:#198754;">
-                                    <strong>Giá niêm yết theo 1 kg</strong>
-                                </p>
+                                <p class="fw-semibold mb-1" style="color:#198754;"><strong>Giá niêm yết theo 1 kg</strong></p>
                             </div>
 
                             <div th:if="${product.unit == null or product.unit.name() != 'KILOGRAM'}">
@@ -111,7 +109,7 @@
                                             th:attr="data-id=${v.id},
                                                      data-price=${v.price},
                                                      data-stock=${v.stock},
-                                                     data-image=${v.image != null && v.image.url != null ? v.image.url : ''},
+                                                     data-image=${v.image != null and v.image.url != null ? v.image.url : ''},
                                                      data-index=${idx.index}"
                                             th:classappend="${idx.index == 0} ? ' active' : ''"
                                             th:onclick="'selectVariantByIndex(' + ${idx.index} + ')'">
@@ -121,27 +119,25 @@
                             </div>
                         </div>
 
-                        <!-- quantity / weight input (đÃ gộp 1 block) -->
+                        <!-- quantity / weight input -->
                         <div class="mb-3">
                             <!-- KG -->
                             <div th:if="${product.unit != null and product.unit.name() == 'KILOGRAM'}"
                                  class="d-flex align-items-center gap-2 mb-2">
                                 <label class="form-label mb-0 me-2">Nhập số kg:</label>
                                 <div class="input-group" style="width:180px;">
-                                    <input id="weightInput" name="weight" type="number" step="0.1" min="0.1" value="1"
-                                           class="form-control"/>
+                                    <input id="weightInput" name="weight" type="number" step="0.1" min="0.1" value="1" class="form-control"/>
                                     <span class="input-group-text">kg</span>
                                 </div>
                                 <span id="stockHintWeight" class="stock-info ms-2"></span>
                             </div>
 
-                            <!-- KHÔNG KG -->
+                            <!-- NOT KG -->
                             <div th:if="${product.unit == null or product.unit.name() != 'KILOGRAM'}"
                                  class="d-flex align-items-center gap-2 mb-2">
                                 <label class="form-label mb-0 me-2">Số lượng:</label>
                                 <div class="input-group" style="width:160px;">
-                                    <input id="qtyInput" name="quantity" type="number" min="1" value="1"
-                                           class="form-control"/>
+                                    <input id="qtyInput" name="quantity" type="number" min="1" value="1" class="form-control"/>
                                     <span class="input-group-text"
                                           th:text="${
                                             product.unit != null ?
@@ -159,13 +155,14 @@
                                 <!-- Add to Cart -->
                                 <form id="addToCartForm" th:action="@{/cart/add}" method="post" style="display:inline;">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                    <input type="hidden" id="variantIdInput2" name="variantId" value=""/>
+                                    <!-- variant default: first variant if exists -->
+                                    <input type="hidden" id="variantIdInput2" name="variantId"
+                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : null}" />
                                     <input type="hidden" name="productId" th:value="${product.productId}" />
 
-                                    <input type="hidden" id="qtyInputForAdd" name="quantity"
-                                           th:if="${product.unit == null or product.unit.name() != 'KILOGRAM'}" value="1" />
-                                    <input type="hidden" id="weightInputForAdd" name="weight"
-                                           th:if="${product.unit != null and product.unit.name() == 'KILOGRAM'}" value="1" />
+                                    <!-- ALWAYS send quantity/weight; default 1 -->
+                                    <input type="hidden" id="qtyInputForAdd" name="quantity" value="1" />
+                                    <input type="hidden" id="weightInputForAdd" name="weight" value="1" />
 
                                     <button type="submit" class="btn btn-outline-success btn-view">Thêm vào giỏ</button>
                                 </form>
@@ -174,13 +171,14 @@
                                 <form id="checkoutForm" th:action="@{/checkout}" method="post"
                                       onsubmit="return validateCheckout();" style="display:inline;">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                    <input type="hidden" id="variantIdInput" name="product_variant_id" value=""/>
+                                    <!-- name khớp với DTO getProduct_variant_id() -->
+                                    <input type="hidden" id="variantIdInput" name="product_variant_id"
+                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : null}" />
                                     <input type="hidden" name="productId" th:value="${product.productId}" />
 
-                                    <input type="hidden" id="qtyInputForCheckout" name="quantity"
-                                           th:if="${product.unit == null or product.unit.name() != 'KILOGRAM'}" value="1" />
-                                    <input type="hidden" id="weightInputForCheckout" name="weight"
-                                           th:if="${product.unit != null and product.unit.name() == 'KILOGRAM'}" value="1" />
+                                    <!-- ALWAYS send quantity/weight; default 1 -->
+                                    <input type="hidden" id="qtyInputForCheckout" name="quantity" value="1" />
+                                    <input type="hidden" id="weightInputForCheckout" name="weight" value="1" />
 
                                     <button type="submit" class="btn btn-success btn-view">Thanh toán</button>
                                 </form>
@@ -201,6 +199,7 @@
     </div>
 </main>
 
+<!-- Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -251,14 +250,10 @@
 
         const stockHint = document.getElementById("stockHintQty");
         if (stockHint) stockHint.textContent = "(Còn " + (stock || 0) + " sản phẩm)";
-        if (qtyInput) {
-            if (!isNaN(Number(stock))) {
-                qtyInput.max = Number(stock);
-                if (Number(qtyInput.value) > Number(stock)) qtyInput.value = Number(stock);
-            }
+        if (qtyInput && !isNaN(Number(stock))) {
+            qtyInput.max = Number(stock);
+            if (Number(qtyInput.value) > Number(stock)) qtyInput.value = Number(stock);
         }
-        if (qtyInputForAdd) qtyInputForAdd.value = qtyInput ? qtyInput.value : 1;
-        if (qtyInputForCheckout) qtyInputForCheckout.value = qtyInput ? qtyInput.value : 1;
 
         if (image && image.trim() !== "") productImage.src = image;
 
@@ -266,35 +261,44 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        // LẤY ĐƠN VỊ TỪ product.unit (không phải product.units)
+        // LẤY ĐƠN VỊ
         const unit = /*[[${product.unit != null ? product.unit.name() : 'PIECE'}]]*/ 'PIECE';
+
+        // Đặt mặc định cho hidden inputs (kể cả user không chạm)
+        if (qtyInputForAdd && !qtyInputForAdd.value) qtyInputForAdd.value = '1';
+        if (qtyInputForCheckout && !qtyInputForCheckout.value) qtyInputForCheckout.value = '1';
+        if (weightInputForAdd && !weightInputForAdd.value) weightInputForAdd.value = '1';
+        if (weightInputForCheckout && !weightInputForCheckout.value) weightInputForCheckout.value = '1';
 
         if (unit === 'KILOGRAM') {
             if (qtyInput) qtyInput.disabled = true;
-            if (weightInput) weightInput.disabled = false;
-
             if (weightInput) {
-                weightInput.addEventListener('input', function() {
-                    const val = this.value || 1;
+                weightInput.disabled = false;
+                const syncW = () => {
+                    const val = weightInput.value && Number(weightInput.value) > 0 ? weightInput.value : '1';
                     if (weightInputForAdd) weightInputForAdd.value = val;
                     if (weightInputForCheckout) weightInputForCheckout.value = val;
-                });
+                };
+                weightInput.addEventListener('input', syncW);
+                syncW();
             }
         } else {
             if (weightInput) weightInput.disabled = true;
-            if (qtyInput) qtyInput.disabled = false;
-
             if (qtyInput) {
-                qtyInput.addEventListener('input', function() {
-                    const val = this.value || 1;
+                qtyInput.disabled = false;
+                const syncQ = () => {
+                    const val = qtyInput.value && Number(qtyInput.value) > 0 ? qtyInput.value : '1';
                     if (qtyInputForAdd) qtyInputForAdd.value = val;
                     if (qtyInputForCheckout) qtyInputForCheckout.value = val;
-                });
+                };
+                qtyInput.addEventListener('input', syncQ);
+                syncQ();
             }
-            // chọn biến thể đầu tiên nếu có
-            if (document.querySelector('.variant-btn[data-index="0"]')) {
-                selectVariantByIndex(0);
-            }
+        }
+
+        // Luôn chọn biến thể đầu tiên nếu có (để product_variant_id không null)
+        if (document.querySelector('.variant-btn[data-index="0"]')) {
+            selectVariantByIndex(0);
         }
 
         document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
@@ -307,11 +311,17 @@
 
     function validateCheckout() {
         const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
-        if (hasVariants) {
-            if (!variantIdInput || !variantIdInput.value) {
-                alert("Vui lòng chọn biến thể trước khi thanh toán!");
-                return false;
-            }
+        if (hasVariants && (!variantIdInput || !variantIdInput.value)) {
+            alert("Vui lòng chọn biến thể trước khi thanh toán!");
+            return false;
+        }
+
+        // Chốt mặc định trước khi submit
+        if (qtyInputForCheckout && (!qtyInputForCheckout.value || Number(qtyInputForCheckout.value) <= 0)) {
+            qtyInputForCheckout.value = '1';
+        }
+        if (weightInputForCheckout && (!weightInputForCheckout.value || Number(weightInputForCheckout.value) <= 0)) {
+            weightInputForCheckout.value = '1';
         }
 
         const unit = /*[[${product.unit != null ? product.unit.name() : 'PIECE'}]]*/ 'PIECE';
@@ -330,6 +340,7 @@
         return true;
     }
 
+    // Guard cho Add to Cart
     (function attachGuards() {
         const addForm = document.getElementById("addToCartForm");
         const hasVariants = document.querySelectorAll(".variant-btn").length > 0;

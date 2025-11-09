@@ -375,8 +375,8 @@
                     </div>
                 </td>
                 <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
-                <td th:text="${item.quanity}"></td>
-                <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price * item.quanity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price * item.quantity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
             </tr>
             <tr class="total-row">
                 <td colspan="3" style="text-align: right;">Tổng cộng:</td>
