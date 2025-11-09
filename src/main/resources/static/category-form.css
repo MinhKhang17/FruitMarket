@@ -1,130 +1,217 @@
-/* ===== Reset & Theme ===== */
+/* ===== Modern Green Theme - Category Form ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root{
-    --leaf-50:#e8f5e9; --leaf-100:#c8e6c9; --leaf-300:#81c784; --leaf-400:#66bb6a;
-    --leaf-500:#43a047; --leaf-600:#388e3c; --leaf-700:#2e7d32;
+:root {
+    --green-50: #f0fdf4;
+    --green-100: #d1fae5;
+    --green-500: #10b981;
+    --green-600: #059669;
+    --green-700: #047857;
+    --danger-500: #ef4444;
+    --danger-600: #dc2626;
 
-    --ink:#333; --card:#fff; --shadow:0 6px 14px rgba(0,0,0,.06);
-    --muted:#6b7280; --danger-50:#ffebee; --danger-500:#e53935;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ===== Page (không center bằng grid để tránh “nhúm” trong iframe) ===== */
-html, body{
-    font-family: 'Segoe UI', Tahoma, sans-serif;
-    background: linear-gradient(135deg, #f1f8e9, #fff8e1);
+/* ===== Page Layout ===== */
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
     min-height: 100vh;
-    color: var(--ink);
+    color: #1f2937;
 }
-body{ padding: 20px; }
+body { padding: 24px; }
 
-.container{
+.container {
     width: 100%;
-    max-width: 720px;     /* rộng hơn cho form */
+    max-width: 600px;
     margin: 0 auto;
 }
 
 /* ===== Title ===== */
-h2{
-    color: var(--leaf-500);
+h2 {
+    color: #1f2937;
     font-weight: 800;
-    letter-spacing: .3px;
+    letter-spacing: -0.5px;
     text-align: center;
-    margin: 0 0 18px 0;
-    text-shadow: 0 1px 2px rgba(0,0,0,.05);
+    margin: 0 0 24px 0;
+    font-size: 1.75rem;
+}
+
+/* ===== Alert Messages ===== */
+.alert {
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    font-weight: 500;
+    animation: slideDown .4s ease;
+    text-align: center;
+}
+.alert-success {
+    background: #d1fae5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+.alert-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+.alert-warning {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+.alert-info {
+    background: #dbeafe;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
 }
 
 /* ===== Form Card ===== */
-form{
-    background: var(--card);
-    border: 1px solid var(--leaf-100);
-    border-radius: 14px;
-    box-shadow: var(--shadow);
-    padding: 18px;
-    animation: fadeIn .45s ease;
+form {
+    background: white;
+    border: 1px solid rgba(16, 185, 129, 0.1);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    padding: 32px;
+    animation: fadeIn .5s ease;
 }
 
-/* ===== Label & Input ===== */
-label{
-    display:block;
-    font-weight:700;
-    color: var(--leaf-700);
-    margin-bottom:8px;
+/* ===== Labels ===== */
+label {
+    display: block;
+    font-weight: 700;
+    color: var(--green-700);
+    margin-bottom: 8px;
+    font-size: 14px;
+    letter-spacing: 0.3px;
 }
-input[type="text"]{
+
+/* ===== Text Inputs ===== */
+input[type="text"] {
     width: 100%;
-    padding: 10px 12px;
-    border: 1.5px solid var(--leaf-100);
-    border-radius: 10px;
-    background: #fff;
-    color: var(--ink);
+    padding: 11px 14px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: white;
+    color: #1f2937;
     font-size: 15px;
-    transition: border-color .2s ease, box-shadow .2s ease;
+    font-weight: 500;
+    transition: var(--transition);
     outline: none;
-    margin-bottom: 16px;            /* thay cho <br><br> */
+    margin-bottom: 20px;
 }
-input[type="text"]::placeholder{ color: #9aa3a7; }
-input[type="text"]:focus{
-    border-color: var(--leaf-400);
-    box-shadow: 0 0 0 4px rgba(102,187,106,.18);
+input[type="text"]::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
 }
-input[type="text"]:invalid:focus{
+input[type="text"]:focus {
+    border-color: var(--green-500);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+input[type="text"]:invalid:focus {
     border-color: var(--danger-500);
-    box-shadow: 0 0 0 4px rgba(229,57,53,.18);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* ===== Checkbox ===== */
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--green-500);
+    margin-bottom: 24px;
 }
 
 /* ===== Actions ===== */
-.actions{ display:flex; gap:10px; align-items:center; }
-button[type="submit"]{
-    background: var(--leaf-500);
-    color: #fff;
+.actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 8px;
+}
+
+button[type="submit"] {
+    flex: 1;
+    background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+    color: white;
     border: none;
-    border-radius: 10px;
-    font-weight: 700;
-    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    padding: 11px 20px;
     cursor: pointer;
-    transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
-    box-shadow: 0 6px 14px rgba(67,160,71,.18);
+    transition: var(--transition);
+    box-shadow: var(--shadow-md);
+    font-size: 14px;
 }
-button[type="submit"]:hover{
-    background: var(--leaf-600);
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px rgba(67,160,71,.25);
+button[type="submit"]:hover {
+    background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
-
-/* Cancel = ghost button (không phụ thuộc href selector) */
-.btn-ghost{
-    display:inline-block;
-    padding:10px 14px;
-    border-radius:10px;
-    text-decoration:none;
-    font-weight:700;
-    color:var(--leaf-700);
-    background:#f6fbf6;
-    border:1px solid var(--leaf-100);
-    transition: background .2s, transform .2s, box-shadow .2s, color .2s;
-}
-.btn-ghost:hover{
-    background: var(--leaf-50);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(0,0,0,.06);
+button[type="submit"]:active {
+    transform: translateY(0);
 }
 
-/* ===== A11y ===== */
-a:focus, button:focus{
-    outline: 3px solid rgba(102,187,106,.35);
+/* ===== Cancel Button ===== */
+.btn-ghost {
+    flex: 1;
+    display: inline-block;
+    padding: 11px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    color: #6b7280;
+    background: white;
+    border: 2px solid #e5e7eb;
+    transition: var(--transition);
+    text-align: center;
+    font-size: 14px;
+}
+.btn-ghost:hover {
+    background: #f9fafb;
+    border-color: #d1d5db;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ===== Focus States ===== */
+a:focus, button:focus {
+    outline: 3px solid rgba(16, 185, 129, 0.3);
     outline-offset: 2px;
 }
 
 /* ===== Responsive ===== */
-@media (max-width: 640px){
-    .container{ padding: 0 4px; }
-    form{ padding: 16px; border-radius: 12px; }
-    h2{ font-size: 1.25rem; }
+@media (max-width: 640px) {
+    body { padding: 16px; }
+    .container { padding: 0; }
+    form {
+        padding: 24px;
+        border-radius: 12px;
+    }
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+    .actions {
+        flex-direction: column;
+    }
+    button[type="submit"],
+    .btn-ghost {
+        width: 100%;
+    }
 }
 
-/* ===== Fade-in ===== */
-@keyframes fadeIn{
-    from{ opacity:0; transform: translateY(8px); }
-    to{   opacity:1; transform: none; }
+/* ===== Animations ===== */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
