@@ -11,27 +11,49 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-    <style>
-        :root {
-            --primary-leaf: #2f9e44;
-            --color-border: #e2e8f0;
-            --radius-md: 12px;
-        }
-        body {
-            background: linear-gradient(180deg, #ffffff 0%, #f8faf9 100%);
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-            color: #1a1a1a;
-        }
-        .hero-banner { position: relative; border-radius: 16px; overflow: hidden; height: 400px; margin-bottom: 2rem; }
-        .hero-banner-img { width:100%; height:100%; object-fit:cover; display:block; }
-        .hero-banner-overlay { position:absolute; inset:0; background: rgba(0,0,0,0.18); display:flex; align-items:center; justify-content:center; color:#fff; text-align:center; }
-        .product-card { border:1px solid var(--color-border); border-radius:var(--radius-md); overflow:hidden; background:#fff; display:flex; flex-direction:column; height:100%; }
-        .product-image { width:100%; height:100%; object-fit:cover; display:block; }
-        .product-body { padding:1rem; display:flex; flex-direction:column; gap:.5rem; flex-grow:1; }
-        .product-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px solid var(--color-border); padding-top:.75rem; }
-        .btn-view-product { color:var(--primary-leaf); border:2px solid var(--primary-leaf); padding:.35rem .9rem; border-radius:8px; text-decoration:none; font-weight:600; transition:all 0.2s ease; }
-        .btn-view-product:hover { background:var(--primary-leaf); color:white; transform:translateY(-2px); }
-    </style>
+    <link th:href="@{/home.css}" rel="stylesheet" />
+<!--    <style>-->
+<!--        :root {-->
+<!--            &#45;&#45;primary-leaf: #2f9e44;-->
+<!--            &#45;&#45;color-border: #e2e8f0;-->
+<!--            &#45;&#45;radius-md: 12px;-->
+<!--        }-->
+<!--        body {-->
+<!--            background: linear-gradient(180deg, #ffffff 0%, #f8faf9 100%);-->
+<!--            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;-->
+<!--            color: #1a1a1a;-->
+<!--        }-->
+<!--        .hero-banner { position: relative; border-radius: 16px; overflow: hidden; height: 400px; margin-bottom: 2rem; }-->
+<!--        .hero-banner-img { width:100%; height:100%; object-fit:cover; display:block; }-->
+<!--        .hero-banner-overlay { position:absolute; inset:0; background: rgba(0,0,0,0.18); display:flex; align-items:center; justify-content:center; color:#fff; text-align:center; }-->
+<!--        .product-card { border:1px solid var(&#45;&#45;color-border); border-radius:var(&#45;&#45;radius-md); overflow:hidden; background:#fff; display:flex; flex-direction:column; height:100%; }-->
+<!--        .product-image { width:100%; height:100%; object-fit:cover; display:block; }-->
+<!--        .product-body { padding:1rem; display:flex; flex-direction:column; gap:.5rem; flex-grow:1; }-->
+<!--        .product-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px solid var(&#45;&#45;color-border); padding-top:.75rem; }-->
+<!--        .btn-view-product { color:var(&#45;&#45;primary-leaf); border:2px solid var(&#45;&#45;primary-leaf); padding:.35rem .9rem; border-radius:8px; text-decoration:none; font-weight:600; transition:all 0.2s ease; }-->
+<!--        .btn-view-product:hover { background:var(&#45;&#45;primary-leaf); color:white; transform:translateY(-2px); }-->
+
+<!--        /* === Category Tabs (Orange theme) === */-->
+<!--        .nav-pills .nav-link {-->
+<!--            color: #ff7b00; /* cam tươi khi chưa chọn */-->
+<!--            background-color: transparent;-->
+<!--            border: 1px solid transparent;-->
+<!--            transition: all 0.2s ease-in-out;-->
+<!--            font-weight: 500;-->
+<!--        }-->
+
+<!--        .nav-pills .nav-link:hover {-->
+<!--            color: #fff;-->
+<!--            background-color: #ff9d1e;-->
+<!--        }-->
+
+<!--        .nav-pills .nav-link.active {-->
+<!--            background-color: #ff7b00; /* nền cam */-->
+<!--            color: #fff; /* chữ trắng */-->
+<!--            box-shadow: 0 0 0 2px rgba(255, 123, 0, 0.25);-->
+<!--        }-->
+
+<!--    </style>-->
 </head>
 <body>
 
