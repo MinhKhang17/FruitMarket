@@ -188,6 +188,12 @@ public class OrderServiceImpl implements OrderService {
      * createOrderFromCart — HỖ TRỢ CẢ quantity & weight (kg)
      * Tính ship GHN theo cân nặng thực tế (kg ⇒ gram) + ước lượng 500g/đơn vị
      * ===================================================== */
+    /* =====================================================
+     * createOrderFromCart — HỖ TRỢ CẢ quantity & weight (kg)
+     * Tính ship GHN theo cân nặng thực tế (kg ⇒ gram) + ước lượng 500g/đơn vị
+     * (đã chỉnh cho giống createOrder: truyền FROM codes, normalize địa chỉ,
+     *  best-effort tạo GHN, lưu code + fetch detail)
+     * ===================================================== */
     @Override
     @Transactional
     public Long createOrderFromCart(OrderRequest orderReq, HttpSession session) {
@@ -215,6 +221,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Invalid payment method: " + orderReq.getPaymentMethod());
         }
         order.setOrderStauts(OrderStauts.PENDING);
+        order.setGhnStatus(GhnStatus.READY_TO_PICK);
 
         if (orderReq.getItems() == null || orderReq.getItems().isEmpty()) {
             throw new IllegalArgumentException("Order must contain at least one item");
@@ -250,7 +257,7 @@ public class OrderServiceImpl implements OrderService {
                 // Bán theo kg
                 oi.setWeight(weightKg);
                 oi.setQuantity(null);
-                oi.setUnit(Units.KILOGRAM); // ✅ Thêm dòng này
+                oi.setUnit(Units.KILOGRAM);
                 goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(weightKg)));
                 totalWeightKg += weightKg;
             } else {
@@ -258,26 +265,24 @@ public class OrderServiceImpl implements OrderService {
                 int q = (quantity != null && quantity > 0) ? quantity : 1;
                 oi.setQuantity(q);
                 oi.setWeight(null);
-                oi.setUnit(Units.PIECE); // ✅ Thêm dòng này
+                oi.setUnit(Units.PIECE);
                 goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(q)));
                 totalQtyPiece += q;
             }
-
 
             items.add(oi);
         }
 
         order.setOrderItemList(new ArrayList<>(items));
         order.setTotalQuantity(totalQtyPiece);
-        // Nếu entity Order có trường totalWeight(Double) thì set; nếu không, có thể bỏ.
         try { order.setTotalWeight(totalWeightKg); } catch (Throwable ignore) {}
 
-        // 2) TÍNH PHÍ SHIP GHN (có trọng lượng thực)
+        // 2) TÍNH PHÍ SHIP GHN (có trọng lượng thực) — giữ nguyên
         BigDecimal shippingFee = BigDecimal.ZERO;
-        try {
-            int toDistrictId = userDetail.getDistrict().getDistrictId();
-            String toWardCode = userDetail.getWard().getWardCode();
+        int toDistrictId = userDetail.getDistrict().getDistrictId();
+        String toWardCode = userDetail.getWard().getWardCode();
 
+        try {
             var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);
             if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
                 int serviceId = svRes.getData().get(0).getServiceId();
@@ -296,6 +301,8 @@ public class OrderServiceImpl implements OrderService {
                 );
                 Integer fee = (feeRes != null && feeRes.getData() != null) ? feeRes.getData().getTotal() : null;
                 shippingFee = BigDecimal.valueOf(fee != null ? fee : 0);
+            } else {
+                log.warn("[GHN] no available service for route {} -> {} (fee calc)", fromDistrictId, toDistrictId);
             }
         } catch (Exception ex) {
             log.warn("Failed to calculate GHN shipping fee, default to 0", ex);
@@ -307,17 +314,11 @@ public class OrderServiceImpl implements OrderService {
         // 3) LƯU ĐƠN
         Order saved = orderRepo.save(order);
 
-        // 4) (tuỳ chọn) tạo đơn GHN sau khi lưu thành công
+        // 4) (best-effort) tạo đơn GHN giống createOrder
         try {
-            String toName       = user.getUsername();
-            String toPhone      = userDetail.getPhone();
-            String toAddr       = userDetail.getAddress();
-            String toWardCode   = userDetail.getWard().getWardCode();
-            Integer toDistrictId= userDetail.getDistrict().getDistrictId();
-
             var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);
             if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
-                int serviceId = svRes.getData().get(0).getServiceId();
+                int useServiceId = svRes.getData().get(0).getServiceId();
 
                 long weightGram =
                         Math.max(0, Math.round(totalWeightKg * 1000))
@@ -331,12 +332,17 @@ public class OrderServiceImpl implements OrderService {
                         : 0;
 
                 CreateOrderReq req = new CreateOrderReq();
-                req.setToName(toName);
-                req.setToPhone(toPhone);
-                req.setToAddress(toAddr);
+                // TO
+                req.setToName(user.getUsername());
+                req.setToPhone(userDetail.getPhone());
+                req.setToAddress(normalizeVi(userDetail.getAddress())); // giống createOrder
                 req.setToWardCode(toWardCode);
                 req.setToDistrictId(toDistrictId);
-                req.setServiceId(serviceId);
+                // FROM (bắt buộc, để GHN không phải convert Google)
+                req.setFromWardCode(fromWardCode);
+                req.setFromDistrictId(fromDistrictId);
+
+                req.setServiceId(useServiceId);
                 req.setWeight(weightGram);
                 req.setLength(length);
                 req.setWidth(width);
@@ -349,11 +355,12 @@ public class OrderServiceImpl implements OrderService {
                 req.setRequired_note("KHONGCHOXEMHANG");
                 req.setNote("Đơn hàng FruitMarket #" + saved.getId());
 
+                // Items
                 List<CreateOrderReq.Item> itemsGhn = new ArrayList<>();
                 for (OrderItem it : saved.getOrderItemList()) {
                     CreateOrderReq.Item item = new CreateOrderReq.Item();
                     item.setName(it.getProductVariant().getProduct().getProductName());
-                    // GHN cần quantity int; với hàng theo kg gửi 1 để hợp lệ
+                    // GHN cần quantity int; với hàng theo kg gửi 1 cho hợp lệ
                     item.setQuantity(it.getQuantity() != null ? it.getQuantity() : 1);
                     itemsGhn.add(item);
                 }
@@ -362,20 +369,23 @@ public class OrderServiceImpl implements OrderService {
                 try {
                     Optional<String> optCode = ghnClientService.createOrderAndGetOrderCode(req);
                     if (optCode.isPresent()) {
-                        saved.setGhnOrderCode(optCode.get());
+                        String code = optCode.get();
+                        saved.setGhnOrderCode(code);
+
                         try {
-                            var detail = ghnClientService.getOrderDetail(saved.getGhnOrderCode());
+                            var detail = ghnClientService.getOrderDetail(code);
                             if (detail != null && detail.getData() != null) {
                                 saved.setGhnStatus(GhnStatus.READY_TO_PICK);
                             }
                         } catch (WebClientResponseException wcre) {
                             log.warn("Failed to fetch GHN order detail for code {}: status={} body={}",
-                                    saved.getGhnOrderCode(), wcre.getStatusCode(), wcre.getResponseBodyAsString());
+                                    code, wcre.getStatusCode(), wcre.getResponseBodyAsString());
                         } catch (Exception e) {
-                            log.warn("Failed to fetch GHN order detail for code {}: {}", saved.getGhnOrderCode(), e.getMessage(), e);
+                            log.warn("Failed to fetch GHN order detail for code {}: {}", code, e.getMessage(), e);
                         }
+
                         orderRepo.saveAndFlush(saved);
-                        log.info("Saved GHN order code {} for local order {}", saved.getGhnOrderCode(), saved.getId());
+                        log.info("Saved GHN order code {} for local order {}", code, saved.getId());
                     } else {
                         log.warn("[GHN] createOrder returned no order code for order {}", saved.getId());
                     }
@@ -386,6 +396,8 @@ public class OrderServiceImpl implements OrderService {
                 } catch (Exception ex) {
                     log.error("Create GHN failed", ex);
                 }
+            } else {
+                log.warn("[GHN] no available service for route {} -> {}", fromDistrictId, toDistrictId);
             }
         } catch (Exception ex) {
             log.warn("Create GHN failed (service check)", ex);
