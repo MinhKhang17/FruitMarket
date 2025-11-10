@@ -96,6 +96,13 @@
                                    th:id="${'addr_'+i.index}" th:value="${addr.id}"
                                    th:checked="${i.index == 0}" onchange="selectExistingAddress(this)">
                             <strong th:text="${addr.phone}">0123456789</strong>
+                            <!-- NEW: tên người nhận -->
+                            <div class="small text-muted">
+                                Người nhận:
+                                <span th:text="${addr.receiverName != null && !#strings.isEmpty(addr.receiverName) ? addr.receiverName : (session.loggedUser != null ? session.loggedUser.username : 'Khách hàng')}">
+                                  Khách hàng
+                                </span>
+                            </div>
                             <div class="small text-muted" th:text="${addr.address}">Địa chỉ giao hàng</div>
                         </div>
                     </label>
@@ -140,6 +147,14 @@
                         <div class="col-md-4">
                             <label class="form-label">Số điện thoại</label>
                             <input type="text" class="form-control" name="phone" placeholder="Nhập số điện thoại..." required />
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên người nhận</label>
+                            <input type="text" class="form-control" name="receiverName" placeholder="VD: Nguyễn Văn A" />
+                            <div class="form-text">Để trống sẽ mặc định dùng tên đăng nhập.</div>
                         </div>
                     </div>
 

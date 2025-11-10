@@ -1,7 +1,7 @@
 // file: src/main/java/com/example/fruitmarket/controller/UserProfileController.java
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.Dto.ChangePasswordRequest;
+import com.example.fruitmarket.dto.ChangePasswordRequest;
 import com.example.fruitmarket.Dto.ProfileUpdateRequest;
 import com.example.fruitmarket.model.Users;
 import com.example.fruitmarket.model.User_detail;

@@ -51,8 +51,10 @@ public class CartController {
     private VnPayService vnPayService;
 
     // Cấu hình GHN
-    @Value("${ghn.from-district-id:0}")
+    @Value("${ghn.from-district-id}")
     private int fromDistrictId;
+    @Value("${ghn.from-ward-code}")
+    private String fromWardCode;
     @Value("${ghn.default.weight:500}")
     private int defaultWeight;
     @Value("${ghn.default.length:20}")
@@ -171,6 +173,7 @@ public class CartController {
             model.addAttribute("cart", cart);
             model.addAttribute("totalPrice", cart.getTotalPrice());
             model.addAttribute("totalQuantity", cart.getTotalQuantity());
+            model.addAttribute("totalWeight", cartService.getTotalWeight());
             List<User_detail> userDetails = userService.getUserDetailFromSession(session);
             model.addAttribute("userDetail", userDetails);
             return "home/checkout-cart";
@@ -397,10 +400,25 @@ public class CartController {
 
                 // 6) Tạo đơn GHN
                 CreateOrderReq co = new CreateOrderReq();
-                co.setToName(order.getUsers() != null ? order.getUsers().getUsername() : "Khách hàng");
+                String toName = (order.getRecipientName() != null && !order.getRecipientName().isBlank())
+                        ? order.getRecipientName()
+                        : (order.getUsers() != null ? order.getUsers().getUsername() : "Khách hàng");
+                co.setToName(toName);
+
                 co.setToPhone(order.getPhoneNumber());
-                co.setToAddress(order.getAddress());
                 co.setToWardCode(toWardCode);
+
+                User_detail addr = userService.findUserDetalById(addressId);
+                String fullAddr = String.format("%s, %s, %s, %s",
+                        addr.getAddress(),
+                        addr.getWard().getWardName(),
+                        addr.getDistrict().getDistrictName(),                 // đảm bảo là “TP Thủ Đức”, không phải “Quận 2”
+                        addr.getDistrict().getProvince().getProvinceName()
+                );
+
+                co.setToAddress(normalizeAscii(fullAddr)); // dùng hàm bỏ dấu
+                co.setFromDistrictId(fromDistrictId);      // ✅ bắt buộc
+                co.setFromWardCode(fromWardCode);      // 👉 nên thêm cấu hình: ghn.from-ward-code
                 co.setToDistrictId(toDistrictId);
                 co.setServiceId(serviceId);
                 co.setWeight(totalWeight);
@@ -426,7 +444,7 @@ public class CartController {
             cartService.clear();
             ra.addFlashAttribute("message", "Đặt hàng thành công! Mã đơn hàng: " + orderId);
             ra.addFlashAttribute("type", "success");
-            return "redirect:/myOrders/" + orderId;
+            return "redirect:/cart/success";
 
         } catch (Exception ex) {
             ra.addFlashAttribute("message", "Có lỗi khi tạo đơn hàng: " + (ex.getMessage() != null ? ex.getMessage() : "Unknown error"));
@@ -436,11 +454,27 @@ public class CartController {
             model.addAttribute("cart", cart);
             model.addAttribute("totalPrice", cart.getTotalPrice());
             model.addAttribute("totalQuantity", cart.getTotalQuantity());
+            model.addAttribute("totalWeight", cartService.getTotalWeight());
             List<User_detail> userDetails = userService.getUserDetailFromSession(session);
             model.addAttribute("userDetail", userDetails);
 
             return "home/checkout-cart";
         }
+    }
+
+    @GetMapping("/success")
+    public String orderSuccess(RedirectAttributes ra,HttpSession session) {
+        ra.addFlashAttribute("message","buy success");
+        ra.addFlashAttribute("type","success");
+        return "redirect:/";
+    }
+
+    private static String normalizeAscii(String s){
+        if(s==null) return null;
+        String n = java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+","");
+        n = n.replace('\u0110','D').replace('\u0111','d');
+        return n.replaceAll("\\s+"," ").trim();
     }
 
     // ======================
@@ -452,6 +486,7 @@ public class CartController {
                                   @RequestParam(required = false) Integer provinceId,
                                   @RequestParam(required = false) Integer districtId,
                                   @RequestParam(required = false) String wardCode,
+                                  @RequestParam(required = false, name = "receiverName") String receiverName,
                                   HttpSession session,
                                   RedirectAttributes ra) {
         Users loggedUser = (Users) session.getAttribute("loggedUser");
@@ -464,6 +499,13 @@ public class CartController {
         detail.setPhone(phone);
         detail.setAddress(address);
         detail.setUser(loggedUser);
+
+        // NEW: mặc định lấy username nếu không nhập
+        if (receiverName == null || receiverName.isBlank()) {
+            detail.setReceiverName(loggedUser.getUsername());
+        } else {
+            detail.setReceiverName(receiverName.trim());
+        }
 
         if (provinceId != null) {
             Province province = provinceService.findByProvinceId(provinceId);
@@ -483,7 +525,7 @@ public class CartController {
         ra.addFlashAttribute("message", "✅ Đã thêm địa chỉ giao hàng mới!");
         ra.addFlashAttribute("type", "success");
 
-        return "redirect:/cart";
+        return "redirect:/cart/checkout-page";
     }
 
     // ======================
@@ -512,5 +554,31 @@ public class CartController {
         } catch (Exception e) {
             return "unknown";
         }
+    }
+
+    @GetMapping("/checkout-page")
+    public String checkoutPage(Model model, HttpSession session, RedirectAttributes ra) {
+        if (denyIfNotClient(session, ra)) return "redirect:/auth/login";
+
+        Cart cart = cartService.getCart();
+        if (cart == null || cart.getItems() == null || cart.getItems().isEmpty()) {
+            ra.addFlashAttribute("message","Giỏ hàng trống.");
+            ra.addFlashAttribute("type","warning");
+            return "redirect:/cart";
+        }
+
+        // ✅ Tổng giá, số lượng, trọng lượng
+        BigDecimal totalPrice = cart.getTotalPrice() != null ? cart.getTotalPrice() : BigDecimal.ZERO;
+        int totalQuantity = cart.getTotalQuantity();
+        int totalWeight = cartService.getTotalWeight();
+
+        // ✅ Đưa vào model
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalPrice", totalPrice);
+        model.addAttribute("totalQuantity", totalQuantity);
+        model.addAttribute("totalWeight", totalWeight); // <<=== dòng mới
+        model.addAttribute("userDetail", userService.getUserDetailFromSession(session));
+
+        return "home/checkout-cart";
     }
 }

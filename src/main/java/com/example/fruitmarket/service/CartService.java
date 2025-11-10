@@ -20,4 +20,5 @@ public interface CartService {
 
     int getTotalQuantity(HttpSession s);
     BigDecimal getSubtotal(HttpSession s);
+    int getTotalWeight();
 }

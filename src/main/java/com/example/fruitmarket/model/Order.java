@@ -41,9 +41,11 @@ public class Order {
     @Column
     private String ghnOrderCode;
     @Enumerated(EnumType.STRING)
-    private GhnStatus ghnStatus;
+    private GhnStatus ghnStatus = GhnStatus.READY_TO_PICK;
     @Column
     private BigDecimal shippingFee;
+    @Column(columnDefinition = "NVARCHAR(100)")
+    private String recipientName;
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Payment payment;
 

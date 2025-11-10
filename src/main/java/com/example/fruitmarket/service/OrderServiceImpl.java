@@ -67,10 +67,18 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Invalid shipping address (missing ward/district)");
         }
 
+        // ===== Build Order cơ bản =====
         Order order = new Order();
         order.setUsers(user);
-        order.setAddress(ud.getAddress());
+        order.setAddress(ud.getAddress());          // street only
         order.setPhoneNumber(ud.getPhone());
+
+        // NEW: tên người nhận (ưu tiên receiverName, fallback username)
+        String recipient = (ud.getReceiverName() != null && !ud.getReceiverName().isBlank())
+                ? ud.getReceiverName().trim()
+                : (user.getUsername() != null ? user.getUsername() : "Khách hàng");
+        order.setRecipientName(recipient);
+
         try {
             order.setPricingMethod(PricingMethod.valueOf(paymentMethod));
         } catch (Exception e) {
@@ -78,9 +86,9 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setOrderStauts(OrderStauts.PENDING);
 
-        // item
-        OrderItem oi = new OrderItem();
+        // 1 item cho “mua ngay”
         int q = (quantity != null && quantity > 0) ? quantity : 1;
+        OrderItem oi = new OrderItem();
         oi.setQuantity(q);
         oi.setProductVariant(variant);
         oi.setPrice(variant.getPrice() != null ? variant.getPrice() : BigDecimal.ZERO);
@@ -88,101 +96,122 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItemList(new ArrayList<>());
         order.getOrderItemList().add(oi);
 
-        // totals
+        // Totals
         BigDecimal goodsTotal = oi.getPrice().multiply(BigDecimal.valueOf(q));
         BigDecimal safeShip = (shippingFee != null && shippingFee.signum() >= 0) ? shippingFee : BigDecimal.ZERO;
-
         order.setShippingFee(safeShip);
         order.setTotalPrice(goodsTotal.add(safeShip));
         order.setTotalQuantity(q);
-        order.setGhnStatus(GhnStatus.READY_TO_PICK);
+
+        // Đừng đặt trạng thái GHN trước khi tạo thành công
+        // order.setGhnStatus(GhnStatus.READY_TO_PICK);  // ❌ bỏ
 
         Order saved = orderRepo.save(order);
 
-        // === GHN create order (best-effort) ===
+        // ===== GHN create order (best-effort) =====
         try {
-            var svRes = ghnClientService.availableServices(fromDistrictId, ud.getDistrict().getDistrictId());
-            if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
-                int useServiceId = (serviceId != null && serviceId > 0)
-                        ? serviceId
-                        : svRes.getData().get(0).getServiceId();
+            final int toDistrictId = ud.getDistrict().getDistrictId();
+            final String toWardCode = ud.getWard().getWardCode();
 
-                long weightGram = Math.max(1, saved.getTotalQuantity()) * 500L; // 500g/đơn vị
-                if (weightGram < 100) weightGram = 100;
-
-                int length = 20, width = 15, height = 10;
-
-                int cod = (saved.getPricingMethod() == PricingMethod.COD)
-                        ? saved.getTotalPrice().intValue() : 0;
-
-                CreateOrderReq req = new CreateOrderReq();
-                req.setToName(user.getUsername());
-                req.setToPhone(ud.getPhone());
-                req.setToAddress(normalizeVi(ud.getAddress()));
-                req.setToWardCode(ud.getWard().getWardCode());
-                req.setFromWardCode(fromWardCode);
-                req.setFromDistrictId(fromDistrictId);
-                req.setToDistrictId(ud.getDistrict().getDistrictId());
-                req.setServiceId(useServiceId);
-                req.setWeight(weightGram);
-                req.setLength(length);
-                req.setWidth(width);
-                req.setHeight(height);
-                req.setCodAmount(cod);
-                req.setClientOrderCode("ORD-" + saved.getId());
-
-                // Bắt buộc GHN
-                req.setPayment_type_id(1); // shop trả ship
-                req.setRequired_note("KHONGCHOXEMHANG");
-                req.setNote("Đơn hàng FruitMarket #" + saved.getId());
-
-                // Items
-                List<CreateOrderReq.Item> items = new ArrayList<>();
-                CreateOrderReq.Item item = new CreateOrderReq.Item();
-                item.setName(variant.getProduct().getProductName());
-                item.setQuantity(q);
-                items.add(item);
-                req.setItems(items);
-
-                try {
-                    Optional<String> optCode = ghnClientService.createOrderAndGetOrderCode(req);
-                    if (optCode.isPresent()) {
-                        String code = optCode.get();
-                        saved.setGhnOrderCode(code);
-
-                        try {
-                            var detail = ghnClientService.getOrderDetail(code);
-                            if (detail != null && detail.getData() != null) {
-                                saved.setGhnStatus(GhnStatus.READY_TO_PICK);
-                            }
-                        } catch (WebClientResponseException wcre) {
-                            log.warn("Failed to fetch GHN order detail for code {}: status={} body={}",
-                                    code, wcre.getStatusCode(), wcre.getResponseBodyAsString());
-                        } catch (Exception e) {
-                            log.warn("Failed to fetch GHN order detail for code {}: {}", code, e.getMessage(), e);
-                        }
-
-                        orderRepo.saveAndFlush(saved);
-                        log.info("Saved GHN order code {} for local order {}", code, saved.getId());
-                    } else {
-                        log.warn("[GHN] createOrder: no orderCode returned for local order {}", saved.getId());
-                    }
-                } catch (WebClientResponseException wcre) {
-                    String body = "<no body>";
-                    try { body = wcre.getResponseBodyAsString(); } catch (Exception ignore) {}
-                    log.warn("[GHN] createOrder failed with status {} and body: {}", wcre.getStatusCode(), body);
-                } catch (Exception ex) {
-                    log.error("Unexpected error while creating GHN order for local order " + saved.getId(), ex);
+            // Lấy serviceId nếu thiếu
+            int useServiceId = (serviceId != null && serviceId > 0) ? serviceId : -1;
+            if (useServiceId <= 0) {
+                var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);
+                if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
+                    useServiceId = svRes.getData().get(0).getServiceId();
+                } else {
+                    log.warn("[GHN] no available service for route {} -> {}", fromDistrictId, toDistrictId);
+                    return saved; // không có service thì thôi
                 }
-            } else {
-                log.warn("[GHN] no available service for route {} -> {}", fromDistrictId, ud.getDistrict().getDistrictId());
+            }
+
+            // Cân nặng/KT gói
+            long weightGram = Math.max(1, saved.getTotalQuantity()) * 500L; // 500g/đơn vị
+            if (weightGram < 100) weightGram = 100;
+            int length = 20, width = 15, height = 10;
+
+            // COD amount
+            int cod = (saved.getPricingMethod() == PricingMethod.COD)
+                    ? saved.getTotalPrice().intValue()
+                    : 0;
+
+            // Build địa chỉ đầy đủ cho GHN: street, ward, district, province
+            String street   = ud.getAddress();
+            String wardName = ud.getWard().getWardName();                 // ví dụ: "Phường Cát Lái"
+            String distName = ud.getDistrict().getDistrictName();         // ví dụ: "TP Thủ Đức"/"Quận 2"
+            String provName = (ud.getProvince() != null)
+                    ? ud.getProvince().getProvinceName()
+                    : ud.getDistrict().getProvince().getProvinceName();
+
+            String fullAddr = String.format("%s, %s, %s, %s", street, wardName, distName, provName);
+
+            CreateOrderReq req = new CreateOrderReq();
+            req.setToName(saved.getRecipientName());                  // ✅ tên người nhận đã chuẩn hoá
+            req.setToPhone(ud.getPhone());
+            req.setToAddress(normalizeVi(fullAddr));                  // ✅ địa chỉ đầy đủ, normalize
+            req.setToWardCode(toWardCode);
+            req.setFromWardCode(fromWardCode);
+            req.setFromDistrictId(fromDistrictId);
+            req.setToDistrictId(toDistrictId);
+            req.setServiceId(useServiceId);
+            req.setWeight(weightGram);
+            req.setLength(length);
+            req.setWidth(width);
+            req.setHeight(height);
+            req.setCodAmount(cod);
+            req.setClientOrderCode("ORD-" + saved.getId());
+
+            // Bắt buộc GHN
+            req.setPayment_type_id(1); // 1: shop trả ship
+            req.setRequired_note("KHONGCHOXEMHANG");
+            req.setNote("Đơn hàng FruitMarket #" + saved.getId());
+
+            // Items GHN (tên SP)
+            List<CreateOrderReq.Item> items = new ArrayList<>();
+            CreateOrderReq.Item item = new CreateOrderReq.Item();
+            item.setName(variant.getProduct().getProductName());
+            item.setQuantity(q);
+            items.add(item);
+            req.setItems(items);
+
+            try {
+                Optional<String> optCode = ghnClientService.createOrderAndGetOrderCode(req);
+                if (optCode.isPresent()) {
+                    String code = optCode.get();
+                    saved.setGhnOrderCode(code);
+
+                    // Lấy detail để xác định trạng thái nếu muốn
+                    try {
+                        var detail = ghnClientService.getOrderDetail(code);
+                        if (detail != null && detail.getData() != null) {
+                            saved.setGhnStatus(GhnStatus.READY_TO_PICK);
+                        }
+                    } catch (WebClientResponseException wcre) {
+                        log.warn("Failed to fetch GHN order detail for code {}: status={} body={}",
+                                code, wcre.getStatusCode(), wcre.getResponseBodyAsString());
+                    } catch (Exception e) {
+                        log.warn("Failed to fetch GHN order detail for code {}: {}", code, e.getMessage(), e);
+                    }
+
+                    orderRepo.saveAndFlush(saved);
+                    log.info("Saved GHN order code {} for local order {}", code, saved.getId());
+                } else {
+                    log.warn("[GHN] createOrder: no orderCode returned for local order {}", saved.getId());
+                }
+            } catch (WebClientResponseException wcre) {
+                String body = "<no body>";
+                try { body = wcre.getResponseBodyAsString(); } catch (Exception ignore) {}
+                log.warn("[GHN] createOrder failed with status {} and body: {}", wcre.getStatusCode(), body);
+            } catch (Exception ex) {
+                log.error("Unexpected error while creating GHN order for local order " + saved.getId(), ex);
             }
         } catch (Exception ex) {
-            log.warn("Failed to check available GHN services (best-effort): {}", ex.getMessage(), ex);
+            log.warn("Failed to create GHN order (best-effort): {}", ex.getMessage(), ex);
         }
 
         return saved;
     }
+
 
     /* =====================================================
      * createOrderFromCart — HỖ TRỢ CẢ quantity & weight (kg)
@@ -208,6 +237,12 @@ public class OrderServiceImpl implements OrderService {
         order.setUsers(user);
         order.setAddress(userDetail.getAddress());
         order.setPhoneNumber(userDetail.getPhone());
+
+        // NEW: set recipientName (ưu tiên receiverName trong địa chỉ, fallback username)
+        String recipient = (userDetail.getReceiverName() != null && !userDetail.getReceiverName().isBlank())
+                ? userDetail.getReceiverName().trim()
+                : (user.getUsername() != null ? user.getUsername() : "Khách hàng");
+        order.setRecipientName(recipient);
 
         try {
             order.setPricingMethod(PricingMethod.valueOf(orderReq.getPaymentMethod()));
@@ -250,7 +285,7 @@ public class OrderServiceImpl implements OrderService {
                 // Bán theo kg
                 oi.setWeight(weightKg);
                 oi.setQuantity(null);
-                oi.setUnit(Units.KILOGRAM); // ✅ Thêm dòng này
+                oi.setUnit(Units.KILOGRAM); // ✅
                 goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(weightKg)));
                 totalWeightKg += weightKg;
             } else {
@@ -258,18 +293,16 @@ public class OrderServiceImpl implements OrderService {
                 int q = (quantity != null && quantity > 0) ? quantity : 1;
                 oi.setQuantity(q);
                 oi.setWeight(null);
-                oi.setUnit(Units.PIECE); // ✅ Thêm dòng này
+                oi.setUnit(Units.PIECE); // ✅
                 goodsTotal = goodsTotal.add(unitPrice.multiply(BigDecimal.valueOf(q)));
                 totalQtyPiece += q;
             }
-
 
             items.add(oi);
         }
 
         order.setOrderItemList(new ArrayList<>(items));
         order.setTotalQuantity(totalQtyPiece);
-        // Nếu entity Order có trường totalWeight(Double) thì set; nếu không, có thể bỏ.
         try { order.setTotalWeight(totalWeightKg); } catch (Throwable ignore) {}
 
         // 2) TÍNH PHÍ SHIP GHN (có trọng lượng thực)
@@ -309,11 +342,21 @@ public class OrderServiceImpl implements OrderService {
 
         // 4) (tuỳ chọn) tạo đơn GHN sau khi lưu thành công
         try {
-            String toName       = user.getUsername();
-            String toPhone      = userDetail.getPhone();
-            String toAddr       = userDetail.getAddress();
-            String toWardCode   = userDetail.getWard().getWardCode();
-            Integer toDistrictId= userDetail.getDistrict().getDistrictId();
+            // NEW: dùng đúng tên người nhận vừa lưu
+            String toName        = (saved.getRecipientName() != null && !saved.getRecipientName().isBlank())
+                    ? saved.getRecipientName()
+                    : (user.getUsername() != null ? user.getUsername() : "Khách hàng");
+            String toPhone       = userDetail.getPhone();
+            String toAddr        = userDetail.getAddress();
+            String toWardCode    = userDetail.getWard().getWardCode();
+            Integer toDistrictId = userDetail.getDistrict().getDistrictId();
+
+            String street   = userDetail.getAddress(); // "35 Cát Lái" hoặc "35 Đường Cát Lái"
+            String wardName = userDetail.getWard().getWardName();         // "Phường Cát Lái"
+            String distName = userDetail.getDistrict().getDistrictName(); // "TP Thủ Đức" (đồng bộ mới)
+            String provName = userDetail.getDistrict().getProvince().getProvinceName(); // tuỳ bạn lưu ở đâu
+
+            String fullAddr = String.format("%s, %s, %s, %s", street, wardName, distName, provName);
 
             var svRes = ghnClientService.availableServices(fromDistrictId, toDistrictId);
             if (svRes != null && svRes.getData() != null && !svRes.getData().isEmpty()) {
@@ -331,10 +374,12 @@ public class OrderServiceImpl implements OrderService {
                         : 0;
 
                 CreateOrderReq req = new CreateOrderReq();
-                req.setToName(toName);
+                req.setToName(toName); // ✅ tên người nhận chuẩn
                 req.setToPhone(toPhone);
-                req.setToAddress(toAddr);
+                req.setToAddress(normalizeVi(fullAddr));
                 req.setToWardCode(toWardCode);
+                req.setFromWardCode(fromWardCode);
+                req.setFromDistrictId(fromDistrictId);
                 req.setToDistrictId(toDistrictId);
                 req.setServiceId(serviceId);
                 req.setWeight(weightGram);
@@ -458,38 +503,60 @@ public class OrderServiceImpl implements OrderService {
             order.setGhnOrderCode(ghnOrderCode);
         }
 
-        // 2) Chặn callback đi lùi
         GhnStatus oldGhn = order.getGhnStatus();
+
+        // Helper: các trạng thái return/hoàn/huỷ từ GHN
+        final boolean isReturn = isReturnStatus(ghnStatus);
+
+        // 2) Quy tắc đặc biệt cho "return"
+        if (isReturn) {
+            // Nếu đã giao (DELIVERED) hoặc đơn đã COMPLETED thì KHÔNG cho return nữa
+            if (oldGhn == GhnStatus.DELIVERED ||
+                    (order.getOrderStauts() != null && order.getOrderStauts().rank() >= OrderStauts.COMPLETED.rank())) {
+                log.info("Bỏ qua callback return ({}) vì đơn {} đã DELIVERED/COMPLETED.", ghnStatus, clientOrderCode);
+                return false;
+            }
+
+            // Cho return khi đang DELIVERING hoặc các trạng thái trước đó
+            order.setGhnStatus(ghnStatus);
+            // Chuyển đơn về CANCEL nếu chưa completed
+            if (order.getOrderStauts() == null ||
+                    order.getOrderStauts().rank() < OrderStauts.COMPLETED.rank()) {
+                order.setOrderStauts(OrderStauts.CANCELLED);
+            }
+            orderRepo.save(order);
+            log.info("Đơn {} chuyển sang {} (return) -> set OrderStauts = {}", clientOrderCode, ghnStatus, OrderStauts.CANCELLED);
+            return true;
+        }
+
+        // 3) Với trạng thái KHÔNG phải return: chặn callback đi lùi theo rank
         if (oldGhn != null) {
             int oldRank = GHN_RANK.getOrDefault(oldGhn, 0);
             int newRank = GHN_RANK.getOrDefault(ghnStatus, 0);
             if (newRank < oldRank) {
                 log.warn("BỎ QUA callback GHN: {} < {} cho đơn {}", ghnStatus, oldGhn, clientOrderCode);
-                return false; // không cập nhật gì
+                return false;
             }
         }
 
-        // 3) Ghi nhận GHN status (đã qua kiểm tra không đi lùi)
+        // 4) Ghi nhận GHN status (không đi lùi)
         order.setGhnStatus(ghnStatus);
 
-        // 4) Map GHN -> OrderStatus (chỉ tiến tới, không kéo lùi OrderStatus)
+        // 5) Map GHN -> OrderStatus (1 chiều, không kéo lùi)
         switch (ghnStatus) {
             case READY_TO_PICK -> {
-                // chỉ set PENDING nếu chưa vượt qua PENDING
                 if (order.getOrderStauts() == null ||
                         order.getOrderStauts().rank() <= OrderStauts.PENDING.rank()) {
                     order.setOrderStauts(OrderStauts.PENDING);
                 }
             }
             case DELIVERING -> {
-                // khi đang giao thì coi như SHIPPING
                 if (order.getOrderStauts() == null ||
                         order.getOrderStauts().rank() < OrderStauts.SHIPPING.rank()) {
                     order.setOrderStauts(OrderStauts.SHIPPING);
                 }
             }
             case DELIVERED -> {
-                // khi đã giao: hoàn tất/đã thu COD thì COMPLETED, chưa thu thì SHIPPED
                 boolean isCOD = "COD".equalsIgnoreCase(String.valueOf(order.getPricingMethod()));
                 if (isCOD && !order.isPaid()) {
                     order.setOrderStauts(OrderStauts.COMPLETED);
@@ -499,7 +566,6 @@ public class OrderServiceImpl implements OrderService {
                     order.setOrderStauts(OrderStauts.COMPLETED);
                     log.info("Đơn {} đã thanh toán, GHN DELIVERED -> COMPLETED.", clientOrderCode);
                 } else {
-                    // chưa thanh toán online + GHN báo delivered: đánh dấu đã giao
                     if (order.getOrderStauts() == null ||
                             order.getOrderStauts().rank() < OrderStauts.SHIPPED.rank()) {
                         order.setOrderStauts(OrderStauts.SHIPPED);
@@ -512,6 +578,16 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepo.save(order);
         return true;
+    }
+
+    /** Trả về true nếu trạng thái GHN là nhóm 'return/hoàn/huỷ/thất bại giao' */
+    private boolean isReturnStatus(GhnStatus s) {
+        if (s == null) return false;
+        // Thêm/bớt theo enum thực tế của bạn
+        return EnumSet.of(
+                GhnStatus.RETURN, GhnStatus.RETURNED,
+                GhnStatus.CANCEL
+        ).contains(s);
     }
 
     /* ===== Shipping fee helpers ===== */
@@ -604,7 +680,8 @@ public class OrderServiceImpl implements OrderService {
             GhnStatus.READY_TO_PICK, 1,
             GhnStatus.PICKING,       2,
             GhnStatus.DELIVERING,    3,
-            GhnStatus.DELIVERED,     4
+            GhnStatus.DELIVERED,     4,
+            GhnStatus.RETURN,        5
     );
 
     private static String normalizeVi(String s) {
