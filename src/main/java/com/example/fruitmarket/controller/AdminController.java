@@ -224,8 +224,9 @@ public class AdminController {
     public String adminProducts(Model model, HttpSession session) {
         String redirect = checkAdminAccess(session);
         if (redirect != null) return redirect;
-
-        model.addAttribute("products", productService.findAll());
+        model.addAttribute("categories", categorysService.findAll());
+        model.addAttribute("brands", brandsService.findAll());
+        model.addAttribute("products", productService.findAllByAdmin());
         return "admin/products";
     }
 

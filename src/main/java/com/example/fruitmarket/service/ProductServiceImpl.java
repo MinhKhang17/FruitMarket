@@ -36,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<Product> findAll() {
-        return productRepo.findAll();
+        return productRepo.findAllByStatus(ProductStatus.ACTIVE);
     }
 
     @Override
@@ -129,6 +129,11 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepo.findById(productId).orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
         product.setStatus(ProductStatus.ACTIVE);
         productRepo.save(product);
+    }
+
+    @Override
+    public List<Product> findAllByAdmin() {
+        return productRepo.findAll();
     }
 
 }

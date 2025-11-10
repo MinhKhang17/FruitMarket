@@ -5,6 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin - Products</title>
     <link th:href="@{/products.css}" rel="stylesheet" />
+
+    <!-- Bổ sung CSS cho filter + bố cục nút cho gọn gàng -->
+    <style>
+        /* ===== Filter Bar (khớp layout hiện tại) ===== */
+        .filters{margin:16px 0;padding:12px;border:1px solid #c8e6c9;background:#ffffff;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,.03)}
+        .filters-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;align-items:end}
+        .filters .filter-item label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px 2px}
+        .filters .filter-item input,.filters .filter-item select{width:100%;height:38px;border:1px solid #c8e6c9;border-radius:8px;padding:0 10px;outline:none;background:#fff}
+        .filters .filter-item input:focus,.filters .filter-item select:focus{box-shadow:0 0 0 3px rgba(102,187,106,.2);border-color:var(--accent)}
+        .filter-actions{grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+        @media (max-width: 768px){
+            .filter-actions{justify-content:stretch}
+            .filter-actions .btn{flex:1}
+        }
+        .btn-secondary{background:#9e9e9e}
+        .btn-secondary:hover{background:#7e7e7e}
+        /* badge giữ nguyên màu hiện có */
+        .badge-active{background:#e6ffed;color:#047857;padding:4px 8px;border-radius:999px;font-size:12px}
+        .badge-inactive{background:#ffe4e6;color:#b91c1c;padding:4px 8px;border-radius:999px;font-size:12px}
+        #resultMeta{color:var(--muted);font-size:12px;margin-top:4px}
+
+        /* ===== Table/Layout fixes for overlapping action buttons ===== */
+        table{table-layout:auto}
+        td, th{vertical-align:middle}
+        /* set a reasonable width for the Action col to let buttons wrap nicely */
+        thead th:last-child{width: 220px}
+        @media (max-width: 1400px){ thead th:last-child{width: 200px} }
+        @media (max-width: 1200px){ thead th:last-child{width: 200px} }
+        @media (max-width: 992px){ thead th:last-child{width: 180px} }
+
+        .actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap;justify-content:flex-start}
+        .actions a{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-weight:600;color:#fff;text-decoration:none;font-size:0;line-height:1;white-space:nowrap;padding:0;border:0}
+        .actions a svg{width:18px;height:18px;display:block}
+        .actions a .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+        .actions a[data-tip]{position:relative}
+        .actions a[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:4px 6px;border-radius:4px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0.95}
+        .actions a.edit{background-color:#4caf50}
+        .actions a.edit:hover{background-color:#388e3c}
+        .actions a.delete{background-color:var(--danger)}
+        .actions a.delete:hover{background-color:var(--danger-dark)}
+        .actions a.restore{background-color:var(--blue-btn)}
+        .actions a.restore:hover{background-color:var(--blue-btn-hover)}
+        .actions a.btn-view{background-color:var(--purple)}
+        .actions a.btn-view:hover{background-color:var(--purple-dark)}
+        .actions a.btn-create{background-color:var(--accent)}
+        .actions a.btn-create:hover{background-color:var(--accent-dark)}
+
+        /* prevent row height explosion due to images */
+        .thumb{width:64px;height:64px;object-fit:cover;border-radius:6px;border:1px solid #c8e6c9}
+
+        /* helpful when content too tight: allow wrapping in text cells */
+        td{word-break:break-word}
+        .status-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:#bbb;vertical-align:middle}
+        .status-active{background:#4caf50}
+        .status-inactive{background:#e53935}
+    </style>
 </head>
 <body>
 <div class="card">
@@ -17,6 +73,59 @@
             <a class="btn btn-main" th:href="@{/admin/products/create}">Thêm sản phẩm mới</a>
         </div>
     </div>
+
+    <!-- FILTERS & SEARCH (client-side) -->
+    <form class="filters" th:action="@{/admin/products}" method="get" onsubmit="return false;">
+        <div class="filters-grid">
+            <div class="filter-item">
+                <label for="q">Tìm kiếm</label>
+                <input id="q" type="text" name="q" placeholder="Tìm theo tên hoặc mô tả…"
+                       th:value="${param.q != null ? param.q[0] : ''}" />
+            </div>
+
+            <div class="filter-item">
+                <label for="categoryId">Danh mục</label>
+                <select id="categoryId" name="categoryId">
+                    <option value="">Tất cả danh mục</option>
+                    <option th:each="c : ${categories}"
+                            th:value="${c.id}"
+                            th:text="${c.name}"
+                            th:selected="${param.categoryId != null and param.categoryId[0] == c.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="brandId">Thương hiệu</label>
+                <select id="brandId" name="brandId">
+                    <option value="">Tất cả thương hiệu</option>
+                    <option th:each="b : ${brands}"
+                            th:value="${b.id}"
+                            th:text="${b.name}"
+                            th:selected="${param.brandId != null and param.brandId[0] == b.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label for="status">Trạng thái</label>
+                <select id="status" name="status">
+                    <option value="">Tất cả trạng thái</option>
+                    <option th:each="s : ${T(com.example.fruitmarket.enums.ProductStatus).values()}"
+                            th:value="${s.name()}"
+                            th:text="${s.name()}"
+                            th:selected="${param.status != null and param.status[0] == s.name()}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-actions">
+                <button type="button" id="btnApply" class="btn btn-main">Lọc</button>
+                <button type="button" id="btnReset" class="btn btn-secondary">Xóa lọc</button>
+            </div>
+        </div>
+        <div id="resultMeta"></div>
+    </form>
 
     <div th:if="${#lists.isEmpty(products)}" class="no-data">Không có sản phẩm nào.</div>
 
@@ -35,12 +144,13 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="p, iter : ${products}">
+            <tr th:each="p, iter : ${products}"
+                th:attr="data-category-id=${p.category != null ? p.category.id : ''},
+                         data-brand-id=${p.brand != null ? p.brand.id : ''},
+                         data-status=${p.status}">
                 <td th:text="${iter.index + 1}">1</td>
                 <td>
-                    <img th:src="${!#lists.isEmpty(p.variants) && p.variants.get(0).image != null ?
-                        p.variants.get(0).image.url :
-                        '/images/placeholder.png'}"
+                    <img th:src="${!#lists.isEmpty(p.variants) && p.variants.get(0).image != null ? p.variants.get(0).image.url : '/images/placeholder.png'}"
                          alt="thumb" class="thumb" />
                 </td>
 
@@ -52,37 +162,125 @@
 
                 <!-- STATUS -->
                 <td>
-          <span th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE}"
-                class="badge-active">Active</span>
-                    <span th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}"
-                          class="badge-inactive">InActive</span>
+                    <span th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE}" class="status-dot status-active" title="Active"></span>
+                    <span th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}" class="status-dot status-inactive" title="Inactive"></span>
                 </td>
 
                 <!-- ACTIONS -->
                 <td class="actions">
-                    <a th:href="@{'/admin/products/edit/' + ${p.id}}" class="edit">Edit</a>
+                    <a th:href="@{'/admin/products/edit/' + ${p.id}}" class="edit icon-btn" data-tip="Edit">
+                        <span class="sr-only">Edit</span>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 17.25V20h2.75L17.81 8.94l-2.75-2.75L4 17.25z" fill="currentColor"/><path d="M20.71 7.04a1.003 1.003 0 000-1.42l-2.34-2.34a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.76 3.76 1.83-1.83z" fill="currentColor"/></svg>
+                    </a>
 
                     <a th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).ACTIVE}"
                        th:href="@{'/admin/products/delete/' + ${p.id}}"
-                       class="delete"
-                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">Delete</a>
+                       class="delete icon-btn" data-tip="Delete"
+                       onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                        <span class="sr-only">Delete</span>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 7h12" stroke="currentColor" stroke-width="2"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" stroke="currentColor" stroke-width="2"/><path d="M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" stroke="currentColor" stroke-width="2"/></svg>
+                    </a>
 
                     <a th:if="${p.status == T(com.example.fruitmarket.enums.ProductStatus).INACTIVE}"
                        th:href="@{'/admin/products/restore/' + ${p.id}}"
-                       class="restore"
-                       onclick="return confirm('Bạn có muốn khôi phục sản phẩm này?');">Restore</a>
+                       class="restore icon-btn" data-tip="Restore"
+                       onclick="return confirm('Bạn có muốn khôi phục sản phẩm này?');">
+                        <span class="sr-only">Restore</span>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v4l3-3M12 19a7 7 0 100-14 7 7 0 000 14z" stroke="currentColor" stroke-width="2"/></svg>
+                    </a>
 
-                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants/list'}"
-                       class="btn-view">View Variants</a>
-
-                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}"
-                       class="btn-create">Create Variant</a>
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants/list'}" class="btn-view icon-btn" data-tip="View variants">
+                        <span class="sr-only">View Variants</span>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5c-7 0-10 7-10 7s3 7 10 7 10-7 10-7-3-7-10-7zm0 10a3 3 0 110-6 3 3 0 010 6z" fill="currentColor"/></svg>
+                    </a>
+                    <a th:href="@{'/admin/products/' + ${p.id} + '/variants'}" class="btn-create icon-btn" data-tip="Create variant">
+                        <span class="sr-only">Create Variant</span>
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2"/></svg>
+                    </a>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
 </div>
-</body>
+
+<!-- Fragment thông báo -->
 <div th:replace="~{fragments/notification :: notification}"></div>
+
+<script>
+    (function(){
+        const $ = (sel, ctx=document) => ctx.querySelector(sel);
+        const q = $('#q');
+        const category = $('#categoryId');
+        const brand = $('#brandId');
+        const status = $('#status');
+        const btnApply = $('#btnApply');
+        const btnReset = $('#btnReset');
+        const table = document.querySelector('table');
+        const tbody = table ? table.tBodies[0] : null;
+        const noDataDiv = document.querySelector('.no-data');
+        const resultMeta = document.getElementById('resultMeta');
+
+        const normalize = (s) => (s||'').toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,'');
+        const rows = tbody ? Array.from(tbody.rows) : [];
+
+        function rowMatches(row){
+            const term = normalize(q.value.trim());
+            const catId = category.value; const brandId = brand.value; const st = status.value;
+            const rowCat = row.getAttribute('data-category-id') || '';
+            const rowBrand = row.getAttribute('data-brand-id') || '';
+            const rowStatus = row.getAttribute('data-status') || '';
+
+            const nameCell = row.querySelector('td:nth-child(3)');
+            const descCell = row.querySelector('td:nth-child(4)');
+            const catCell  = row.querySelector('td:nth-child(5)');
+            const brandCell= row.querySelector('td:nth-child(6)');
+            const textBlob = [nameCell, descCell, catCell, brandCell].map(c=>c?c.textContent:'').join(' ');
+
+            const textOk   = !term   || normalize(textBlob).includes(term);
+            const catOk    = !catId  || rowCat === catId;
+            const brandOk  = !brandId|| rowBrand === brandId;
+            const statusOk = !st     || rowStatus === st;
+            return textOk && catOk && brandOk && statusOk;
+        }
+
+        function applyFilters(){
+            let shown = 0;
+            rows.forEach(row => {
+                if (rowMatches(row)) { row.style.display = ''; shown++; }
+                else { row.style.display = 'none'; }
+            });
+
+            const hasAny = rows.length > 0;
+            if (hasAny && shown === 0) {
+                if (noDataDiv) { noDataDiv.textContent = 'Không có sản phẩm khớp bộ lọc.'; noDataDiv.style.display = 'block'; }
+            } else {
+                if (noDataDiv) { noDataDiv.textContent = 'Không có sản phẩm nào.'; noDataDiv.style.display = (hasAny ? 'none' : 'block'); }
+            }
+            if (resultMeta) resultMeta.textContent = shown + ' sản phẩm hiển thị';
+        }
+
+        let timer; function debounceApply(){ clearTimeout(timer); timer = setTimeout(applyFilters, 150); }
+        if (q) q.addEventListener('input', debounceApply);
+        if (category) category.addEventListener('change', applyFilters);
+        if (brand) brand.addEventListener('change', applyFilters);
+        if (status) status.addEventListener('change', applyFilters);
+        if (btnApply) btnApply.addEventListener('click', applyFilters);
+        if (btnReset) btnReset.addEventListener('click', function(){
+            if (q) q.value = '';
+            if (category) category.value = '';
+            if (brand) brand.value = '';
+            if (status) status.value = '';
+            applyFilters();
+        });
+        applyFilters();
+    })();
+</script>
+
+</body>
 </html>
+
+<!--
+Gợi ý Controller (Spring MVC): giữ nguyên như trước. Ở đây filter chạy client-side, không gọi lại server.
+Nếu muốn filter server-side (để áp dụng cả khi có phân trang), chuyển 2 nút thành type="submit" và xử lý ở service/repo.
+-->
