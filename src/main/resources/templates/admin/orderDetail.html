@@ -118,8 +118,8 @@
             </tr>
 
             <tr class="shipping-row">
-                <td colspan="4" style="text-align: right; font-weight: 500;">Phí vận chuyển:</td>
-                <td class="price text-success fw-semibold"
+                <td class="sum-label" colspan="3">Phí vận chuyển:</td>
+                <td class="sum-value"
                     th:text="${#numbers.formatDecimal(order.shippingFee != null ? order.shippingFee : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">
                     0 đ
                 </td>
