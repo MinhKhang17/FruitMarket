@@ -95,7 +95,7 @@
                             </div>
 
                             <div th:if="${product.unit == null or product.unit.name() != 'KILOGRAM'}">
-                                <label><strong>Chọn biến thể:</strong></label>
+                                <label><strong>Chọn loại sản phẩm</strong></label>
 
                                 <div th:if="${product.productVariants == null or #lists.isEmpty(product.productVariants)}" class="text-muted">
                                     Sản phẩm này không có biến thể.
@@ -312,7 +312,7 @@
     function validateCheckout() {
         const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
         if (hasVariants && (!variantIdInput || !variantIdInput.value)) {
-            alert("Vui lòng chọn biến thể trước khi thanh toán!");
+            alert("Vui lòng chọn loại sản phẩm trước khi thanh toán!");
             return false;
         }
 

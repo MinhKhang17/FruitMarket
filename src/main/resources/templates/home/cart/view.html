@@ -20,6 +20,11 @@
         .muted { color: #6c757d; }
         .small-muted { color: #95a49a; font-size: 0.85rem; }
         .checkbox-col { width: 48px; }
+        /* căn giữa input-group bên trong cột số lượng */
+        .qty-cell .input-group { width: 140px; }
+        @media (max-width: 576px) {
+            .qty-cell .input-group { width: 120px; }
+        }
     </style>
 </head>
 <body>
@@ -47,7 +52,8 @@
                             </th>
                             <th scope="col">Sản phẩm</th>
                             <th scope="col">Giá</th>
-                            <th scope="col" style="width: 150px;">Số lượng/khối lượng (kg)</th>
+                            <!-- đổi tiêu đề cột -->
+                            <th scope="col" style="width: 170px;">Số lượng</th>
                             <th scope="col">Thành tiền</th>
                             <th scope="col" class="text-center">Hành động</th>
                         </tr>
@@ -82,21 +88,32 @@
                                 th:text="${item.price != null ? #numbers.formatDecimal(item.price,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫
                             </td>
 
-                            <td>
+                            <!-- Ô số lượng có suffix đơn vị -->
+                            <td class="qty-cell">
                                 <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
                                     <input type="hidden" name="productId" th:value="${item.productId}" />
                                     <input type="hidden" name="variantId" th:value="${item.variantId}" />
 
-                                    <!-- ✅ Có data-index để JS đọc -->
-                                    <div th:if="${item.unit == 'KILOGRAM'}">
-                                        <input type="number" name="qtyOrWeight" class="form-control form-control-sm text-center qty-input"
-                                               step="0.1" min="0.1" th:value="${item.weight}" th:attr="data-index=${iterStat.index}" style="width:90px;">
+                                    <!-- KILOGRAM: hiện 'kg' -->
+                                    <div class="input-group input-group-sm" th:if="${item.unit == 'KILOGRAM'}">
+                                        <input type="number" name="qtyOrWeight"
+                                               class="form-control form-control-sm text-center qty-input"
+                                               step="0.1" min="0.1"
+                                               th:value="${item.weight}"
+                                               th:attr="data-index=${iterStat.index}">
+                                        <span class="input-group-text">kg</span>
                                     </div>
 
-                                    <div th:if="${item.unit != 'KILOGRAM'}">
-                                        <input type="number" name="qtyOrWeight" class="form-control form-control-sm text-center qty-input"
-                                               min="1" th:value="${item.quantity}" th:attr="data-index=${iterStat.index}" style="width:80px;">
+                                    <!-- Đơn vị khác: hiện đúng tên enum (lowercase) -->
+                                    <div class="input-group input-group-sm" th:if="${item.unit != 'KILOGRAM'}">
+                                        <input type="number" name="qtyOrWeight"
+                                               class="form-control form-control-sm text-center qty-input"
+                                               min="1"
+                                               th:value="${item.quantity}"
+                                               th:attr="data-index=${iterStat.index}">
+                                        <span class="input-group-text"
+                                              th:text="${#strings.toLowerCase(item.unit)}">pcs</span>
                                     </div>
 
                                     <button class="btn btn-outline-success btn-sm btn-update ms-1" type="submit" title="Cập nhật">

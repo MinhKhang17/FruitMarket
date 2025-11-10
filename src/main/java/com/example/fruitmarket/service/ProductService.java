@@ -38,4 +38,5 @@ public interface ProductService {
     void updateProductStatusToInactive(Long productId);
     void updateProductStatusToActive(Long productId);
 
+    List<Product> findAllByAdmin();
 }

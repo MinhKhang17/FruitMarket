@@ -1,5 +1,6 @@
 package com.example.fruitmarket.repository;
 
+import com.example.fruitmarket.enums.ProductStatus;
 import com.example.fruitmarket.model.Product;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,4 +37,6 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
     List<Product> search(@Param("q") String q);
 
     Product findByProductName(String productName);
+
+    List<Product> findAllByStatus(ProductStatus status);
 }

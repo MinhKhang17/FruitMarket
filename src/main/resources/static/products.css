@@ -154,8 +154,7 @@ tbody tr:hover {
 }
 
 .actions a.restore {
-    background-color: var(--purple);
-    color: var(--purple-dark);
+    background-color: var(--blue-btn);
 }
 .actions a.restore:hover {
     background-color: var(--blue-btn-hover);
