@@ -32,6 +32,10 @@
         .empty-illustration{opacity:.6}
         .clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
         .price{font-weight:700;color:#2f9e44}
+
+        /* Nút View + Thêm nằm cùng hàng */
+        .product-actions{display:flex;gap:.5rem;margin-top:.5rem}
+        .btn-view-product{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #e5e7eb;border-radius:.6rem;padding:.4rem .6rem;text-decoration:none}
     </style>
 </head>
 <body>
@@ -152,9 +156,110 @@
                                 }">₫ 0</span>
                         </div>
 
-                        <a class="btn btn-leaf w-100" th:href="@{|/products/${p.id}|}" target="_top">Xem chi tiết</a>
+                        <!-- Hành động: Xem chi tiết + Thêm vào giỏ -->
+                        <div class="product-actions">
+                            <a class="btn btn-view-product flex-fill" th:href="@{|/products/${p.id}|}" target="_top">
+                                <i class="bi bi-eye"></i> Xem
+                            </a>
+                            <!-- ✅ Nút mở Modal thêm vào giỏ -->
+                            <button type="button"
+                                    class="btn btn-outline-primary btn-sm"
+                                    data-bs-toggle="modal"
+                                    th:attr="data-bs-target=${'#addToCartModal-' + p.id}">
+                                <i class="bi bi-cart-plus me-1"></i> Thêm
+                            </button>
+                        </div>
                     </div>
                 </article>
+
+                <!-- ✅ Modal Add to Cart cho từng sản phẩm -->
+                <div class="modal fade" th:id="${'addToCartModal-' + p.id}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form th:action="@{/cart/add}" method="post" class="modal-form">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" th:text="${p.productName}">Product</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <!-- CSRF -->
+                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+
+                                    <!-- product id -->
+                                    <input type="hidden" name="productId" th:value="${p.id}" />
+
+                                    <!-- Hidden variant id (2 tên field để tương thích BE) -->
+                                    <input type="hidden" name="product_variant_id"
+                                           th:id="${'modal_product_variant_id_' + p.id}"
+                                           th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+                                    <input type="hidden" name="variantId"
+                                           th:id="${'modal_variantId_' + p.id}"
+                                           th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+
+                                    <!-- Danh sách biến thể -->
+                                    <div th:if="${p.variants != null and !#lists.isEmpty(p.variants)}" class="mb-3">
+                                        <label class="form-label"><strong>Chọn biến thể</strong></label>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button type="button"
+                                                    th:each="v, idx : ${p.variants}"
+                                                    class="btn btn-outline-secondary variant-select-btn"
+                                                    th:classappend="${idx.index == 0} ? ' active' : ''"
+                                                    th:attr="data-variant-id=${v.id}, data-stock=${v.stock}, data-price=${v.price}, data-image=${v.image != null && v.image.url != null ? v.image.url : ''}, data-index=${idx.index}">
+                                                <span th:text="${v.variant_name}">Variant</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Số lượng / Khối lượng -->
+                                    <div class="mb-3">
+                                        <label class="form-label"><strong>Số lượng</strong></label>
+
+                                        <!-- Hàng theo kg -->
+                                        <div th:if="${p.unit != null and p.unit.name() == 'KILOGRAM'}"
+                                             class="d-flex align-items-center gap-2">
+                                            <input type="number" name="weight" th:id="${'modalWeight-' + p.id}"
+                                                   step="0.1" min="0.1" value="1"
+                                                   class="form-control modal-weight" style="width:160px;" />
+                                            <span>kg</span>
+                                            <div class="ms-2 small text-muted"
+                                                 th:id="${'modalStockHintWeight-' + p.id}"></div>
+                                        </div>
+
+                                        <!-- Hàng theo cái/rổ/... -->
+                                        <div th:if="${p.unit == null or p.unit.name() != 'KILOGRAM'}"
+                                             class="d-flex align-items-center gap-2">
+                                            <input type="number" name="quantity" th:id="${'modalQty-' + p.id}"
+                                                   min="1" value="1"
+                                                   class="form-control modal-qty" style="width:120px;" />
+                                            <span th:text="${p.unit != null ? (p.unit.name() == 'BASKET' ? 'rổ' : (p.unit.name() == 'PIECE' ? 'cái' : p.unit.name().toLowerCase())) : 'cái'}">cái</span>
+                                            <div class="ms-2 small text-muted"
+                                                 th:id="${'modalStockHintQty-' + p.id}"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Giá dự kiến -->
+                                    <div class="mb-2">
+                                        Giá dự kiến:
+                                        <strong class="text-success" th:id="${'modalPrice-' + p.id}"
+                                                th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
+                                                    ? #numbers.formatDecimal(p.variants.get(0).price,0,'POINT',0,'COMMA')
+                                                    : (p.price != null ? #numbers.formatDecimal(p.price,0,'POINT',0,'COMMA') : '0')}">0</strong> ₫
+                                    </div>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                    <button type="submit" class="btn btn-primary btn-add-to-cart">
+                                        Thêm vào giỏ
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <!-- /Modal -->
             </div>
         </div>
     </section>
@@ -293,6 +398,9 @@
         }
 
         function renderChips(total){
+            const $chips = document.getElementById('chips');
+            const $reset = document.getElementById('resetAll');
+
             $chips.innerHTML='';
             const defs=[];
             if(state.cat) defs.push({k:'cat',label:`Danh mục: ${state.cat}`});
@@ -331,6 +439,113 @@
         $size.addEventListener('change',()=>{state.size=parseInt($size.value,10);state.page=1;apply();});
         apply();
     })();
+</script>
+
+<!-- ✅ Script xử lý modal: chọn biến thể, sync giá/stock, validate trước khi submit -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // chọn biến thể
+        document.querySelectorAll('.variant-select-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const modal = btn.closest('.modal');
+                if (!modal) return;
+
+                modal.querySelectorAll('.variant-select-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const variantId = btn.getAttribute('data-variant-id');
+                const stock = btn.getAttribute('data-stock');
+                const price = btn.getAttribute('data-price');
+
+                const vInput1 = modal.querySelector('input[name="product_variant_id"]');
+                const vInput2 = modal.querySelector('input[name="variantId"]');
+                if (vInput1) vInput1.value = variantId || '';
+                if (vInput2) vInput2.value = variantId || '';
+
+                modal.dataset.basePrice = price;
+
+                const priceEl = modal.querySelector('[id^="modalPrice-"]');
+                const qtyInput = modal.querySelector('input[name="quantity"].modal-qty');
+                const weightInput = modal.querySelector('input[name="weight"].modal-weight');
+
+                let multiplier = 1;
+                if (weightInput) multiplier = Number(weightInput.value) && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
+                else if (qtyInput) multiplier = Number(qtyInput.value) && Number(qtyInput.value) > 0 ? Number(qtyInput.value) : 1;
+
+                if (priceEl && price != null) priceEl.textContent = Number(price * multiplier).toLocaleString('vi-VN');
+
+                const stockHintQty = modal.querySelector('[id^="modalStockHintQty-"]');
+                const qtyIn = modal.querySelector('input[name="quantity"]');
+                if (stockHintQty) stockHintQty.textContent = stock ? ('(Còn ' + stock + ' sản phẩm)') : '';
+                if (qtyIn && stock) { qtyIn.max = stock; if (Number(qtyIn.value) > Number(stock)) qtyIn.value = stock; }
+
+                const stockHintWeight = modal.querySelector('[id^="modalStockHintWeight-"]');
+                if (stockHintWeight) stockHintWeight.textContent = stock ? ('(Còn ' + stock + ')') : '';
+
+                const imageUrl = btn.getAttribute('data-image');
+                const previewImg = modal.querySelector('.modal-image-preview img');
+                if (previewImg && imageUrl) previewImg.src = imageUrl;
+            });
+        });
+
+        // auto chọn biến thể đầu
+        document.querySelectorAll('.modal').forEach(modalEl => {
+            modalEl.addEventListener('show.bs.modal', function () {
+                const first = modalEl.querySelector('.variant-select-btn');
+                if (first) first.click();
+            });
+
+            // cập nhật giá theo qty/weight
+            modalEl.querySelectorAll('.modal-qty, .modal-weight').forEach(inp => {
+                const updatePriceFromInput = function () {
+                    const base = Number(modalEl.dataset.basePrice || modalEl.querySelector('.variant-select-btn.active')?.getAttribute('data-price') || 0);
+                    const qty = Number(modalEl.querySelector('input[name="quantity"]')?.value || 0);
+                    const weight = Number(modalEl.querySelector('input[name="weight"]')?.value || 0);
+                    const multiplier = weight > 0 ? weight : (qty > 0 ? qty : 1);
+                    const priceEl = modalEl.querySelector('[id^="modalPrice-"]');
+                    if (priceEl) priceEl.textContent = Number(base * multiplier).toLocaleString('vi-VN');
+                };
+                inp.addEventListener('input', updatePriceFromInput);
+                inp.addEventListener('change', updatePriceFromInput);
+            });
+        });
+
+        // validate before submit
+        document.querySelectorAll('.modal-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const modal = form.closest('.modal');
+                const weightInput = form.querySelector('input[name="weight"]');
+                const qtyInput = form.querySelector('input[name="quantity"]');
+                const variantBtns = form.querySelectorAll('.variant-select-btn');
+                const variantHidden = form.querySelector('input[name="product_variant_id"]') || form.querySelector('input[name="variantId"]');
+
+                // đảm bảo có biến thể nếu có danh sách biến thể
+                if (variantBtns.length > 0) {
+                    if (!variantHidden || !variantHidden.value) {
+                        e.preventDefault(); alert('Vui lòng chọn biến thể trước khi thêm vào giỏ!'); return;
+                    }
+                }
+
+                // helper tạo hidden nếu cần
+                const ensureHidden = (name, value) => {
+                    let h = form.querySelector('input[type="hidden"][name="'+name+'"]');
+                    if (!h) { h = document.createElement('input'); h.type='hidden'; h.name=name; form.appendChild(h); }
+                    h.value = value;
+                };
+
+                if (weightInput) {
+                    const w = Number(weightInput.value || 0);
+                    if (w <= 0) { e.preventDefault(); alert('Số kg không hợp lệ!'); return; }
+                    ensureHidden('weight', w);
+                } else if (qtyInput) {
+                    const q = Number(qtyInput.value || 0);
+                    if (q <= 0) { e.preventDefault(); alert('Số lượng không hợp lệ!'); return; }
+                    if (qtyInput.max && q > Number(qtyInput.max)) { e.preventDefault(); alert('Số lượng vượt quá tồn kho!'); return; }
+                    ensureHidden('quantity', Math.floor(q));
+                }
+            });
+        });
+    });
 </script>
 </body>
 </html>

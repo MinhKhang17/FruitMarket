@@ -151,18 +151,22 @@
                             </div>
 
                             <!-- Actions -->
-                            <div class="d-flex gap-2">
+                            <div class="d-flex gap-2 mt-2">
                                 <!-- Add to Cart -->
                                 <form id="addToCartForm" th:action="@{/cart/add}" method="post" style="display:inline;">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
                                     <!-- variant default: first variant if exists -->
                                     <input type="hidden" id="variantIdInput2" name="variantId"
-                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : null}" />
+                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : ''}" />
+                                    <!-- keep alternative name for compatibility -->
+                                    <input type="hidden" id="product_variant_id_hidden" name="product_variant_id"
+                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : ''}" />
+
                                     <input type="hidden" name="productId" th:value="${product.productId}" />
 
-                                    <!-- ALWAYS send quantity/weight; default 1 -->
-                                    <input type="hidden" id="qtyInputForAdd" name="quantity" value="1" />
-                                    <input type="hidden" id="weightInputForAdd" name="weight" value="1" />
+                                    <!-- ALWAYS include hidden fields but we will blank the irrelevant one before submit -->
+                                    <input type="hidden" id="qtyInputForAdd" name="quantity" value="" />
+                                    <input type="hidden" id="weightInputForAdd" name="weight" value="" />
 
                                     <button type="submit" class="btn btn-outline-success btn-view">Thêm vào giỏ</button>
                                 </form>
@@ -173,12 +177,16 @@
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
                                     <!-- name khớp với DTO getProduct_variant_id() -->
                                     <input type="hidden" id="variantIdInput" name="product_variant_id"
-                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : null}" />
+                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : ''}" />
+                                    <!-- also keep variantId for server if needed -->
+                                    <input type="hidden" id="variantIdInput_checkout_variantId" name="variantId"
+                                           th:value="${(product.productVariants != null and !#lists.isEmpty(product.productVariants)) ? product.productVariants.get(0).id : ''}" />
+
                                     <input type="hidden" name="productId" th:value="${product.productId}" />
 
-                                    <!-- ALWAYS send quantity/weight; default 1 -->
-                                    <input type="hidden" id="qtyInputForCheckout" name="quantity" value="1" />
-                                    <input type="hidden" id="weightInputForCheckout" name="weight" value="1" />
+                                    <!-- ALWAYS include hidden fields but blank irrelevant before submit -->
+                                    <input type="hidden" id="qtyInputForCheckout" name="quantity" value="" />
+                                    <input type="hidden" id="weightInputForCheckout" name="weight" value="" />
 
                                     <button type="submit" class="btn btn-success btn-view">Thanh toán</button>
                                 </form>
@@ -204,18 +212,21 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Full replacement script: đảm bảo sync qty/weight/variant trước submit -->
 <script th:inline="javascript">
-    /* Robust sync: update total price by qty/weight and ensure hidden inputs are up-to-date before submit.
-       Minimal, focused changes only — preserves all original markup and form field names.
-    */
-    (function(){
+    (function () {
+        // Elements
         const displayPrice = document.getElementById("displayPrice");
         const productImage = document.getElementById("productImage");
-        const qtyInput = document.getElementById("qtyInput");
-        const weightInput = document.getElementById("weightInput");
 
-        const variantIdInput = document.getElementById("variantIdInput");
-        const variantIdInput2 = document.getElementById("variantIdInput2");
+        const qtyInput = document.getElementById("qtyInput"); // may be null for KILOGRAM products
+        const weightInput = document.getElementById("weightInput"); // may be null for non-KG
+
+        const variantIdInput = document.getElementById("variantIdInput"); // hidden for checkout (product_variant_id)
+        const variantIdInput_checkout_variantId = document.getElementById("variantIdInput_checkout_variantId"); // alt
+        const variantIdInput2 = document.getElementById("variantIdInput2"); // hidden for add-to-cart
+        const product_variant_id_hidden = document.getElementById("product_variant_id_hidden"); // alt hidden name
+
         const qtyInputForAdd = document.getElementById("qtyInputForAdd");
         const qtyInputForCheckout = document.getElementById("qtyInputForCheckout");
         const weightInputForAdd = document.getElementById("weightInputForAdd");
@@ -224,98 +235,150 @@
         const stockHintQty = document.getElementById("stockHintQty");
         const stockHintWeight = document.getElementById("stockHintWeight");
 
+        // read server-side unit name (fallback PIECE)
+        const unit = /*[[${product.unit != null ? product.unit.name() : 'PIECE'}]]*/ 'PIECE';
+
+        // Helpers
+        function toNumber(v, def = 0) {
+            const n = Number(v);
+            return isNaN(n) ? def : n;
+        }
+
         function fmtPrice(v) {
             const n = Number(v);
             if (isNaN(n)) return v;
             return n.toLocaleString("vi-VN");
         }
 
-        // unit from server-side (fallback PIECE)
-        const unit = /*[[${product.unit != null ? product.unit.name() : 'PIECE'}]]*/ 'PIECE';
-
-        function updateHiddenFields() {
-            if (qtyInputForAdd) {
-                const val = qtyInput && Number(qtyInput.value) > 0 ? Math.floor(Number(qtyInput.value)) : 1;
-                qtyInputForAdd.value = String(val);
-            }
-            if (qtyInputForCheckout) {
-                const val = qtyInput && Number(qtyInput.value) > 0 ? Math.floor(Number(qtyInput.value)) : 1;
-                qtyInputForCheckout.value = String(val);
-            }
-            if (weightInputForAdd) {
-                const v = weightInput && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
-                weightInputForAdd.value = String(v);
-            }
-            if (weightInputForCheckout) {
-                const v = weightInput && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
-                weightInputForCheckout.value = String(v);
-            }
+        // Find active variant element (button)
+        function getActiveVariantButton() {
+            return document.querySelector('.variant-btn.active') || document.querySelector('.variant-btn[data-index="0"]');
+        }
+        function getVariantDataFromBtn(btn) {
+            if (!btn) return { id: '', price: 0, stock: null, image: null };
+            return {
+                id: btn.getAttribute('data-id') || '',
+                price: toNumber(btn.getAttribute('data-price'), 0),
+                stock: btn.getAttribute('data-stock') != null ? toNumber(btn.getAttribute('data-stock'), null) : null,
+                image: btn.getAttribute('data-image') || null
+            };
         }
 
+        // Update display price using base price and multiplier (qty or weight)
         function updateDisplayPrice(basePrice) {
-            if (!displayPrice) return;
-            const priceNum = Number(basePrice) || 0;
+            const bp = toNumber(basePrice, 0);
             let multiplier = 1;
             if (unit === 'KILOGRAM') {
-                const w = weightInput && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
-                multiplier = w;
+                multiplier = toNumber(weightInput?.value, 1);
+                if (multiplier <= 0) multiplier = 1;
             } else {
-                const q = qtyInput && Number(qtyInput.value) > 0 ? Number(qtyInput.value) : 1;
-                multiplier = q;
+                multiplier = Math.floor(Math.max(1, toNumber(qtyInput?.value, 1)));
             }
-            const total = priceNum * multiplier;
-            displayPrice.textContent = fmtPrice(total);
+            const total = bp * multiplier;
+            if (displayPrice) displayPrice.textContent = fmtPrice(total);
         }
 
-        function setActiveByIndex(idx) {
-            document.querySelectorAll(".variant-btn").forEach(b => {
-                if (b.getAttribute("data-index") === String(idx)) b.classList.add("active"); else b.classList.remove("active");
-            });
-            document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
-                if (tb.getAttribute("data-index") === String(idx)) tb.classList.add("active"); else tb.classList.remove("active");
-            });
+        // Sync hidden inputs for both forms
+        // IMPORTANT: only set 'quantity' when product is non-kg; only set 'weight' when product is kg.
+        // Otherwise blank the irrelevant hidden field so backend won't accidentally use it.
+        function updateHiddenFields() {
+            const activeBtn = getActiveVariantButton();
+            const vd = getVariantDataFromBtn(activeBtn);
+
+            // variant ids
+            if (variantIdInput) variantIdInput.value = vd.id || '';
+            if (variantIdInput_checkout_variantId) variantIdInput_checkout_variantId.value = vd.id || '';
+            if (variantIdInput2) variantIdInput2.value = vd.id || '';
+            if (product_variant_id_hidden) product_variant_id_hidden.value = vd.id || '';
+
+            if (unit === 'KILOGRAM') {
+                // weight is meaningful, quantity should be blank (or 0) to avoid backend mis-interpretation
+                const w = Math.max(0.1, toNumber(weightInput?.value, 1));
+                if (weightInputForAdd) weightInputForAdd.value = String(Math.round(w * 10) / 10);
+                if (weightInputForCheckout) weightInputForCheckout.value = String(Math.round(w * 10) / 10);
+
+                if (qtyInputForAdd) qtyInputForAdd.value = '';
+                if (qtyInputForCheckout) qtyInputForCheckout.value = '';
+            } else {
+                // quantity meaningful, weight blank
+                const q = Math.max(1, Math.floor(toNumber(qtyInput?.value, 1)));
+                if (qtyInputForAdd) qtyInputForAdd.value = String(q);
+                if (qtyInputForCheckout) qtyInputForCheckout.value = String(q);
+
+                if (weightInputForAdd) weightInputForAdd.value = '';
+                if (weightInputForCheckout) weightInputForCheckout.value = '';
+            }
         }
 
-        function selectVariantByIndex(index) {
-            const btn = document.querySelector(`.variant-btn[data-index="${index}"]`);
-            if (!btn) return;
+        // Enforce stock limit and show hints
+        function enforceStockLimitsAndHints(vd) {
+            const stock = vd && vd.stock != null ? vd.stock : null;
+            if (stockHintQty) stockHintQty.textContent = stock != null ? ("(Còn " + stock + " sản phẩm)") : '';
+            if (stockHintWeight) stockHintWeight.textContent = stock != null ? ("(Còn " + stock + ")") : '';
 
-            const id = btn.getAttribute("data-id");
-            const price = btn.getAttribute("data-price");
-            const stock = btn.getAttribute("data-stock");
-            const image = btn.getAttribute("data-image");
-
-            if (variantIdInput) variantIdInput.value = id;
-            if (variantIdInput2) variantIdInput2.value = id;
-
-            // store base price on button and document for reuse
-            btn.dataset.basePrice = price;
-
-            if (stockHintQty) stockHintQty.textContent = "(Còn " + (stock || 0) + " sản phẩm)";
-            if (qtyInput && !isNaN(Number(stock))) {
-                qtyInput.max = Number(stock);
-                if (Number(qtyInput.value) > Number(stock)) qtyInput.value = Number(stock);
+            if (qtyInput && stock != null) {
+                qtyInput.max = stock;
+                if (toNumber(qtyInput.value, 1) > stock) qtyInput.value = String(stock);
             }
+        }
 
-            if (stockHintWeight) stockHintWeight.textContent = "(Còn " + (stock || 0) + ")";
-            if (image && image.trim() !== "") productImage.src = image;
+        // Select variant by index (exposed globally for thumbnail onclicks)
+        window.selectVariantByIndex = function (index) {
+            // Find variant btn with data-index === index
+            const btn = document.querySelector('.variant-btn[data-index="' + index + '"]');
+            if (btn) {
+                document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+            // Thumbnails
+            document.querySelectorAll('#variantThumbnails .thumbnail-btn').forEach(tb => {
+                if (tb.getAttribute('data-index') === String(index)) tb.classList.add('active'); else tb.classList.remove('active');
+            });
 
-            setActiveByIndex(index);
+            const active = getActiveVariantButton();
+            const vd = getVariantDataFromBtn(active);
 
-            // recalc price and sync hidden values
-            updateDisplayPrice(price);
+            // update image
+            if (vd.image && productImage) productImage.src = vd.image;
+
+            // update display price & hidden inputs & stock hints
+            updateDisplayPrice(vd.price);
+            enforceStockLimitsAndHints(vd);
             updateHiddenFields();
+        };
+
+        // Bind variant button clicks
+        function bindVariantButtons() {
+            document.querySelectorAll('.variant-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const idx = this.getAttribute('data-index');
+                    window.selectVariantByIndex(idx);
+                });
+            });
+            // Thumbnails already call selectVariantByIndex via onclick attributes; add click fallback
+            document.querySelectorAll('#variantThumbnails .thumbnail-btn').forEach(tb => {
+                tb.addEventListener('click', function () {
+                    const idx = this.getAttribute('data-index');
+                    if (idx != null) window.selectVariantByIndex(idx);
+                });
+            });
         }
 
-        function bindQuantityListeners() {
+        // Bind qty/weight inputs to live update and validation
+        function bindQtyWeightInputs() {
             if (unit === 'KILOGRAM') {
                 if (weightInput) {
-                    const sync = () => {
-                        if (Number(weightInput.value) <= 0 || isNaN(Number(weightInput.value))) weightInput.value = '1';
+                    const sync = function () {
+                        // prevent invalid values
+                        let v = toNumber(weightInput.value, 1);
+                        if (v <= 0) v = 1;
+                        // keep one decimal at most
+                        v = Math.round(v * 10) / 10;
+                        weightInput.value = String(v);
+                        const active = getActiveVariantButton();
+                        const vd = getVariantDataFromBtn(active);
+                        updateDisplayPrice(vd.price);
                         updateHiddenFields();
-                        const active = document.querySelector('.variant-btn.active') || document.querySelector('.variant-btn[data-index="0"]');
-                        const basePrice = active ? (active.getAttribute('data-price') || active.dataset.basePrice) : 0;
-                        updateDisplayPrice(basePrice);
                     };
                     weightInput.addEventListener('input', sync);
                     weightInput.addEventListener('change', sync);
@@ -324,15 +387,14 @@
                 if (qtyInput) qtyInput.disabled = true;
             } else {
                 if (qtyInput) {
-                    const sync = () => {
-                        let v = Number(qtyInput.value) || 1;
-                        v = Math.max(1, Math.floor(v));
-                        if (qtyInput.max) v = Math.min(v, Number(qtyInput.max));
-                        if (v !== Number(qtyInput.value)) qtyInput.value = v;
+                    const sync = function () {
+                        let q = Math.floor(Math.max(1, toNumber(qtyInput.value, 1)));
+                        if (qtyInput.max) q = Math.min(q, toNumber(qtyInput.max, q));
+                        qtyInput.value = String(q);
+                        const active = getActiveVariantButton();
+                        const vd = getVariantDataFromBtn(active);
+                        updateDisplayPrice(vd.price);
                         updateHiddenFields();
-                        const active = document.querySelector('.variant-btn.active') || document.querySelector('.variant-btn[data-index="0"]');
-                        const basePrice = active ? (active.getAttribute('data-price') || active.dataset.basePrice) : 0;
-                        updateDisplayPrice(basePrice);
                     };
                     qtyInput.addEventListener('input', sync);
                     qtyInput.addEventListener('change', sync);
@@ -342,74 +404,61 @@
             }
         }
 
-        function attachFormGuards() {
-            const addForm = document.getElementById("addToCartForm");
-            const checkoutForm = document.getElementById("checkoutForm");
+        // Validate before submit (both forms)
+        function attachFormValidation() {
+            const addForm = document.getElementById('addToCartForm');
+            const checkoutForm = document.getElementById('checkoutForm');
 
-            const preSubmit = function(e, forCheckout=false) {
+            const preSubmit = function (e, forCheckout) {
+                // Ensure we sync just before submit
                 updateHiddenFields();
 
-                const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
-                if (hasVariants) {
-                    const vid = forCheckout ? (variantIdInput ? variantIdInput.value : null) : (variantIdInput2 ? variantIdInput2.value : null);
-                    if (!vid) {
-                        e.preventDefault();
-                        alert("Vui lòng chọn loại sản phẩm trước khi tiếp tục.");
-                        return false;
-                    }
+                // Ensure variant selected if variants exist
+                const hasVariants = document.querySelectorAll('.variant-btn').length > 0;
+                const vid = (forCheckout ? (variantIdInput?.value || variantIdInput_checkout_variantId?.value) : (variantIdInput2?.value || product_variant_id_hidden?.value));
+                if (hasVariants && (!vid || vid === '')) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn biến thể sản phẩm trước khi tiếp tục.');
+                    return false;
                 }
 
                 if (unit === 'KILOGRAM') {
-                    const w = Number(weightInput?.value || 0);
-                    if (w <= 0) { e.preventDefault(); alert("Số kg không hợp lệ!"); return false; }
+                    const w = toNumber(weightInput?.value, 0);
+                    if (w <= 0) { e.preventDefault(); alert('Số kg không hợp lệ!'); return false; }
                 } else {
-                    const q = Number(qtyInput?.value || 0);
-                    if (q <= 0) { e.preventDefault(); alert("Số lượng không hợp lệ!"); return false; }
-                    if (qtyInput && qtyInput.max && q > Number(qtyInput.max)) { e.preventDefault(); alert("Số lượng vượt quá tồn kho!"); return false; }
+                    const q = Math.floor(toNumber(qtyInput?.value, 0));
+                    if (q <= 0) { e.preventDefault(); alert('Số lượng không hợp lệ!'); return false; }
+                    if (qtyInput && qtyInput.max && q > toNumber(qtyInput.max, q)) { e.preventDefault(); alert('Số lượng vượt quá tồn kho!'); return false; }
                 }
+
+                // All good — hidden fields already synced
                 return true;
             };
 
-            if (addForm) addForm.addEventListener('submit', function(e){ preSubmit(e, false); });
-            if (checkoutForm) checkoutForm.addEventListener('submit', function(e){ preSubmit(e, true); });
+            if (addForm) addForm.addEventListener('submit', function (e) { preSubmit(e, false); });
+            if (checkoutForm) checkoutForm.addEventListener('submit', function (e) { preSubmit(e, true); });
         }
 
-        function bindVariantButtons() {
-            document.querySelectorAll('.variant-btn').forEach(b => {
-                b.addEventListener('click', function(){
-                    const idx = b.getAttribute('data-index');
-                    selectVariantByIndex(idx);
-                });
-            });
-            document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
-                tb.addEventListener('click', function () {
-                    const idx = this.getAttribute('data-index');
-                    if (idx !== null) selectVariantByIndex(Number(idx));
-                });
-            });
-        }
-
+        // INIT on DOM ready
         document.addEventListener('DOMContentLoaded', function () {
-            // defaults
-            if (qtyInputForAdd && (!qtyInputForAdd.value || Number(qtyInputForAdd.value) <= 0)) qtyInputForAdd.value = '1';
-            if (qtyInputForCheckout && (!qtyInputForCheckout.value || Number(qtyInputForCheckout.value) <= 0)) qtyInputForCheckout.value = '1';
-            if (weightInputForAdd && (!weightInputForAdd.value || Number(weightInputForAdd.value) <= 0)) weightInputForAdd.value = '1';
-            if (weightInputForCheckout && (!weightInputForCheckout.value || Number(weightInputForCheckout.value) <= 0)) weightInputForCheckout.value = '1';
-
             bindVariantButtons();
-            bindQuantityListeners();
+            bindQtyWeightInputs();
 
-            if (document.querySelector('.variant-btn[data-index="0"]')) {
-                selectVariantByIndex(0);
+            // default select first variant if exists
+            const firstVariantBtn = document.querySelector('.variant-btn[data-index="0"]');
+            if (firstVariantBtn) {
+                window.selectVariantByIndex(0);
+            } else {
+                // no variant buttons: try to set price from server-rendered displayPrice and sync hidden fields
+                updateHiddenFields();
             }
 
-            attachFormGuards();
+            attachFormValidation();
         });
 
-        // for debugging if needed
-        window.__fm_updateHiddenFields = updateHiddenFields;
-        window.__fm_selectVariantByIndex = selectVariantByIndex;
-
+        // expose helpers for debug
+        window.__fm_syncHidden = updateHiddenFields;
+        window.__fm_selectVariantByIndex = window.selectVariantByIndex;
     })();
 </script>
 
