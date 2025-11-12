@@ -174,6 +174,9 @@
     (function () {
         const grid   = document.getElementById('grid');
         const pager  = document.getElementById('pager');
+        const $search = document.getElementById('search');
+        const $minPrice = document.getElementById('minPrice');
+        const $maxPrice = document.getElementById('maxPrice');
         const $cat   = document.getElementById('cat');
         const $brand = document.getElementById('brand');
         const $sort  = document.getElementById('sort');
@@ -202,7 +205,7 @@
             const opt=document.createElement('option');opt.value=v;opt.textContent=v;$brand.appendChild(opt);
         });
 
-        const state = { cat:'', brand:'', sort:'default', size:20, page:1 };
+        const state = { search:'', minPrice:'', maxPrice:'', cat:'', brand:'', sort:'default', size:20, page:1 };
         $size.value = String(state.size);
 
         function getPrice(col){
@@ -237,9 +240,26 @@
                 const card = col.querySelector('.product-card');
                 const c = (card?.dataset.cat || '').trim();
                 const b = (card?.dataset.brand || '').trim();
+                const name = getName(col);
+                const price = getPrice(col);
+
+                // Filter by search text
+                const matchSearch = state.search ? name.includes(state.search.toLowerCase()) : true;
+
+                // Filter by category
                 const inC = state.cat ? c.toLowerCase() === state.cat.toLowerCase() : true;
+
+                // Filter by brand
                 const inB = state.brand ? b.toLowerCase() === state.brand.toLowerCase() : true;
-                return inC && inB;
+
+                // Filter by price range
+                let matchPrice = true;
+                if (Number.isFinite(price)) {
+                    if (state.minPrice !== '' && price < Number(state.minPrice)) matchPrice = false;
+                    if (state.maxPrice !== '' && price > Number(state.maxPrice)) matchPrice = false;
+                }
+
+                return matchSearch && inC && inB && matchPrice;
             });
 
             const sorted = filtered.slice().sort((a,b)=>{
@@ -295,6 +315,9 @@
         function renderChips(total){
             $chips.innerHTML='';
             const defs=[];
+            if(state.search) defs.push({k:'search',label:`Tìm: "${state.search}"`});
+            if(state.minPrice!=='') defs.push({k:'minPrice',label:`Giá tối thiểu: ₫${Number(state.minPrice).toLocaleString('vi-VN')}`});
+            if(state.maxPrice!=='') defs.push({k:'maxPrice',label:`Giá tối đa: ₫${Number(state.maxPrice).toLocaleString('vi-VN')}`});
             if(state.cat) defs.push({k:'cat',label:`Danh mục: ${state.cat}`});
             if(state.brand) defs.push({k:'brand',label:`Thương hiệu: ${state.brand}`});
             if(state.sort!=='default'){
@@ -308,6 +331,9 @@
                 b.type='button';b.className='chip chip-dismiss';
                 b.innerHTML=`<i class="bi bi-x"></i> ${def.label}`;
                 b.addEventListener('click',()=>{
+                    if(def.k==='search'){state.search='';$search.value='';}
+                    if(def.k==='minPrice'){state.minPrice='';$minPrice.value='';}
+                    if(def.k==='maxPrice'){state.maxPrice='';$maxPrice.value='';}
                     if(def.k==='cat'){state.cat='';$cat.value='';}
                     if(def.k==='brand'){state.brand='';$brand.value='';}
                     if(def.k==='sort'){state.sort='default';$sort.value='default';}
@@ -317,18 +343,46 @@
                 $chips.appendChild(b);
             });
 
-            $reset.classList.toggle('d-none', defs.length===0 && total===items.length);
+            const hasActiveFilters = state.search || state.minPrice!=='' || state.maxPrice!=='' ||
+                                    state.cat || state.brand || state.sort!=='default' || state.size!==20;
+            $reset.classList.toggle('d-none', !hasActiveFilters);
             $reset.onclick=()=>{
+                state.search='';state.minPrice='';state.maxPrice='';
                 state.cat='';state.brand='';state.sort='default';state.size=20;state.page=1;
+                $search.value='';$minPrice.value='';$maxPrice.value='';
                 $cat.value='';$brand.value='';$sort.value='default';$size.value='20';
                 apply();
             };
         }
 
+        // Event listeners
+        let searchTimer;
+        $search.addEventListener('input',()=>{
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(()=>{
+                state.search=$search.value.trim();
+                state.page=1;
+                apply();
+            }, 300);
+        });
+
+        $minPrice.addEventListener('input',()=>{
+            state.minPrice=$minPrice.value.trim();
+            state.page=1;
+            apply();
+        });
+
+        $maxPrice.addEventListener('input',()=>{
+            state.maxPrice=$maxPrice.value.trim();
+            state.page=1;
+            apply();
+        });
+
         $cat.addEventListener('change',()=>{state.cat=$cat.value;state.page=1;apply();});
         $brand.addEventListener('change',()=>{state.brand=$brand.value;state.page=1;apply();});
         $sort.addEventListener('change',()=>{state.sort=$sort.value;state.page=1;apply();});
         $size.addEventListener('change',()=>{state.size=parseInt($size.value,10);state.page=1;apply();});
+
         apply();
     })();
 </script>
