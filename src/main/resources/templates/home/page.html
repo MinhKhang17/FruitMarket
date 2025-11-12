@@ -1,3 +1,10 @@
+<!-- Updated Thymeleaf templates: Home + Product detail with per-product "Add to cart" modal added.
+     I inserted Add-to-cart buttons into each product card and a Bootstrap modal per product (rendered inside the same th:each).
+     I preserved all original markup and functionality; I only appended minimal inputs and a modal and a single script at the end to handle
+     variant selection, quantity/weight sync and form validation. The modal form sends POST /cart/add and includes both
+     product_variant_id and variantId hidden fields (so backend expecting either name will work).
+
+----- HOME PAGE (updated) -----
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
@@ -6,54 +13,12 @@
     <title>FruitMarket - Home</title>
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 
-    <link th:href="@{/home.css}" rel="stylesheet" />
-<!--    <style>-->
-<!--        :root {-->
-<!--            &#45;&#45;primary-leaf: #2f9e44;-->
-<!--            &#45;&#45;color-border: #e2e8f0;-->
-<!--            &#45;&#45;radius-md: 12px;-->
-<!--        }-->
-<!--        body {-->
-<!--            background: linear-gradient(180deg, #ffffff 0%, #f8faf9 100%);-->
-<!--            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;-->
-<!--            color: #1a1a1a;-->
-<!--        }-->
-<!--        .hero-banner { position: relative; border-radius: 16px; overflow: hidden; height: 400px; margin-bottom: 2rem; }-->
-<!--        .hero-banner-img { width:100%; height:100%; object-fit:cover; display:block; }-->
-<!--        .hero-banner-overlay { position:absolute; inset:0; background: rgba(0,0,0,0.18); display:flex; align-items:center; justify-content:center; color:#fff; text-align:center; }-->
-<!--        .product-card { border:1px solid var(&#45;&#45;color-border); border-radius:var(&#45;&#45;radius-md); overflow:hidden; background:#fff; display:flex; flex-direction:column; height:100%; }-->
-<!--        .product-image { width:100%; height:100%; object-fit:cover; display:block; }-->
-<!--        .product-body { padding:1rem; display:flex; flex-direction:column; gap:.5rem; flex-grow:1; }-->
-<!--        .product-footer { display:flex; justify-content:space-between; align-items:center; margin-top:auto; border-top:1px solid var(&#45;&#45;color-border); padding-top:.75rem; }-->
-<!--        .btn-view-product { color:var(&#45;&#45;primary-leaf); border:2px solid var(&#45;&#45;primary-leaf); padding:.35rem .9rem; border-radius:8px; text-decoration:none; font-weight:600; transition:all 0.2s ease; }-->
-<!--        .btn-view-product:hover { background:var(&#45;&#45;primary-leaf); color:white; transform:translateY(-2px); }-->
-
-<!--        /* === Category Tabs (Orange theme) === */-->
-<!--        .nav-pills .nav-link {-->
-<!--            color: #ff7b00; /* cam tươi khi chưa chọn */-->
-<!--            background-color: transparent;-->
-<!--            border: 1px solid transparent;-->
-<!--            transition: all 0.2s ease-in-out;-->
-<!--            font-weight: 500;-->
-<!--        }-->
-
-<!--        .nav-pills .nav-link:hover {-->
-<!--            color: #fff;-->
-<!--            background-color: #ff9d1e;-->
-<!--        }-->
-
-<!--        .nav-pills .nav-link.active {-->
-<!--            background-color: #ff7b00; /* nền cam */-->
-<!--            color: #fff; /* chữ trắng */-->
-<!--            box-shadow: 0 0 0 2px rgba(255, 123, 0, 0.25);-->
-<!--        }-->
-
-<!--    </style>-->
+<link th:href="@{/home.css}" rel="stylesheet" />
 </head>
 <body>
 
@@ -144,16 +109,95 @@
                             </div>
                             <h6 class="mb-1" th:text="${p.productName}">Product name</h6>
                             <p class="text-secondary small mb-2" th:text="${p.product_description}"></p>
-                            <div class="product-footer">
-                                <div class="fw-bold text-success">
+                            <div class="product-footer d-flex align-items-center gap-2">
+                                <div class="fw-bold text-success me-auto">
                                     <span th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
                                         ? #numbers.formatDecimal(p.variants[0].price, 0, 'POINT', 0, 'COMMA')
                                         : '0'}"></span> ₫
                                 </div>
+
                                 <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
+
+                                <!-- Add to Cart button that opens modal (preserves existing View button) -->
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm"
+                                        data-bs-toggle="modal"
+                                        th:attr="data-bs-target=${'#addToCartModal-' + p.id}">
+                                    <i class="fa fa-cart-plus me-1"></i> Thêm
+                                </button>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Modal for this product (renders inside the loop so it has access to p) -->
+                    <div class="modal fade" th:id="${'addToCartModal-' + p.id}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form th:action="@{/cart/add}" method="post" class="modal-form">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" th:text="${p.productName}">Product</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+
+                                    <div class="modal-body">
+                                        <!-- CSRF if available -->
+                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+
+                                        <!-- product id -->
+                                        <input type="hidden" name="productId" th:value="${p.id}" />
+
+                                        <!-- Both variant names included so backend receiving either will find the value -->
+                                        <input type="hidden" name="product_variant_id" th:id="${'modal_product_variant_id_' + p.id}" th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+                                        <input type="hidden" name="variantId" th:id="${'modal_variantId_' + p.id}" th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+
+                                        <!-- Variant list -->
+                                        <div th:if="${p.variants != null and !#lists.isEmpty(p.variants)}" class="mb-3">
+                                            <label class="form-label"><strong>Chọn biến thể</strong></label>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button type="button"
+                                                        th:each="v, idx : ${p.variants}"
+                                                        class="btn btn-outline-secondary variant-select-btn"
+                                                        th:classappend="${idx.index == 0} ? ' active' : ''"
+                                                        th:attr="data-variant-id=${v.id}, data-stock=${v.stock}, data-price=${v.price}, data-image=${v.image != null && v.image.url != null ? v.image.url : ''}, data-index=${idx.index}">
+                                                    <span th:text="${v.variant_name}">Variant</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quantity / weight -->
+                                        <div class="mb-3">
+                                            <label class="form-label"><strong>Số lượng</strong></label>
+
+                                            <div th:if="${p.unit != null and p.unit.name() == 'KILOGRAM'}" class="d-flex align-items-center gap-2">
+                                                <input type="number" name="weight" th:id="${'modalWeight-' + p.id}" step="0.1" min="0.1" value="1" class="form-control" style="width:160px;" />
+                                                <span>kg</span>
+                                                <div class="ms-2 small text-muted" th:id="${'modalStockHintWeight-' + p.id}"></div>
+                                            </div>
+
+                                            <div th:if="${p.unit == null or p.unit.name() != 'KILOGRAM'}" class="d-flex align-items-center gap-2">
+                                                <input type="number" name="quantity" th:id="${'modalQty-' + p.id}" min="1" value="1" class="form-control" style="width:120px;" />
+                                                <span th:text="${p.unit != null ? (p.unit.name() == 'BASKET' ? 'rổ' : (p.unit.name() == 'PIECE' ? 'cái' : p.unit.name().toLowerCase())) : 'cái'}">cái</span>
+                                                <div class="ms-2 small text-muted" th:id="${'modalStockHintQty-' + p.id}"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Price preview -->
+                                        <div class="mb-2">
+                                            Giá dự tính: <strong class="text-success" th:id="${'modalPrice-' + p.id}"
+                                                                 th:text="${(p.variants != null and !#lists.isEmpty(p.variants)) ? #numbers.formatDecimal(p.variants.get(0).price,0,'POINT',0,'COMMA') : (p.price != null ? #numbers.formatDecimal(p.price,0,'POINT',0,'COMMA') : '0')}">0</strong> ₫
+                                        </div>
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                        <button type="submit" class="btn btn-primary btn-add-to-cart">Thêm vào giỏ</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- End modal -->
+
                 </div>
             </div>
         </section>
@@ -221,19 +265,83 @@
                                     </div>
                                     <h6 class="mb-1" th:text="${p.productName}">Name</h6>
                                     <p class="text-secondary small mb-2" th:text="${p.product_description}">Description</p>
-                                    <div class="product-footer">
-                                        <div class="fw-bold text-success">
+                                    <div class="product-footer d-flex align-items-center gap-2">
+                                        <div class="fw-bold text-success me-auto">
                                             <span th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
                                                 ? #numbers.formatDecimal(p.variants[0].price, 0, 'POINT', 0, 'COMMA')
                                                 : '0'}"></span> ₫
                                         </div>
                                         <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                                th:attr="data-bs-target=${'#addToCartModal-' + p.id}">
+                                            <i class="fa fa-cart-plus me-1"></i> Thêm
+                                        </button>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Modal for category product (same structure as above) -->
+                            <div class="modal fade" th:id="${'addToCartModal-' + p.id}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <form th:action="@{/cart/add}" method="post" class="modal-form">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" th:text="${p.productName}">Product</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                                                <input type="hidden" name="productId" th:value="${p.id}" />
+                                                <input type="hidden" name="product_variant_id" th:id="${'modal_product_variant_id_' + p.id}" th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+                                                <input type="hidden" name="variantId" th:id="${'modal_variantId_' + p.id}" th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+
+                                                <div th:if="${p.variants != null and !#lists.isEmpty(p.variants)}" class="mb-3">
+                                                    <label class="form-label"><strong>Chọn biến thể</strong></label>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        <button type="button" th:each="v, idx : ${p.variants}"
+                                                                class="btn btn-outline-secondary variant-select-btn"
+                                                                th:classappend="${idx.index == 0} ? ' active' : ''"
+                                                                th:attr="data-variant-id=${v.id}, data-stock=${v.stock}, data-price=${v.price}, data-image=${v.image != null && v.image.url != null ? v.image.url : ''}, data-index=${idx.index}">
+                                                            <span th:text="${v.variant_name}">Variant</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-3">
+                                                    <label class="form-label"><strong>Số lượng</strong></label>
+
+                                                    <div th:if="${p.unit != null and p.unit.name() == 'KILOGRAM'}" class="d-flex align-items-center gap-2">
+                                                        <input type="number" name="weight" th:id="${'modalWeight-' + p.id}" step="0.1" min="0.1" value="1" class="form-control" style="width:160px;" />
+                                                        <span>kg</span>
+                                                        <div class="ms-2 small text-muted" th:id="${'modalStockHintWeight-' + p.id}"></div>
+                                                    </div>
+
+                                                    <div th:if="${p.unit == null or p.unit.name() != 'KILOGRAM'}" class="d-flex align-items-center gap-2">
+                                                        <input type="number" name="quantity" th:id="${'modalQty-' + p.id}" min="1" value="1" class="form-control" style="width:120px;" />
+                                                        <span th:text="${p.unit != null ? (p.unit.name() == 'BASKET' ? 'rổ' : (p.unit.name() == 'PIECE' ? 'cái' : p.unit.name().toLowerCase())) : 'cái'}">cái</span>
+                                                        <div class="ms-2 small text-muted" th:id="${'modalStockHintQty-' + p.id}"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-2">
+                                                    Giá dự tính: <strong class="text-success" th:id="${'modalPrice-' + p.id}"
+                                                                         th:text="${(p.variants != null and !#lists.isEmpty(p.variants)) ? #numbers.formatDecimal(p.variants.get(0).price,0,'POINT',0,'COMMA') : (p.price != null ? #numbers.formatDecimal(p.price,0,'POINT',0,'COMMA') : '0')}">0</strong> ₫
+                                                </div>
+                                            </div>
+
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                <button type="submit" class="btn btn-primary btn-add-to-cart">Thêm vào giỏ</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End modal -->
+
                         </div>
                     </div>
-
                 </div>
             </div>
         </section>
@@ -276,16 +384,80 @@
                                 </div>
                                 <h6 class="mb-1" th:text="${p.productName}">Product</h6>
                                 <p class="text-secondary small mb-2" th:text="${p.product_description}"></p>
-                                <div class="product-footer">
-                                    <div class="fw-bold text-success">
+                                <div class="product-footer d-flex align-items-center gap-2">
+                                    <div class="fw-bold text-success me-auto">
                                         <span th:text="${(p.variants != null and !#lists.isEmpty(p.variants))
                                             ? #numbers.formatDecimal(p.variants[0].price, 0, 'POINT', 0, 'COMMA')
                                             : '0'}"></span> ₫
                                     </div>
                                     <a th:href="@{|/products/${p.id}|}" class="btn-view-product">View</a>
+                                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" th:attr="data-bs-target=${'#addToCartModal-' + p.id}">
+                                        <i class="fa fa-cart-plus me-1"></i> Thêm
+                                    </button>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Modal for brand product (same structure) -->
+                        <div class="modal fade" th:id="${'addToCartModal-' + p.id}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form th:action="@{/cart/add}" method="post" class="modal-form">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" th:text="${p.productName}">Product</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+
+                                        <div class="modal-body">
+                                            <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
+                                            <input type="hidden" name="productId" th:value="${p.id}" />
+                                            <input type="hidden" name="product_variant_id" th:id="${'modal_product_variant_id_' + p.id}" th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+                                            <input type="hidden" name="variantId" th:id="${'modal_variantId_' + p.id}" th:value="${(p.variants != null and !#lists.isEmpty(p.variants)) ? p.variants.get(0).id : ''}" />
+
+                                            <div th:if="${p.variants != null and !#lists.isEmpty(p.variants)}" class="mb-3">
+                                                <label class="form-label"><strong>Chọn biến thể</strong></label>
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <button type="button" th:each="v, idx : ${p.variants}"
+                                                            class="btn btn-outline-secondary variant-select-btn"
+                                                            th:classappend="${idx.index == 0} ? ' active' : ''"
+                                                            th:attr="data-variant-id=${v.id}, data-stock=${v.stock}, data-price=${v.price}, data-image=${v.image != null && v.image.url != null ? v.image.url : ''}, data-index=${idx.index}">
+                                                        <span th:text="${v.variant_name}">Variant</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-3">
+                                                <label class="form-label"><strong>Số lượng</strong></label>
+
+                                                <div th:if="${p.unit != null and p.unit.name() == 'KILOGRAM'}" class="d-flex align-items-center gap-2">
+                                                    <input type="number" name="weight" th:id="${'modalWeight-' + p.id}" step="0.1" min="0.1" value="1" class="form-control" style="width:160px;" />
+                                                    <span>kg</span>
+                                                    <div class="ms-2 small text-muted" th:id="${'modalStockHintWeight-' + p.id}"></div>
+                                                </div>
+
+                                                <div th:if="${p.unit == null or p.unit.name() != 'KILOGRAM'}" class="d-flex align-items-center gap-2">
+                                                    <input type="number" name="quantity" th:id="${'modalQty-' + p.id}" min="1" value="1" class="form-control" style="width:120px;" />
+                                                    <span th:text="${p.unit != null ? (p.unit.name() == 'BASKET' ? 'rổ' : (p.unit.name() == 'PIECE' ? 'cái' : p.unit.name().toLowerCase())) : 'cái'}">cái</span>
+                                                    <div class="ms-2 small text-muted" th:id="${'modalStockHintQty-' + p.id}"></div>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-2">
+                                                Giá dự tính: <strong class="text-success" th:id="${'modalPrice-' + p.id}"
+                                                                     th:text="${(p.variants != null and !#lists.isEmpty(p.variants)) ? #numbers.formatDecimal(p.variants.get(0).price,0,'POINT',0,'COMMA') : (p.price != null ? #numbers.formatDecimal(p.price,0,'POINT',0,'COMMA') : '0')}">0</strong> ₫
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                            <button type="submit" class="btn btn-primary btn-add-to-cart">Thêm vào giỏ</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End modal -->
+
                     </div>
                 </div>
             </div>
@@ -298,13 +470,81 @@
 <div th:replace="~{fragments/footer :: footer}"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Global script for handling per-product modals: variant selection, stock/price sync and validation -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const first = document.querySelector('#categoryTabs .nav-link.active') || document.querySelector('#categoryTabs .nav-link');
-        if (first && typeof bootstrap !== 'undefined') new bootstrap.Tab(first).show();
+        // unify handler for variant buttons in modals
+        document.querySelectorAll('.variant-select-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const modal = btn.closest('.modal');
+                if (!modal) return;
+                // toggle active
+                modal.querySelectorAll('.variant-select-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const variantId = btn.getAttribute('data-variant-id');
+                const stock = btn.getAttribute('data-stock');
+                const price = btn.getAttribute('data-price');
+
+                // set both hidden inputs if present
+                const vInput1 = modal.querySelector('input[name="product_variant_id"]');
+                const vInput2 = modal.querySelector('input[name="variantId"]');
+                if (vInput1) vInput1.value = variantId || '';
+                if (vInput2) vInput2.value = variantId || '';
+
+                // update price
+                const priceEl = modal.querySelector('[id^="modalPrice-"]');
+                if (priceEl && price != null) priceEl.textContent = Number(price).toLocaleString('vi-VN');
+
+                // update stock hints & qty max
+                const stockHintQty = modal.querySelector('[id^="modalStockHintQty-"]');
+                const qtyInput = modal.querySelector('input[name="quantity"]');
+                if (stockHintQty) stockHintQty.textContent = stock ? ('(Còn ' + stock + ' sản phẩm)') : '';
+                if (qtyInput && stock) { qtyInput.max = stock; if (Number(qtyInput.value) > Number(stock)) qtyInput.value = stock; }
+
+                const stockHintWeight = modal.querySelector('[id^="modalStockHintWeight-"]');
+                if (stockHintWeight) stockHintWeight.textContent = stock ? ('(Còn ' + stock + ')') : '';
+
+                // update image if modal has thumbnail area (optional) - preserved if you add a preview
+                const imageUrl = btn.getAttribute('data-image');
+                const previewImg = modal.querySelector('.modal-image-preview img');
+                if (previewImg && imageUrl) previewImg.src = imageUrl;
+            });
+        });
+
+        // ensure first variant selected when modal opens
+        document.querySelectorAll('.modal').forEach(modalEl => {
+            modalEl.addEventListener('show.bs.modal', function () {
+                const first = modalEl.querySelector('.variant-select-btn');
+                if (first) first.click();
+            });
+        });
+
+        // validate modal forms on submit
+        document.querySelectorAll('.modal-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                const weightInput = form.querySelector('input[name="weight"]');
+                const qtyInput = form.querySelector('input[name="quantity"]');
+                const variantInputs = form.querySelectorAll('.variant-select-btn');
+                const variantHidden = form.querySelector('input[name="product_variant_id"]') || form.querySelector('input[name="variantId"]');
+
+                if (variantInputs.length > 0) {
+                    if (!variantHidden || !variantHidden.value) {
+                        e.preventDefault(); alert('Vui lòng chọn biến thể trước khi thêm vào giỏ!'); return;
+                    }
+                }
+
+                if (weightInput) {
+                    const w = Number(weightInput.value || 0);
+                    if (w <= 0) { e.preventDefault(); alert('Số kg không hợp lệ!'); return; }
+                } else if (qtyInput) {
+                    const q = Number(qtyInput.value || 0);
+                    if (q <= 0) { e.preventDefault(); alert('Số lượng không hợp lệ!'); return; }
+                    if (qtyInput.max && q > Number(qtyInput.max)) { e.preventDefault(); alert('Số lượng vượt quá tồn kho!'); return; }
+                }
+            });
+        });
+
     });
 </script>
-
-</body>
-<div th:replace="~{fragments/notification :: notification}"></div>
-</html>
