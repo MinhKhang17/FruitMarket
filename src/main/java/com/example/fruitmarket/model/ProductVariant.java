@@ -32,7 +32,7 @@ public class ProductVariant {
     private BigDecimal price;
 
     @Enumerated(EnumType.STRING)
-    private ProductStatus status;
+    private ProductStatus status = ProductStatus.ACTIVE;
 
     @OneToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE }, fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")

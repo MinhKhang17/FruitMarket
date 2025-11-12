@@ -269,15 +269,21 @@
                                     th:with="unitPrice=${(item.price != null) ? item.price : (item.productVariant != null ? item.productVariant.price : 0)},
                                  subTotal=${unitPrice * (item.unit == T(com.example.fruitmarket.enums.Units).KILOGRAM ? item.weight : item.quantity)}">
                                     <td>
+                                        <!-- ✅ Tên sản phẩm lấy từ item.productName -->
                                         <div class="fw-semibold"
-                                             th:text="${(item.productVariant != null and item.productVariant.product != null) ? item.productVariant.product.productName : 'Sản phẩm'}">
+                                             th:text="${item.productName != null ? item.productName :
+                       (item.productVariant?.product?.productName ?: 'Sản phẩm')}">
                                             Tên SP
                                         </div>
 
+                                        <!-- ✅ Biến thể lấy từ item.variantName -->
                                         <div class="text-muted small"
-                                             th:if="${item.productVariant != null and item.productVariant.variant_name != null}"
-                                             th:text="${item.productVariant.variant_name}">Biến thể</div>
+                                             th:if="${item.variantName != null and item.variantName != ''}"
+                                             th:text="'Phân loại: ' + ${item.variantName}">
+                                            Biến thể
+                                        </div>
                                     </td>
+
                                     <td class="text-center"
                                         th:text="${item != null && item.unit != null && item.unit.toString() == 'KILOGRAM' ? 'Kg' : 'Cái'}">
                                         PIECE

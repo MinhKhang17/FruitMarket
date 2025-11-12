@@ -17,13 +17,15 @@
             <p class="text-muted" th:text="'Mã sản phẩm: ' + ${product.id}"></p>
         </div>
 
-        <!-- ✅ hai nút quay lại -->
         <div class="d-flex flex-column align-items-end gap-2">
             <a th:href="@{/admin/products}" class="btn btn-accent btn-sm">← Quay về danh sách sản phẩm</a>
             <a th:href="@{'/admin/products/' + ${product.id} + '/variants/list'}"
                class="btn btn-green btn-sm">← Quay lại danh sách biến thể</a>
         </div>
     </div>
+    <!-- ✅ Hiển thị thông báo -->
+    <div th:if="${error}" class="alert alert-danger mt-3" th:text="${error}"></div>
+    <div th:if="${success}" class="alert alert-success mt-3" th:text="${success}"></div>
 
     <!-- Form tạo variant -->
     <form th:action="@{'/admin/products/' + ${product.id} + '/variant/save'}"

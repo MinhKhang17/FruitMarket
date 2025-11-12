@@ -385,7 +385,7 @@
             <td th:text="${order.phoneNumber}"></td>
             <td th:text="${#strings.abbreviate(order.address, 30)}"></td>
             <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
-            <td th:text="${order.orderItemList}"></td>
+            <td th:text="${#lists.size(order.orderItemList)} + ' sản phẩm'"></td>
             <td>
                 <span th:class="${order.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
                       th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}"></span>
