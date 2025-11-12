@@ -42,14 +42,14 @@
 
         /* CHỜ XỬ LÝ */
         .status-PENDING {
-            background: #ffe082;        /* vàng đậm hơn */
+            background: #ffe082;
             color: #5c4400;
             border-color: #ffd54f;
         }
 
         /* HOÀN TẤT */
         .status-COMPLETED {
-            background: #81c784;        /* xanh lá đậm hơn */
+            background: #81c784;
             color: #0a3d18;
             border-color: #66bb6a;
         }
@@ -57,12 +57,12 @@
         /* HUỶ ĐƠN (CANCELLED hoặc CANCELED) */
         .status-CANCELED,
         .status-CANCELLED {
-            background: #ef9a9a;        /* đỏ nhạt đậm hơn */
+            background: #ef9a9a;
             color: #5a0000;
             border-color: #e57373;
         }
 
-        /* ĐANG GIAO (tuỳ nếu có thêm) */
+        /* ĐANG GIAO */
         .status-SHIPPING {
             background: #4fc3f7;
             color: #013d57;
@@ -95,6 +95,21 @@
         }
         .filter-btn.active, .filter-btn:hover { background:var(--brand); color:#fff; border-color:var(--brand); }
         .pay-chip { background:#eef8f1; color:#2b7f53; border-radius:999px; padding:4px 10px; font-size:.85rem; }
+
+        /* CSS cho thông báo hoàn tiền */
+        .refund-alert {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #90caf9;
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 1rem;
+        }
+        .refund-alert i {
+            color: #1976d2;
+        }
+        .refund-alert strong {
+            color: #0d47a1;
+        }
     </style>
 </head>
 <body>
@@ -124,7 +139,6 @@
     <!-- Danh sách đơn -->
     <div class="row g-4" th:if="${!#lists.isEmpty(orders)}">
         <div class="col-12" th:each="o : ${orders}">
-            <!-- Đặt data-status theo ENUM.NAME() để đảm bảo không có khoảng trắng/lệch chính tả -->
             <div class="card order-card" th:attr="data-status=${o.orderStauts != null ? o.orderStauts.name() : ''}">
                 <!-- Header -->
                 <div class="order-head">
@@ -209,6 +223,29 @@
                             </div>
                             <!-- ✅ Kết thúc phần GHN -->
 
+                            <!-- ✅ THÊM MỚI: Thông tin hoàn tiền -->
+                            <div class="refund-alert d-flex align-items-center"
+                                 th:if="${o.orderStauts != null && o.orderStauts.name() == 'CANCELLED' && o.refundPayment != null}">
+                                <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem;"></i>
+                                <div class="flex-grow-1">
+                                    <strong>Đã được hoàn tiền</strong>
+                                    <div class="small text-muted mt-1">
+                                        Số tiền:
+                                        <span class="fw-semibold text-primary"
+                                              th:text="${#numbers.formatDecimal(o.refundPayment.amount, 0, 'POINT', 0, 'COMMA')}">0</span>đ
+                                    </div>
+                                    <div class="small text-muted" th:if="${o.refundPayment.paymentDate != null}">
+                                        Ngày hoàn:
+                                        <span th:text="${#temporals.format(o.refundPayment.paymentDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</span>
+                                    </div>
+                                    <div class="small text-muted" th:if="${o.refundPayment.transactionId != null}">
+                                        Mã tham chiếu:
+                                        <span class="fw-semibold" th:text="${o.refundPayment.transactionId}">REF123456</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- ✅ Kết thúc phần hoàn tiền -->
+
                             <div class="total-line">
                                 <div class="text-muted">Tổng thanh toán:</div>
                                 <div class="total-amount">
@@ -217,20 +254,7 @@
                             </div>
                             <!-- Hành động -->
                             <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
-                                <!-- Huỷ đơn (đi trước) -->
-                                <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
-                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
-                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"
-                                      th:action="@{|/orders/${o.id}/cancel|}" method="post"
-                                      class="m-0"
-                                      th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
-                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x-circle"></i> Huỷ đơn hàng
-                                    </button>
-                                </form>
-
-                                <!-- Chi tiết (đi sau) -->
+                                <!-- Chi tiết -->
                                 <a class="btn btn-outline-success btn-sm" th:href="@{'/myOrders/' + ${o.id}}">
                                     <i class="bi bi-receipt-cutoff"></i> Chi tiết
                                 </a>
@@ -252,7 +276,7 @@
 
     function norm(s) {
         s = (s || '').toUpperCase().trim();
-        if (s === 'CANCELLED') s = 'CANCELED'; // đồng bộ 2 cách viết
+        if (s === 'CANCELLED') s = 'CANCELED';
         return s;
     }
     const isEqual = (a, b) => norm(a) === norm(b);
@@ -266,7 +290,6 @@
         });
     }
 
-    // Gán click cho các nút filter
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             buttons.forEach(b => b.classList.remove('active'));
@@ -275,7 +298,6 @@
         });
     });
 
-    // 👉 Nếu có đơn COMPLETED thì chọn luôn filter COMPLETED
     let hasCompleted = false;
     cards.forEach(c => {
         if (isEqual(c.getAttribute('data-status'), 'COMPLETED')) {
@@ -291,9 +313,9 @@
             applyFilter('COMPLETED');
         }
     } else {
-        // Ngược lại: hiện tất cả như cũ
         applyFilter('ALL');
     }
 </script>
 </body>
+<div th:replace="~{fragments/notification :: notification}"></div>
 </html>

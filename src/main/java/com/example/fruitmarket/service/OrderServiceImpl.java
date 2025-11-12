@@ -614,4 +614,45 @@ public class OrderServiceImpl implements OrderService {
         s = s.replace('\u00D0', '\u0110').replace('\u00F0', '\u0111');
         return s.replaceAll("\\s+", " ").trim();
     }
+
+    @Transactional
+    @Override
+    public void cancelOrderHasPayment(HttpSession session, Long orderId, String bankName, String bankReferenceCode) {
+        Users user = (Users) session.getAttribute("loggedUser");
+        if (user == null) throw new IllegalStateException("Bạn cần đăng nhập trước.");
+
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy đơn hàng #" + orderId));
+
+        boolean isOwner = order.getUsers() != null && Objects.equals(order.getUsers().getId(), user.getId());
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(String.valueOf(user.getRole()));
+        if (!isOwner && !isAdmin) throw new IllegalStateException("Bạn không có quyền huỷ đơn hàng này.");
+
+        if (!canCancel(order)) {
+            throw new IllegalStateException("Đơn hiện tại không thể huỷ (trạng thái: " + order.getOrderStauts() + ").");
+        }
+        String ghnCode = order.getGhnOrderCode();
+        if (ghnCode != null && !ghnCode.isBlank()) {
+            try {
+                ghnClientService.cancelOrder(ghnCode);
+                log.info("GHN cancel OK for order {}, code {}", orderId, ghnCode);
+            } catch (WebClientResponseException wcre) {
+                log.warn("Huỷ GHN thất bại: status={} body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
+            } catch (Exception ex) {
+                log.warn("Huỷ GHN thất bại: {}", ex.getMessage(), ex);
+            }
+        }
+
+        // Cập nhật trạng thái nội bộ
+        order.setOrderStauts(OrderStauts.CANCELLED);
+        order.setGhnStatus(GhnStatus.CANCEL);
+        order.setBankName(bankName);
+        order.setBankReferenceCode(bankReferenceCode);
+        orderRepo.save(order);
+    }
+
+    @Override
+    public List<Order> getCancelledOrdersWithPayment() {
+        return orderRepo.findCancelledOrdersWithPayButNoRefund();
+    }
 }

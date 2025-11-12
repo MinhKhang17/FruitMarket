@@ -11,6 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -73,5 +75,23 @@ public class OrderController {
             ra.addFlashAttribute("error", "Có lỗi xảy ra khi huỷ đơn. Vui lòng thử lại.");
         }
         return "redirect:/myOrders";
+    }
+
+    @PostMapping("/orders/{orderId}/update-bank-info")
+    public String updateBankInfo(@PathVariable Long orderId,
+                                 @RequestParam String bankName,
+                                 @RequestParam String bankReferenceCode,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            orderService.cancelOrderHasPayment(session, orderId, bankName, bankReferenceCode);
+
+            redirectAttributes.addFlashAttribute("success", "Đã hủy và cập nhật thông tin nhận hoàn tiền thành công!");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Lỗi khi cập nhật thông tin: " + e.getMessage());
+        }
+
+        return "redirect:/myOrders/" + orderId;
     }
 }

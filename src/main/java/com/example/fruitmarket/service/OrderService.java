@@ -42,4 +42,8 @@ public interface OrderService {
     void addShippingToTotal(Long orderId, BigDecimal fee);
 
     void cancelOrderForUser(Long orderId, HttpSession session);
+
+    void cancelOrderHasPayment(HttpSession session, Long orderId, String bankName, String bankReferenceCode);
+
+    List<Order> getCancelledOrdersWithPayment();
 }

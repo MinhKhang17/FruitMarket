@@ -90,6 +90,7 @@ public class PaymentController {
                             .paymentMethod("VNPAY")
                             .transactionId(transactionNo)
                             .paymentDate(TimeUtils.parsePayDate(payDate))
+                            .type("PAY")
                             .build();
                     paymentService.createPayment(payment);
                     order.setPaid(true);

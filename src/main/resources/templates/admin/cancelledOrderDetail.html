@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chi tiết đơn cần hoàn tiền</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green-50: #f0fdf4;
+            --green-100: #d1fae5;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --green-700: #047857;
+            --danger-500: #ef4444;
+            --danger-600: #dc2626;
+            --orange-500: #f59e0b;
+            --blue-500: #3b82f6;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+        body { padding: 24px; }
+
+        .card {
+            background: white;
+            padding: 28px 32px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            max-width: 1200px;
+            margin: 0 auto;
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            animation: fadeIn .5s ease;
+        }
+
+        h2 {
+            color: #1f2937;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 24px;
+            font-size: 1.75rem;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .btn-back {
+            display: inline-block;
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-back:hover {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-refund {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            border: none;
+            cursor: pointer;
+        }
+        .btn-refund:hover {
+            background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .alert {
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            animation: slideDown .4s ease;
+        }
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .refund-highlight {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 2px solid var(--orange-500);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+        .refund-highlight h3 {
+            color: #92400e;
+            font-size: 16px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .refund-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--danger-600);
+            margin-bottom: 8px;
+        }
+        .refund-note {
+            font-size: 13px;
+            color: #78350f;
+        }
+
+        .info-section {
+            margin-bottom: 32px;
+        }
+        .info-section h3 {
+            font-size: 14px;
+            color: var(--green-700);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        .info-item {
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 12px;
+            padding: 14px 16px;
+            transition: var(--transition);
+        }
+        .info-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+        .info-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .info-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            background: white;
+        }
+        thead th {
+            background: linear-gradient(135deg, var(--green-100) 0%, #a7f3d0 100%);
+            color: var(--green-700);
+            font-weight: 700;
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tbody td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        tbody tr:hover {
+            background: #f9fafb;
+            transition: background 0.2s ease;
+        }
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-badge::before {
+            content: "";
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--danger-500);
+        }
+
+        .product-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .product-img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        .price {
+            font-weight: 700;
+            color: var(--green-700);
+        }
+        .total-row {
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+        }
+
+        .payment-details {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 1px solid var(--blue-500);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .payment-details h4 {
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .payment-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .payment-details .detail-row:last-child {
+            border-bottom: none;
+        }
+        .payment-details .detail-label {
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+        .payment-details .detail-value {
+            color: #1e40af;
+            font-weight: 700;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 2% auto;
+            width: 90%;
+            max-width: 480px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: var(--green-700);
+            font-weight: 800;
+        }
+
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #6b7280;
+            cursor: pointer;
+            transition: var(--transition);
+            line-height: 1;
+        }
+        .close:hover {
+            color: var(--danger-500);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 13px;
+        }
+
+        .required {
+            color: var(--danger-500);
+            margin-left: 4px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--green-500);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border: 1px solid var(--orange-500);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+
+        .info-box-title {
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+
+        .info-box-content {
+            color: #78350f;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        .info-row-label {
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .info-row-value {
+            font-weight: 700;
+            color: var(--green-700);
+            font-size: 12px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #6b7280;
+            padding: 10px 24px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        @media (max-width: 720px) {
+            body { padding: 16px; }
+            .card { padding: 20px; }
+            .info-grid { grid-template-columns: 1fr; }
+            th, td { padding: 10px 12px; font-size: 13px; }
+            h2 { font-size: 1.5rem; }
+            .refund-amount { font-size: 2rem; }
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                max-height: 85vh;
+            }
+            .modal-body {
+                padding: 16px;
+            }
+            .info-box {
+                padding: 10px;
+            }
+            .form-actions {
+                flex-direction: column;
+            }
+            .btn-primary, .btn-secondary {
+                width: 100%;
+                padding: 10px 16px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h2>💰 Chi tiết đơn cần hoàn tiền #<span th:text="${order.id}"></span></h2>
+        <div style="display: flex; gap: 12px;">
+            <button onclick="openRefundModal()" class="btn-refund">
+                💳 Hoàn tiền
+            </button>
+            <a th:href="@{/admin/orders/cancelled-payments}" class="btn-back">← Quay lại</a>
+        </div>
+    </div>
+
+    <div th:if="${error}" class="alert alert-danger">
+        <span th:text="${error}"></span>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success">
+        <span th:text="${success}"></span>
+    </div>
+
+    <!-- Highlighted Refund Amount -->
+    <div class="refund-highlight">
+        <h3>🔄 Số tiền cần hoàn trả (70%)</h3>
+        <div class="refund-amount" th:text="${#numbers.formatDecimal(refundAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></div>
+        <div class="refund-note">Hoàn 70% từ số tiền khách đã thanh toán qua VNPAY</div>
+    </div>
+
+    <!-- Thông tin khách hàng -->
+    <div class="info-section">
+        <h3>👤 Thông tin khách hàng</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Tên khách hàng</div>
+                <div class="info-value" th:text="${order.users?.username ?: 'N/A'}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Email</div>
+                <div class="info-value" th:text="${order.users?.email ?: 'N/A'}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Số điện thoại</div>
+                <div class="info-value" th:text="${order.phoneNumber}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Địa chỉ giao hàng</div>
+                <div class="info-value" th:text="${order.address}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thông tin đơn hàng -->
+    <div class="info-section">
+        <h3>📦 Thông tin đơn hàng</h3>
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Phương thức thanh toán</div>
+                <div class="info-value" th:text="${order.pricingMethod}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Trạng thái đơn hàng</div>
+                <div class="info-value">
+                    <span class="status-badge" th:text="${order.orderStauts}"></span>
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Tổng số lượng</div>
+                <div class="info-value" th:text="${order.totalQuantity}"></div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Tổng giá trị đơn</div>
+                <div class="info-value price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></div>
+            </div>
+        </div>
+
+        <!-- Payment Details - ĐÃ SỬA -->
+        <div class="payment-details" th:if="${order.originalPayment != null}">
+            <h4>💳 Chi tiết thanh toán VNPAY</h4>
+            <div class="detail-row">
+                <span class="detail-label">Phương thức thanh toán:</span>
+                <span class="detail-value" th:text="${order.originalPayment.paymentMethod ?: 'N/A'}"></span>
+            </div>
+            <div class="detail-row" th:if="${order.originalPayment.type != null}">
+                <span class="detail-label">Loại thanh toán:</span>
+                <span class="detail-value" th:text="${order.originalPayment.type}"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Mã giao dịch:</span>
+                <span class="detail-value" style="font-family: 'Courier New', monospace; font-size: 13px;"
+                      th:text="${order.originalPayment.transactionId ?: 'N/A'}"></span>
+            </div>
+
+            <!-- Bank Information Section -->
+            <div th:if="${order.bankName != null or order.bankReferenceCode != null}"
+                 style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+                        padding: 12px; border-radius: 8px; margin: 12px 0;
+                        border: 1px solid #0ea5e9;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                    <span style="font-size: 18px;">🏦</span>
+                    <span style="font-weight: 700; color: #0c4a6e; font-size: 13px;">THÔNG TIN NGÂN HÀNG</span>
+                </div>
+                <div class="detail-row" th:if="${order.bankName != null}" style="border: none; padding: 4px 0;">
+                    <span class="detail-label" style="color: #075985;">Ngân hàng:</span>
+                    <span class="detail-value" style="color: #0369a1; font-weight: 800;"
+                          th:text="${order.bankName}"></span>
+                </div>
+                <div class="detail-row" th:if="${order.bankReferenceCode != null}" style="border: none; padding: 4px 0;">
+                    <span class="detail-label" style="color: #075985;">Mã tham chiếu:</span>
+                    <span class="detail-value" style="color: #0369a1; font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700;"
+                          th:text="${order.bankReferenceCode}"></span>
+                </div>
+            </div>
+
+            <!-- Notification when no bank info -->
+            <div th:unless="${order.bankName != null or order.bankReferenceCode != null}"
+                 style="background: #fef3c7; padding: 10px 12px; border-radius: 8px; margin: 12px 0;
+                        border: 1px solid #fbbf24; display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">ℹ️</span>
+                <span style="color: #78350f; font-size: 13px; font-weight: 500;">
+                    Chưa có thông tin ngân hàng cho giao dịch này
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Số tiền đã thanh toán:</span>
+                <span class="detail-value" th:text="${#numbers.formatDecimal(order.originalPayment.amount, 0, 'POINT', 0, 'POINT')} + ' đ'"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Thời gian thanh toán:</span>
+                <span class="detail-value" th:text="${#temporals.format(order.originalPayment.paymentDate, 'dd/MM/yyyy HH:mm:ss')}"></span>
+            </div>
+            <div class="detail-row" style="border-top: 2px solid var(--blue-500); padding-top: 12px; margin-top: 8px;">
+                <span class="detail-label" style="font-size: 15px;">Số tiền hoàn trả (70%):</span>
+                <span class="detail-value" style="font-size: 16px; color: var(--danger-600);"
+                      th:text="${#numbers.formatDecimal(refundAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chi tiết sản phẩm -->
+    <div class="info-section">
+        <h3>🛍️ Sản phẩm trong đơn hàng</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Sản phẩm</th>
+                <th>Đơn giá</th>
+                <th>Số lượng</th>
+                <th>Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${order.orderItemList}">
+                <td>
+                    <div class="product-info">
+                        <img th:if="${item.productVariant?.image != null}"
+                             th:src="${item.productVariant.image.url}"
+                             alt="Product"
+                             class="product-img"
+                             onerror="this.src='https://via.placeholder.com/60'"/>
+                        <img th:unless="${item.productVariant?.image != null}"
+                             src="https://via.placeholder.com/60"
+                             alt="No image"
+                             class="product-img"/>
+                        <div>
+                            <div th:text="${item.productVariant?.product?.productName ?: 'N/A'}"></div>
+                            <div style="font-size: 12px; color: #6b7280;"
+                                 th:if="${item.productVariant?.variant_name != null}"
+                                 th:text="'Phân loại: ' + ${item.productVariant.variant_name}"></div>
+                        </div>
+                    </div>
+                </td>
+                <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price * item.quantity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
+            </tr>
+            <tr class="total-row">
+                <td colspan="3" style="text-align: right;">Tổng cộng:</td>
+                <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Form Hoàn Tiền -->
+<div id="refundModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>💳 Xác nhận hoàn tiền</h3>
+            <span class="close" onclick="closeRefundModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <!-- Thông tin đơn hàng -->
+            <div class="info-box">
+                <div class="info-box-title">📋 Thông tin đơn hàng</div>
+                <div class="info-box-content">
+                    <div class="info-row">
+                        <span class="info-row-label">Mã đơn hàng:</span>
+                        <span class="info-row-value">#<span th:text="${order.id}"></span></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Khách hàng:</span>
+                        <span class="info-row-value" th:text="${order.users?.username ?: 'N/A'}"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-row-label">Số tiền hoàn trả:</span>
+                        <span class="info-row-value" style="color: var(--danger-600); font-size: 18px;">
+                            <span th:text="${#numbers.formatDecimal(refundAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form nhập thông tin -->
+            <form th:action="@{/admin/orders/refund}" method="post" id="refundForm">
+                <input type="hidden" name="orderId" th:value="${order.id}" />
+
+                <div class="form-group">
+                    <label for="referenceCode">
+                        Mã tham chiếu (Reference Code) <span class="required">*</span>
+                    </label>
+                    <input
+                            type="text"
+                            id="referenceCode"
+                            name="referenceCode"
+                            placeholder="Nhập mã tham chiếu giao dịch hoàn tiền"
+                            required
+                            maxlength="100"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="transactionDate">
+                        Ngày giao dịch <span class="required">*</span>
+                    </label>
+                    <input
+                            type="date"
+                            id="transactionDate"
+                            name="transactionDate"
+                            required
+                            style="background: white;"
+                    />
+                </div>
+
+                <div class="form-group">
+                    <label for="transactionTime">
+                        Giờ giao dịch <span class="required">*</span>
+                    </label>
+                    <input
+                            type="time"
+                            id="transactionTime"
+                            name="transactionTime"
+                            required
+                            style="background: white;"
+                    />
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeRefundModal()">
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn-primary">
+                        ✓ Xác nhận hoàn tiền
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mở modal
+    function openRefundModal() {
+        document.getElementById('refundModal').style.display = 'block';
+        // Set current date and time as default
+        const now = new Date();
+
+        // Set date (format: yyyy-MM-dd)
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        document.getElementById('transactionDate').value = `${year}-${month}-${day}`;
+
+        // Set time (format: HH:mm)
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('transactionTime').value = `${hours}:${minutes}`;
+    }
+
+    // Đóng modal
+    function closeRefundModal() {
+        document.getElementById('refundModal').style.display = 'none';
+    }
+
+    // Đóng modal khi click bên ngoài
+    window.onclick = function(event) {
+        const modal = document.getElementById('refundModal');
+        if (event.target == modal) {
+            closeRefundModal();
+        }
+    }
+
+    // Validate form trước khi submit
+    document.getElementById('refundForm').addEventListener('submit', function(e) {
+        const referenceCode = document.getElementById('referenceCode').value.trim();
+        const transactionDate = document.getElementById('transactionDate').value;
+        const transactionTime = document.getElementById('transactionTime').value;
+
+        if (!referenceCode) {
+            e.preventDefault();
+            alert('Vui lòng nhập mã tham chiếu!');
+            return false;
+        }
+
+        if (!transactionDate) {
+            e.preventDefault();
+            alert('Vui lòng chọn ngày giao dịch!');
+            return false;
+        }
+
+        if (!transactionTime) {
+            e.preventDefault();
+            alert('Vui lòng chọn giờ giao dịch!');
+            return false;
+        }
+
+        // Xác nhận trước khi submit
+        const confirmed = confirm(
+            'Bạn có chắc chắn muốn xác nhận hoàn tiền cho đơn hàng này?\n' +
+            'Mã tham chiếu: ' + referenceCode + '\n' +
+            'Thời gian: ' + transactionDate + ' ' + transactionTime
+        );
+
+        if (!confirmed) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+</body>
+</html>
