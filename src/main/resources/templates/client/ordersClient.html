@@ -42,14 +42,14 @@
 
         /* CHỜ XỬ LÝ */
         .status-PENDING {
-            background: #ffe082;
+            background: #ffe082;        /* vàng đậm hơn */
             color: #5c4400;
             border-color: #ffd54f;
         }
 
         /* HOÀN TẤT */
         .status-COMPLETED {
-            background: #81c784;
+            background: #81c784;        /* xanh lá đậm hơn */
             color: #0a3d18;
             border-color: #66bb6a;
         }
@@ -57,12 +57,12 @@
         /* HUỶ ĐƠN (CANCELLED hoặc CANCELED) */
         .status-CANCELED,
         .status-CANCELLED {
-            background: #ef9a9a;
+            background: #ef9a9a;        /* đỏ nhạt đậm hơn */
             color: #5a0000;
             border-color: #e57373;
         }
 
-        /* ĐANG GIAO */
+        /* ĐANG GIAO (tuỳ nếu có thêm) */
         .status-SHIPPING {
             background: #4fc3f7;
             color: #013d57;
@@ -110,6 +110,44 @@
         .refund-alert strong {
             color: #0d47a1;
         }
+        .ship-line,
+        .total-line {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 24px;
+            padding-top: 6px;
+            margin-top: 4px;
+        }
+
+        /* Phí vận chuyển */
+        .ship-line {
+            color: #198754;
+        }
+
+        .ship-line .text-muted {
+            color: #6c757d !important;
+            font-weight: 500;
+        }
+
+        .ship-amount {
+            font-weight: 600;
+            color: #198754;
+        }
+
+        /* Tổng thanh toán */
+        .total-line {
+            border-top: 1px dashed #e6ece8;
+            margin-top: 6px;
+            padding-top: 8px;
+        }
+
+        .total-amount {
+            color: #198754;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
     </style>
 </head>
 <body>
@@ -139,6 +177,7 @@
     <!-- Danh sách đơn -->
     <div class="row g-4" th:if="${!#lists.isEmpty(orders)}">
         <div class="col-12" th:each="o : ${orders}">
+            <!-- Đặt data-status theo ENUM.NAME() để đảm bảo không có khoảng trắng/lệch chính tả -->
             <div class="card order-card" th:attr="data-status=${o.orderStauts != null ? o.orderStauts.name() : ''}">
                 <!-- Header -->
                 <div class="order-head">
@@ -246,15 +285,36 @@
                             </div>
                             <!-- ✅ Kết thúc phần hoàn tiền -->
 
+                            <div class="ship-line">
+                                <div class="text-muted">Phí vận chuyển:</div>
+                                <div class="ship-amount text-success fw-semibold">
+                                    <span th:text="${#numbers.formatDecimal((o.shippingFee != null ? o.shippingFee : 0), 0, 'COMMA', 0, 'POINT')}">0</span>đ
+                                </div>
+                            </div>
+
                             <div class="total-line">
                                 <div class="text-muted">Tổng thanh toán:</div>
                                 <div class="total-amount">
-                                    <span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ
+                                    <span th:text="${#numbers.formatDecimal(o.totalPrice, 0, 'COMMA', 0, 'POINT')}">0</span>đ
                                 </div>
                             </div>
+
                             <!-- Hành động -->
                             <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
-                                <!-- Chi tiết -->
+                                <!-- Huỷ đơn (đi trước) -->
+                                <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
+                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
+                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"
+                                      th:action="@{|/orders/${o.id}/cancel|}" method="post"
+                                      class="m-0"
+                                      th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
+                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-x-circle"></i> Huỷ đơn hàng
+                                    </button>
+                                </form>
+
+                                <!-- Chi tiết (đi sau) -->
                                 <a class="btn btn-outline-success btn-sm" th:href="@{'/myOrders/' + ${o.id}}">
                                     <i class="bi bi-receipt-cutoff"></i> Chi tiết
                                 </a>
@@ -276,7 +336,7 @@
 
     function norm(s) {
         s = (s || '').toUpperCase().trim();
-        if (s === 'CANCELLED') s = 'CANCELED';
+        if (s === 'CANCELLED') s = 'CANCELED'; // đồng bộ 2 cách viết
         return s;
     }
     const isEqual = (a, b) => norm(a) === norm(b);
@@ -290,6 +350,7 @@
         });
     }
 
+    // Gán click cho các nút filter
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             buttons.forEach(b => b.classList.remove('active'));
@@ -298,6 +359,7 @@
         });
     });
 
+    // 👉 Nếu có đơn COMPLETED thì chọn luôn filter COMPLETED
     let hasCompleted = false;
     cards.forEach(c => {
         if (isEqual(c.getAttribute('data-status'), 'COMPLETED')) {
@@ -313,6 +375,7 @@
             applyFilter('COMPLETED');
         }
     } else {
+        // Ngược lại: hiện tất cả như cũ
         applyFilter('ALL');
     }
 </script>
