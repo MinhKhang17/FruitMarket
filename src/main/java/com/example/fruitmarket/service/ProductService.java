@@ -39,4 +39,6 @@ public interface ProductService {
     void updateProductStatusToActive(Long productId);
 
     List<Product> findAllByAdmin();
+
+    void saveProductVariant(ProductVariant pv);
 }

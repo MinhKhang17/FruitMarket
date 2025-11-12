@@ -45,7 +45,7 @@ public class CartController {
     private final DistrictService districtService;
     private final ProvinceService provinceService;
     private final WardService wardService;
-
+private final ProductService productService;
     // VNPAY (giữ field injection theo code của bạn)
     @Autowired
     private VnPayService vnPayService;
@@ -305,6 +305,54 @@ public class CartController {
 
             Order order = orderService.getOrderById(orderId);
 
+            // ====== NEW: cập nhật stock cho từng variant dựa trên orderReq.items ======
+            // Giả sử bạn có ProductService với findProductVariantById & saveProductVariant
+            try {
+                for (OrderRequest.OrderItem oi : orderReq.getItems()) {
+                    Long variantId = oi.getVariantId();
+                    if (variantId == null) continue;
+
+                    try {
+                        ProductVariant pv = productService.findProductVariantById(variantId);
+                        if (pv == null) {
+                            log.warn("Không tìm thấy ProductVariant id={} để cập nhật stock (order {})", variantId, orderId);
+                            continue;
+                        }
+
+                        Long currentStock = pv.getStock(); // giả sử trường là Integer stock
+                        if (currentStock == null) {
+                            log.warn("ProductVariant id={} không có trường stock (order {}) — bỏ qua cập nhật", variantId, orderId);
+                            continue;
+                        }
+
+                        int deduct = 0;
+                        if (oi.getQuantity() != null) {
+                            deduct = oi.getQuantity();
+                        } else if (oi.getWeight() != null) {
+                            // Nếu bạn lưu stock theo "cái", và bán theo kg, cần quy đổi.
+                            // Ở đây tạm tính giảm = ceil(weight) — điều chỉnh theo thực tế của bạn.
+                            deduct = (int) Math.ceil(oi.getWeight());
+                        }
+
+                        Long newStock =  currentStock - deduct;
+                        pv.setStock(newStock);
+
+                        // Lưu thay đổi (method tên có thể khác trong project của bạn)
+                        productService.saveProductVariant(pv);
+
+                        log.info("Cập nhật stock variantId={} : {} -> {} (deduct={}), order={}",
+                                variantId, currentStock, newStock, deduct, orderId);
+
+                    } catch (Exception exInner) {
+                        log.warn("Lỗi khi cập nhật stock cho variantId={} (order={}): {}", oi.getVariantId(), orderId, exInner.getMessage(), exInner);
+                        // không throw để không block luồng đặt hàng
+                    }
+                }
+            } catch (Exception exStock) {
+                log.warn("Lỗi cập nhật stock sau khi tạo order {}: {}", orderId, exStock.getMessage(), exStock);
+            }
+            // ====== END update stock ======
+
             // 6) Nếu VNPAY: render trang QR
             if ("VNPAY".equalsIgnoreCase(paymentMethod)) {
                 String orderInfo = "Thanh toan don hang #" + order.getId();
@@ -461,6 +509,7 @@ public class CartController {
             return "home/checkout-cart";
         }
     }
+
 
     @GetMapping("/success")
     public String orderSuccess(RedirectAttributes ra,HttpSession session) {

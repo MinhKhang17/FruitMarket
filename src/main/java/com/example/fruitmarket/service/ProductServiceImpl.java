@@ -136,4 +136,9 @@ public class ProductServiceImpl implements ProductService {
         return productRepo.findAll();
     }
 
+    @Override
+    public void saveProductVariant(ProductVariant pv) {
+        productVariantRepo.save(pv);
+    }
+
 }

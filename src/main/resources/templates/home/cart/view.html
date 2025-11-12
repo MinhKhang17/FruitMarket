@@ -64,10 +64,10 @@
                                 <input type="checkbox" class="select-item"
                                        th:attr="data-index=${iterStat.index},
                         data-variantid=${item.variantId != null ? item.variantId : ''},
+                        data-productid=${item.productId != null ? item.productId : ''},
                         data-price=${item.price != null ? item.price : 0},
                         data-qty=${item.unit == 'KILOGRAM' ? item.weight : item.quantity},
-                        data-unit=${item.unit}"
-                                />
+                        data-unit=${item.unit}"/>
                             </td>
 
                             <td>
@@ -90,7 +90,7 @@
 
                             <!-- Ô số lượng có suffix đơn vị -->
                             <td class="qty-cell">
-                                <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center">
+                                <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center row-form">
                                     <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
                                     <input type="hidden" name="productId" th:value="${item.productId}" />
                                     <input type="hidden" name="variantId" th:value="${item.variantId}" />
@@ -127,15 +127,6 @@
 
                             <td class="align-middle text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <form th:action="@{/buy-now}" method="post">
-                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                                        <input type="hidden" name="productId" th:value="${item.productId}" />
-                                        <input type="hidden" name="variantId" th:value="${item.variantId}" />
-                                        <input type="hidden" name="qtyOrWeight" th:value="${item.unit == 'KILOGRAM' ? item.weight : item.quantity}" />
-                                        <button type="submit" class="btn btn-warning btn-sm text-white" title="Mua ngay">
-                                            <i class="bi bi-bag-check"></i>
-                                        </button>
-                                    </form>
 
                                     <form th:action="@{/cart/remove}" method="post">
                                         <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
@@ -195,11 +186,12 @@
                         <button id="checkoutSelectedBtn" class="btn btn-success" disabled>Thanh toán mục đã chọn</button>
                     </div>
 
-                    <!-- Checkout whole cart (original behavior) -->
-                    <form th:action="@{/cart/checkout}" method="post">
-                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}" />
-                        <button type="submit" class="btn btn-outline-success w-100"><i class="bi bi-credit-card-2-front"></i> Thanh toán toàn bộ giỏ</button>
-                    </form>
+                    <!-- Checkout whole cart (updated: button builds dynamic form from visible inputs) -->
+                    <div class="d-grid gap-2 mb-3">
+                        <button id="checkoutAllBtn" class="btn btn-outline-success w-100">
+                            <i class="bi bi-credit-card-2-front"></i> Thanh toán toàn bộ giỏ
+                        </button>
+                    </div>
 
                     <div class="mt-3 text-center">
                         <small class="muted">Bạn có thể cập nhật số lượng, chọn mục rồi thanh toán.</small>
@@ -224,6 +216,7 @@
         const selectedTotalEl = document.getElementById('selectedTotal');
         const selectedQtyEl = document.getElementById('selectedQuantity');
         const checkoutBtn = document.getElementById('checkoutSelectedBtn');
+        const checkoutAllBtn = document.getElementById('checkoutAllBtn');
 
         // Helper parse và format
         const parseNumber = s => parseFloat(s) || 0;
@@ -243,8 +236,11 @@
                 let qty = parseNumber(cb.dataset.qty);
                 const idx = cb.dataset.index;
 
+                // Lấy giá trị hiện tại trong trường số lượng/weight (nếu người dùng đã chỉnh)
                 const qInput = document.querySelector(`.qty-input[data-index="${idx}"]`);
-                if (qInput) qty = parseNumber(qInput.value);
+                if (qInput) {
+                    qty = parseNumber(qInput.value);
+                }
 
                 total += price * qty;
                 qtySum += 1;
@@ -279,7 +275,7 @@
             }
         });
 
-        // ✅ Nút thanh toán
+        // ✅ Nút thanh toán (mục đã chọn)
         checkoutBtn?.addEventListener('click', function () {
             const checked = getItemCheckboxes().filter(cb => cb.checked);
             if (checked.length === 0) {
@@ -305,16 +301,90 @@
             }
 
             checked.forEach(cb => {
-                const vid = cb.dataset.variantid;
-                const qty = cb.dataset.qty;
-                if (vid && qty) {
-                    const i1 = document.createElement('input');
-                    i1.type = 'hidden'; i1.name = 'variantIds'; i1.value = vid;
-                    form.appendChild(i1);
+                const vid = cb.dataset.variantid || '';
+                const pid = cb.dataset.productid || '';
+                const unit = cb.dataset.unit || '';
+                // read current input value
+                const idx = cb.dataset.index;
+                const qInput = document.querySelector(`.qty-input[data-index="${idx}"]`);
+                const qtyVal = qInput ? qInput.value : cb.dataset.qty;
 
-                    const i2 = document.createElement('input');
-                    i2.type = 'hidden'; i2.name = 'quantities'; i2.value = qty;
-                    form.appendChild(i2);
+                if (pid) {
+                    const pIn = document.createElement('input');
+                    pIn.type = 'hidden'; pIn.name = 'productIds'; pIn.value = pid; form.appendChild(pIn);
+                }
+                if (vid) {
+                    const vIn = document.createElement('input');
+                    vIn.type = 'hidden'; vIn.name = 'variantIds'; vIn.value = vid; form.appendChild(vIn);
+                }
+                if (unit === 'KILOGRAM') {
+                    const wIn = document.createElement('input');
+                    wIn.type = 'hidden'; wIn.name = 'weights'; wIn.value = qtyVal; form.appendChild(wIn);
+                } else {
+                    const qIn = document.createElement('input');
+                    qIn.type = 'hidden'; qIn.name = 'quantities'; qIn.value = qtyVal; form.appendChild(qIn);
+                }
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        });
+
+        // ✅ Nút thanh toán toàn bộ giỏ (mới) - thu thập mọi hàng trong table sử dụng giá trị hiện tại
+        checkoutAllBtn?.addEventListener('click', function () {
+            // Thu thập từng row trong tbody
+            const rows = Array.from(document.querySelectorAll('table.cart-table tbody tr'));
+            if (!rows.length) {
+                alert('Giỏ hàng trống.');
+                return;
+            }
+
+            const csrf = {
+                token: document.querySelector('meta[name="_csrf"]')?.content || '',
+                header: document.querySelector('meta[name="_csrf_header"]')?.content || 'X-CSRF-TOKEN'
+            };
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = /*[[ @{/cart/checkout} ]]*/ '/cart/checkout';
+
+            if (csrf.token) {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = '_csrf';
+                input.value = csrf.token;
+                form.appendChild(input);
+            }
+
+            // Duyệt từng hàng và lấy productId/variantId và giá trị qty/weight hiện tại (DOM)
+            rows.forEach(row => {
+                // hidden inputs inside the row's update form
+                const productIdInput = row.querySelector('input[name="productId"]');
+                const variantIdInput = row.querySelector('input[name="variantId"]');
+                const qtyInputEl = row.querySelector('.qty-input');
+                // fallback: checkbox data
+                const checkbox = row.querySelector('.select-item');
+
+                const pid = productIdInput ? productIdInput.value : (checkbox ? checkbox.dataset.productid : '');
+                const vid = variantIdInput ? variantIdInput.value : (checkbox ? checkbox.dataset.variantid : '');
+                const unit = checkbox ? checkbox.dataset.unit : null;
+
+                const currentVal = qtyInputEl ? qtyInputEl.value : (checkbox ? checkbox.dataset.qty : '');
+
+                if (pid) {
+                    const pIn = document.createElement('input');
+                    pIn.type = 'hidden'; pIn.name = 'productIds'; pIn.value = pid; form.appendChild(pIn);
+                }
+                if (vid) {
+                    const vIn = document.createElement('input');
+                    vIn.type = 'hidden'; vIn.name = 'variantIds'; vIn.value = vid; form.appendChild(vIn);
+                }
+                if (unit === 'KILOGRAM') {
+                    const w = document.createElement('input');
+                    w.type = 'hidden'; w.name = 'weights'; w.value = currentVal || '1'; form.appendChild(w);
+                } else {
+                    const q = document.createElement('input');
+                    q.type = 'hidden'; q.name = 'quantities'; q.value = currentVal || '1'; form.appendChild(q);
                 }
             });
 
@@ -323,7 +393,16 @@
         });
 
         // ✅ Khởi tạo ban đầu
-        updateSelectedSummary();
+        (function init() {
+            // ensure dataset.qty initial values reflect current inputs
+            document.querySelectorAll('.qty-input').forEach(inp => {
+                const idx = inp.dataset.index;
+                const cb = document.querySelector(`.select-item[data-index="${idx}"]`);
+                if (cb) cb.dataset.qty = inp.value;
+            });
+            updateSelectedSummary();
+        })();
+
     });
     /*]]>*/
 </script>
