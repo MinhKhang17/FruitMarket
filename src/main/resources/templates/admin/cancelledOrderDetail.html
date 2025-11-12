@@ -687,6 +687,23 @@
                 <td th:text="${item.quantity}"></td>
                 <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price * item.quantity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
             </tr>
+            <!-- ✅ THÊM MỚI: Tạm tính -->
+            <tr style="background: #f9fafb;">
+                <td colspan="3" style="text-align: right; font-weight: 600;">Tạm tính (sản phẩm):</td>
+                <td class="price"
+                    th:text="${order.shippingFee != null ?
+                  (#numbers.formatDecimal(order.totalPrice - order.shippingFee, 0, 'POINT', 0, 'POINT') + ' đ') :
+                  (#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT') + ' đ')}"></td>
+            </tr>
+
+            <!-- ✅ THÊM MỚI: Phí vận chuyển -->
+            <tr style="background: #f9fafb;">
+                <td colspan="3" style="text-align: right; font-weight: 600;">Phí vận chuyển:</td>
+                <td class="price"
+                    th:text="${order.shippingFee != null ?
+                  (#numbers.formatDecimal(order.shippingFee, 0, 'POINT', 0, 'POINT') + ' đ') :
+                  '0 đ'}"></td>
+            </tr>
             <tr class="total-row">
                 <td colspan="3" style="text-align: right;">Tổng cộng:</td>
                 <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>

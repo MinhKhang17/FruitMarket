@@ -479,7 +479,7 @@ public class AdminController {
     public String viewCancelledOrderDetail(@PathVariable Long id,
                                            Model model,
                                            HttpSession session,
-                                           RedirectAttributes ra) { // Thêm RedirectAttributes
+                                           RedirectAttributes ra) {
         String redirect = checkAdminAccess(session);
         if (redirect != null) return redirect;
 
@@ -535,17 +535,17 @@ public class AdminController {
 
             if (refundRequest.getReferenceCode() == null || refundRequest.getReferenceCode().trim().isEmpty()) {
                 ra.addFlashAttribute("error", "Vui lòng nhập mã tham chiếu");
-                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId();
             }
 
             if (!paymentService.isTransactionIdExist(refundRequest.getReferenceCode())) {
                 ra.addFlashAttribute("error", "Mã tham chiếu đã tồn tại");
-                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId();
             }
 
             if (refundRequest.getTransactionDate() == null || refundRequest.getTransactionTime() == null) {
                 ra.addFlashAttribute("error", "Vui lòng nhập đầy đủ thời gian giao dịch");
-                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId();
             }
 
             Order order = orderService.getOrderById(refundRequest.getOrderId());
@@ -580,7 +580,7 @@ public class AdminController {
         } catch (Exception e) {
             log.error("Error processing refund", e);
             ra.addFlashAttribute("error", "Lỗi khi xử lý hoàn tiền: " + e.getMessage());
-            return "redirect:/admin/orders/cancelled/" + // ✅ Thêm /
+            return "redirect:/admin/orders/cancelled/" +
                     (refundRequest.getOrderId() != null ? refundRequest.getOrderId() : "");
         }
     }
