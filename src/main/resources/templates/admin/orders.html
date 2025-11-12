@@ -372,7 +372,7 @@
             <th>Số điện thoại</th>
             <th>Địa chỉ</th>
             <th>Tổng tiền</th>
-            <th>Số lượng</th>
+            <th>Số sản phẩm</th>
             <th>Thanh toán</th>
             <th>Trạng thái</th>
             <th>Hành động</th>
@@ -385,7 +385,7 @@
             <td th:text="${order.phoneNumber}"></td>
             <td th:text="${#strings.abbreviate(order.address, 30)}"></td>
             <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
-            <td th:text="${order.totalQuantity}"></td>
+            <td th:text="${order.orderItemList}"></td>
             <td>
                 <span th:class="${order.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
                       th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}"></span>
