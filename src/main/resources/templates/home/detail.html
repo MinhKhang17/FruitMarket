@@ -205,153 +205,211 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script th:inline="javascript">
-    const displayPrice = document.getElementById("displayPrice");
-    const productImage = document.getElementById("productImage");
-    const qtyInput = document.getElementById("qtyInput");
-    const weightInput = document.getElementById("weightInput");
+    /* Robust sync: update total price by qty/weight and ensure hidden inputs are up-to-date before submit.
+       Minimal, focused changes only — preserves all original markup and form field names.
+    */
+    (function(){
+        const displayPrice = document.getElementById("displayPrice");
+        const productImage = document.getElementById("productImage");
+        const qtyInput = document.getElementById("qtyInput");
+        const weightInput = document.getElementById("weightInput");
 
-    const variantIdInput = document.getElementById("variantIdInput");
-    const variantIdInput2 = document.getElementById("variantIdInput2");
-    const qtyInputForAdd = document.getElementById("qtyInputForAdd");
-    const qtyInputForCheckout = document.getElementById("qtyInputForCheckout");
-    const weightInputForAdd = document.getElementById("weightInputForAdd");
-    const weightInputForCheckout = document.getElementById("weightInputForCheckout");
+        const variantIdInput = document.getElementById("variantIdInput");
+        const variantIdInput2 = document.getElementById("variantIdInput2");
+        const qtyInputForAdd = document.getElementById("qtyInputForAdd");
+        const qtyInputForCheckout = document.getElementById("qtyInputForCheckout");
+        const weightInputForAdd = document.getElementById("weightInputForAdd");
+        const weightInputForCheckout = document.getElementById("weightInputForCheckout");
 
-    function fmtPrice(v) {
-        const n = Number(v);
-        if (isNaN(n)) return v;
-        return n.toLocaleString("vi-VN");
-    }
+        const stockHintQty = document.getElementById("stockHintQty");
+        const stockHintWeight = document.getElementById("stockHintWeight");
 
-    function setActiveByIndex(idx) {
-        document.querySelectorAll(".variant-btn").forEach(b => {
-            if (b.getAttribute("data-index") === String(idx)) b.classList.add("active"); else b.classList.remove("active");
-        });
-        document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
-            if (tb.getAttribute("data-index") === String(idx)) tb.classList.add("active"); else tb.classList.remove("active");
-        });
-    }
-
-    function selectVariantByIndex(index) {
-        const btn = document.querySelector(`.variant-btn[data-index="${index}"]`);
-        if (!btn) return;
-
-        const id = btn.getAttribute("data-id");
-        const price = btn.getAttribute("data-price");
-        const stock = btn.getAttribute("data-stock");
-        const image = btn.getAttribute("data-image");
-
-        if (variantIdInput) variantIdInput.value = id;
-        if (variantIdInput2) variantIdInput2.value = id;
-
-        if (displayPrice && price !== null && price !== undefined) {
-            displayPrice.textContent = fmtPrice(price);
+        function fmtPrice(v) {
+            const n = Number(v);
+            if (isNaN(n)) return v;
+            return n.toLocaleString("vi-VN");
         }
 
-        const stockHint = document.getElementById("stockHintQty");
-        if (stockHint) stockHint.textContent = "(Còn " + (stock || 0) + " sản phẩm)";
-        if (qtyInput && !isNaN(Number(stock))) {
-            qtyInput.max = Number(stock);
-            if (Number(qtyInput.value) > Number(stock)) qtyInput.value = Number(stock);
-        }
-
-        if (image && image.trim() !== "") productImage.src = image;
-
-        setActiveByIndex(index);
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // LẤY ĐƠN VỊ
+        // unit from server-side (fallback PIECE)
         const unit = /*[[${product.unit != null ? product.unit.name() : 'PIECE'}]]*/ 'PIECE';
 
-        // Đặt mặc định cho hidden inputs (kể cả user không chạm)
-        if (qtyInputForAdd && !qtyInputForAdd.value) qtyInputForAdd.value = '1';
-        if (qtyInputForCheckout && !qtyInputForCheckout.value) qtyInputForCheckout.value = '1';
-        if (weightInputForAdd && !weightInputForAdd.value) weightInputForAdd.value = '1';
-        if (weightInputForCheckout && !weightInputForCheckout.value) weightInputForCheckout.value = '1';
-
-        if (unit === 'KILOGRAM') {
-            if (qtyInput) qtyInput.disabled = true;
-            if (weightInput) {
-                weightInput.disabled = false;
-                const syncW = () => {
-                    const val = weightInput.value && Number(weightInput.value) > 0 ? weightInput.value : '1';
-                    if (weightInputForAdd) weightInputForAdd.value = val;
-                    if (weightInputForCheckout) weightInputForCheckout.value = val;
-                };
-                weightInput.addEventListener('input', syncW);
-                syncW();
+        function updateHiddenFields() {
+            if (qtyInputForAdd) {
+                const val = qtyInput && Number(qtyInput.value) > 0 ? Math.floor(Number(qtyInput.value)) : 1;
+                qtyInputForAdd.value = String(val);
             }
-        } else {
-            if (weightInput) weightInput.disabled = true;
-            if (qtyInput) {
-                qtyInput.disabled = false;
-                const syncQ = () => {
-                    const val = qtyInput.value && Number(qtyInput.value) > 0 ? qtyInput.value : '1';
-                    if (qtyInputForAdd) qtyInputForAdd.value = val;
-                    if (qtyInputForCheckout) qtyInputForCheckout.value = val;
-                };
-                qtyInput.addEventListener('input', syncQ);
-                syncQ();
+            if (qtyInputForCheckout) {
+                const val = qtyInput && Number(qtyInput.value) > 0 ? Math.floor(Number(qtyInput.value)) : 1;
+                qtyInputForCheckout.value = String(val);
+            }
+            if (weightInputForAdd) {
+                const v = weightInput && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
+                weightInputForAdd.value = String(v);
+            }
+            if (weightInputForCheckout) {
+                const v = weightInput && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
+                weightInputForCheckout.value = String(v);
             }
         }
 
-        // Luôn chọn biến thể đầu tiên nếu có (để product_variant_id không null)
-        if (document.querySelector('.variant-btn[data-index="0"]')) {
-            selectVariantByIndex(0);
+        function updateDisplayPrice(basePrice) {
+            if (!displayPrice) return;
+            const priceNum = Number(basePrice) || 0;
+            let multiplier = 1;
+            if (unit === 'KILOGRAM') {
+                const w = weightInput && Number(weightInput.value) > 0 ? Number(weightInput.value) : 1;
+                multiplier = w;
+            } else {
+                const q = qtyInput && Number(qtyInput.value) > 0 ? Number(qtyInput.value) : 1;
+                multiplier = q;
+            }
+            const total = priceNum * multiplier;
+            displayPrice.textContent = fmtPrice(total);
         }
 
-        document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
-            tb.addEventListener('click', function () {
-                const idx = this.getAttribute('data-index');
-                if (idx !== null) selectVariantByIndex(Number(idx));
+        function setActiveByIndex(idx) {
+            document.querySelectorAll(".variant-btn").forEach(b => {
+                if (b.getAttribute("data-index") === String(idx)) b.classList.add("active"); else b.classList.remove("active");
             });
-        });
-    });
-
-    function validateCheckout() {
-        const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
-        if (hasVariants && (!variantIdInput || !variantIdInput.value)) {
-            alert("Vui lòng chọn loại sản phẩm trước khi thanh toán!");
-            return false;
+            document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
+                if (tb.getAttribute("data-index") === String(idx)) tb.classList.add("active"); else tb.classList.remove("active");
+            });
         }
 
-        // Chốt mặc định trước khi submit
-        if (qtyInputForCheckout && (!qtyInputForCheckout.value || Number(qtyInputForCheckout.value) <= 0)) {
-            qtyInputForCheckout.value = '1';
-        }
-        if (weightInputForCheckout && (!weightInputForCheckout.value || Number(weightInputForCheckout.value) <= 0)) {
-            weightInputForCheckout.value = '1';
-        }
+        function selectVariantByIndex(index) {
+            const btn = document.querySelector(`.variant-btn[data-index="${index}"]`);
+            if (!btn) return;
 
-        const unit = /*[[${product.unit != null ? product.unit.name() : 'PIECE'}]]*/ 'PIECE';
+            const id = btn.getAttribute("data-id");
+            const price = btn.getAttribute("data-price");
+            const stock = btn.getAttribute("data-stock");
+            const image = btn.getAttribute("data-image");
 
-        if (unit === 'KILOGRAM') {
-            const w = Number(weightInput?.value || 0);
-            if (w <= 0) { alert("Số kg không hợp lệ!"); return false; }
-        } else {
-            const q = Number(qtyInput?.value || 0);
-            if (q <= 0) { alert("Số lượng không hợp lệ!"); return false; }
-            if (qtyInput && qtyInput.max && q > Number(qtyInput.max)) {
-                alert("Số lượng vượt quá tồn kho!");
-                return false;
+            if (variantIdInput) variantIdInput.value = id;
+            if (variantIdInput2) variantIdInput2.value = id;
+
+            // store base price on button and document for reuse
+            btn.dataset.basePrice = price;
+
+            if (stockHintQty) stockHintQty.textContent = "(Còn " + (stock || 0) + " sản phẩm)";
+            if (qtyInput && !isNaN(Number(stock))) {
+                qtyInput.max = Number(stock);
+                if (Number(qtyInput.value) > Number(stock)) qtyInput.value = Number(stock);
             }
-        }
-        return true;
-    }
 
-    // Guard cho Add to Cart
-    (function attachGuards() {
-        const addForm = document.getElementById("addToCartForm");
-        const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
-        if (addForm && hasVariants) {
-            addForm.addEventListener('submit', function (e) {
-                if (!variantIdInput2 || !variantIdInput2.value) {
-                    e.preventDefault();
-                    alert("Vui lòng chọn biến thể trước khi thêm vào giỏ!");
+            if (stockHintWeight) stockHintWeight.textContent = "(Còn " + (stock || 0) + ")";
+            if (image && image.trim() !== "") productImage.src = image;
+
+            setActiveByIndex(index);
+
+            // recalc price and sync hidden values
+            updateDisplayPrice(price);
+            updateHiddenFields();
+        }
+
+        function bindQuantityListeners() {
+            if (unit === 'KILOGRAM') {
+                if (weightInput) {
+                    const sync = () => {
+                        if (Number(weightInput.value) <= 0 || isNaN(Number(weightInput.value))) weightInput.value = '1';
+                        updateHiddenFields();
+                        const active = document.querySelector('.variant-btn.active') || document.querySelector('.variant-btn[data-index="0"]');
+                        const basePrice = active ? (active.getAttribute('data-price') || active.dataset.basePrice) : 0;
+                        updateDisplayPrice(basePrice);
+                    };
+                    weightInput.addEventListener('input', sync);
+                    weightInput.addEventListener('change', sync);
+                    sync();
                 }
+                if (qtyInput) qtyInput.disabled = true;
+            } else {
+                if (qtyInput) {
+                    const sync = () => {
+                        let v = Number(qtyInput.value) || 1;
+                        v = Math.max(1, Math.floor(v));
+                        if (qtyInput.max) v = Math.min(v, Number(qtyInput.max));
+                        if (v !== Number(qtyInput.value)) qtyInput.value = v;
+                        updateHiddenFields();
+                        const active = document.querySelector('.variant-btn.active') || document.querySelector('.variant-btn[data-index="0"]');
+                        const basePrice = active ? (active.getAttribute('data-price') || active.dataset.basePrice) : 0;
+                        updateDisplayPrice(basePrice);
+                    };
+                    qtyInput.addEventListener('input', sync);
+                    qtyInput.addEventListener('change', sync);
+                    sync();
+                }
+                if (weightInput) weightInput.disabled = true;
+            }
+        }
+
+        function attachFormGuards() {
+            const addForm = document.getElementById("addToCartForm");
+            const checkoutForm = document.getElementById("checkoutForm");
+
+            const preSubmit = function(e, forCheckout=false) {
+                updateHiddenFields();
+
+                const hasVariants = document.querySelectorAll(".variant-btn").length > 0;
+                if (hasVariants) {
+                    const vid = forCheckout ? (variantIdInput ? variantIdInput.value : null) : (variantIdInput2 ? variantIdInput2.value : null);
+                    if (!vid) {
+                        e.preventDefault();
+                        alert("Vui lòng chọn loại sản phẩm trước khi tiếp tục.");
+                        return false;
+                    }
+                }
+
+                if (unit === 'KILOGRAM') {
+                    const w = Number(weightInput?.value || 0);
+                    if (w <= 0) { e.preventDefault(); alert("Số kg không hợp lệ!"); return false; }
+                } else {
+                    const q = Number(qtyInput?.value || 0);
+                    if (q <= 0) { e.preventDefault(); alert("Số lượng không hợp lệ!"); return false; }
+                    if (qtyInput && qtyInput.max && q > Number(qtyInput.max)) { e.preventDefault(); alert("Số lượng vượt quá tồn kho!"); return false; }
+                }
+                return true;
+            };
+
+            if (addForm) addForm.addEventListener('submit', function(e){ preSubmit(e, false); });
+            if (checkoutForm) checkoutForm.addEventListener('submit', function(e){ preSubmit(e, true); });
+        }
+
+        function bindVariantButtons() {
+            document.querySelectorAll('.variant-btn').forEach(b => {
+                b.addEventListener('click', function(){
+                    const idx = b.getAttribute('data-index');
+                    selectVariantByIndex(idx);
+                });
+            });
+            document.querySelectorAll("#variantThumbnails .thumbnail-btn").forEach(tb => {
+                tb.addEventListener('click', function () {
+                    const idx = this.getAttribute('data-index');
+                    if (idx !== null) selectVariantByIndex(Number(idx));
+                });
             });
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // defaults
+            if (qtyInputForAdd && (!qtyInputForAdd.value || Number(qtyInputForAdd.value) <= 0)) qtyInputForAdd.value = '1';
+            if (qtyInputForCheckout && (!qtyInputForCheckout.value || Number(qtyInputForCheckout.value) <= 0)) qtyInputForCheckout.value = '1';
+            if (weightInputForAdd && (!weightInputForAdd.value || Number(weightInputForAdd.value) <= 0)) weightInputForAdd.value = '1';
+            if (weightInputForCheckout && (!weightInputForCheckout.value || Number(weightInputForCheckout.value) <= 0)) weightInputForCheckout.value = '1';
+
+            bindVariantButtons();
+            bindQuantityListeners();
+
+            if (document.querySelector('.variant-btn[data-index="0"]')) {
+                selectVariantByIndex(0);
+            }
+
+            attachFormGuards();
+        });
+
+        // for debugging if needed
+        window.__fm_updateHiddenFields = updateHiddenFields;
+        window.__fm_selectVariantByIndex = selectVariantByIndex;
+
     })();
 </script>
 
