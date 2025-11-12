@@ -208,9 +208,9 @@ public class BuyController {
                               @RequestParam(required = false) Integer provinceId,
                               @RequestParam(required = false) Integer districtId,
                               @RequestParam(required = false) String wardCode,
+                              @RequestParam(required = false) String receiverName, // NEW
                               HttpSession session,
                               RedirectAttributes ra) {
-
         Users loggedUser = (Users) session.getAttribute("loggedUser");
         if (loggedUser == null) {
             ra.addFlashAttribute("message", "Please login first");
@@ -222,16 +222,21 @@ public class BuyController {
         detail.setAddress(address);
         detail.setUser(loggedUser);
 
+        // NEW: lưu tên người nhận (fallback username nếu để trống)
+        if (receiverName != null && !receiverName.isBlank()) {
+            detail.setReceiverName(receiverName.trim());
+        } else {
+            detail.setReceiverName(loggedUser.getUsername()); // mặc định
+        }
+
         if (provinceId != null) {
             Province province = provinceService.findByProvinceId(provinceId);
             detail.setProvince(province);
         }
-
         if (districtId != null) {
             District district = districtService.findByDistrictId(districtId);
             detail.setDistrict(district);
         }
-
         if (wardCode != null && !wardCode.isBlank()) {
             Ward ward = wardService.findByWardCode(wardCode);
             detail.setWard(ward);

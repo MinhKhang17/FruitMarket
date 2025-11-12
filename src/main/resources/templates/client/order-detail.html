@@ -311,6 +311,11 @@
                         <div><i class="bi bi-telephone text-success me-1"></i>
                             <span th:text="${o.phoneNumber}">SĐT</span>
                         </div>
+                        <div class="mt-2">
+                            <i class="bi bi-person text-success me-1"></i>
+                            Người nhận:
+                            <span class="fw-semibold" th:text="${o.recipientName}">Khách hàng</span>
+                        </div>
                         <!-- Thông tin GHN nếu có -->
                         <div class="mt-3" th:if="${ghn != null}">
                             <div><i class="bi bi-truck text-success me-1"></i> Mã GHN:

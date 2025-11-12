@@ -42,14 +42,14 @@
 
         /* CHỜ XỬ LÝ */
         .status-PENDING {
-            background: #ffe082;        /* vàng đậm hơn */
+            background: #ffe082;
             color: #5c4400;
             border-color: #ffd54f;
         }
 
         /* HOÀN TẤT */
         .status-COMPLETED {
-            background: #81c784;        /* xanh lá đậm hơn */
+            background: #81c784;
             color: #0a3d18;
             border-color: #66bb6a;
         }
@@ -57,12 +57,12 @@
         /* HUỶ ĐƠN (CANCELLED hoặc CANCELED) */
         .status-CANCELED,
         .status-CANCELLED {
-            background: #ef9a9a;        /* đỏ nhạt đậm hơn */
+            background: #ef9a9a;
             color: #5a0000;
             border-color: #e57373;
         }
 
-        /* ĐANG GIAO (tuỳ nếu có thêm) */
+        /* ĐANG GIAO */
         .status-SHIPPING {
             background: #4fc3f7;
             color: #013d57;
@@ -77,7 +77,7 @@
         }
 
         .order-body { padding:14px 16px; background:#fff; }
-        .mini-info { color:#6c757d; font-size:.95rem; }
+        .mini-info { color:#6c757d; font-size:.95rem; display:flex; align-items:center; gap:.5rem; }
         .mini-info i { color:var(--brand); }
         .items-table th, .items-table td { vertical-align:middle; }
         .items-table th { color:#6c757d; font-weight:600; }
@@ -148,6 +148,67 @@
             font-size: 1.1rem;
         }
 
+        /* === Style cho khối (.block) — phiên bản "đóng khung phẳng" === */
+        .block {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 14px;
+            padding: 16px 18px;
+        }
+
+        .block .section-title {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            color: #198754;
+        }
+
+        .block .section-title::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #198754;
+        }
+
+        .block .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: .95rem;
+            border-top: 1px dashed #e9ecef;
+        }
+
+        .block .total-row:first-of-type {
+            border-top: none;
+        }
+
+        .block .divider {
+            height: 1px;
+            background: #e9ecef;
+            margin: 10px 0;
+        }
+
+        .block .grand {
+            font-weight: 700;
+            color: #198754;
+        }
+
+        .block .mini-info {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: 6px 0;
+            border-top: 1px dashed #e9ecef;
+        }
+
+        .block .mini-info:first-of-type {
+            border-top: none;
+        }
+        /* === Hết phần thêm === */
     </style>
 </head>
 <body>
@@ -158,11 +219,19 @@
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3">
         <h3 class="mb-2 mb-md-0 text-success"><i class="bi bi-basket2-fill me-2"></i>Đơn hàng của tôi</h3>
         <!-- Toolbar lọc -->
-        <div class="toolbar">
-            <button class="filter-btn active" data-filter="ALL"><i class="bi bi-ui-checks-grid me-1"></i>Tất cả</button>
-            <button class="filter-btn" data-filter="PENDING"><i class="bi bi-hourglass-split me-1"></i>Chờ xử lý</button>
-            <button class="filter-btn" data-filter="COMPLETED"><i class="bi bi-check2-circle me-1"></i>Hoàn tất</button>
-            <button class="filter-btn" data-filter="CANCELED"><i class="bi bi-x-circle me-1"></i>Đã hủy</button>
+        <div class="toolbar" role="toolbar" aria-label="Bộ lọc đơn hàng">
+            <button type="button" class="filter-btn active" data-filter="ALL" tabindex="0">
+                <i class="bi bi-ui-checks-grid me-1"></i>Tất cả
+            </button>
+            <button type="button" class="filter-btn" data-filter="PENDING" tabindex="0">
+                <i class="bi bi-hourglass-split me-1"></i>Chờ xử lý
+            </button>
+            <button type="button" class="filter-btn" data-filter="COMPLETED" tabindex="0">
+                <i class="bi bi-check2-circle me-1"></i>Hoàn tất
+            </button>
+            <button type="button" class="filter-btn" data-filter="CANCELED" tabindex="0">
+                <i class="bi bi-x-circle me-1"></i>Đã hủy
+            </button>
         </div>
     </div>
 
@@ -197,59 +266,146 @@
                 <div class="order-body">
                     <div class="row">
                         <div class="col-lg-7">
-                            <table class="table table-sm items-table">
-                                <thead>
-                                <tr>
-                                    <th style="width:50%">Sản phẩm</th>
-                                    <th class="text-center" style="width:20%">Đơn vị</th>
-                                    <th class="text-center" style="width:15%">SL/Khối lượng</th>
-                                    <th class="text-end" style="width:15%">Đơn giá</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="item : ${o.orderItemList}">
-                                    <td>
-                                        <div class="fw-semibold"
-                                             th:text="${item.productVariant.product.productName}">Tên sản phẩm</div>
-                                        <div class="text-muted small"
-                                             th:if="${item.productVariant.variant_name != null}"
-                                             th:text="${item.productVariant.variant_name}">Phân loại</div>
-                                    </td>
-                                    <td class="text-center"
-                                        th:text="${item != null && item.unit != null && item.unit.toString() == 'KILOGRAM' ? 'Kg' : 'Cái'}">
-                                        PIECE
-                                    </td>
+                            <!-- 🔲 ĐÓNG KHUNG BẢNG SẢN PHẨM -->
+                            <div class="block mb-3">
+                                <div class="section-title">Sản phẩm</div>
+                                <table class="table table-sm items-table align-middle">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th style="width:40%">Sản phẩm</th>
+                                        <th class="text-center" style="width:15%">Đơn vị</th>
+                                        <th class="text-center" style="width:15%">SL/Khối lượng</th>
+                                        <th class="text-end" style="width:15%">Đơn giá</th>
+                                        <th class="text-end" style="width:15%">Thành tiền</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="item : ${o.orderItemList}">
+                                        <td>
+                                            <div class="fw-semibold"
+                                                 th:text="${item.productVariant.product.productName}">Tên sản phẩm</div>
+                                            <div class="text-muted small"
+                                                 th:if="${item.productVariant.variant_name != null}"
+                                                 th:text="${item.productVariant.variant_name}">Phân loại</div>
+                                        </td>
 
-                                    <td class="text-center"
-                                        th:text="${item != null ?
-        (item.unit != null && item.unit.toString() == 'KILOGRAM'
-            ? (item.weight != null ? item.weight + ' kg' : '0 kg')
-            : (item.quantity != null ? item.quantity : 0)
-        )
-        : 'N/A'}">
-                                        1
-                                    </td>
+                                        <td class="text-center"
+                                            th:text="${item != null && item.unit != null && item.unit.toString() == 'KILOGRAM' ? 'Kg' : 'Cái'}">
+                                            PIECE
+                                        </td>
 
-                                    <td class="text-end">
-                                        <span th:text="${#numbers.formatDecimal(
-                                            (item.price != null ? item.price : item.productVariant.price),
-                                            0,'POINT',0,'COMMA')}">120000</span>đ
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
+                                        <td class="text-center"
+                                            th:text="${item != null ?
+                                                        (item.unit != null && item.unit.toString() == 'KILOGRAM'
+                                                          ? (item.weight != null ? item.weight + ' kg' : '0 kg')
+                                                          : (item.quantity != null ? item.quantity : 0)
+                                                        )
+                                                        : 'N/A'}">1
+                                        </td>
+
+                                        <td class="text-end">
+                                            <span th:text="${#numbers.formatDecimal(
+                                              (item.price != null ? item.price : item.productVariant.price),
+                                              0,'POINT',0,'COMMA')}">120000</span>đ
+                                        </td>
+
+                                        <!-- ✅ CỘT MỚI: Thành tiền -->
+                                        <td class="text-end fw-semibold text-success">
+                                            <span th:text="${#numbers.formatDecimal(
+                                              (
+                                                (item.unit != null && item.unit.toString() == 'KILOGRAM')
+                                                  ? (item.weight != null ? item.price * item.weight : 0)
+                                                  : (item.quantity != null ? item.price * item.quantity : 0)
+                                              ),
+                                              0,'POINT',0,'COMMA')}">120000</span>đ
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /block bảng sản phẩm -->
                         </div>
                         <div class="col-lg-5">
-                            <div class="mini-info mb-2">
-                                <i class="bi bi-geo-alt me-1"></i>
-                                <span th:text="${o.address}">123 Lê Lợi, Q.1</span>
-                            </div>
-                            <div class="mini-info mb-3">
-                                <i class="bi bi-telephone me-1"></i>
-                                <span th:text="${o.phoneNumber}">0901234567</span>
+
+                            <!-- 🧍 Thông tin nhận hàng (ĐÃ ĐÓNG KHỐI) -->
+                            <div class="block mb-3">
+                                <div class="section-title">Thông tin nhận hàng</div>
+
+                                <!-- 🏠 Địa chỉ -->
+                                <div class="mini-info">
+                                    <i class="bi bi-geo-alt me-2"></i>
+                                    <span th:text="${o.address}">123 Lê Lợi, Q.1</span>
+                                </div>
+
+                                <!-- ☎️ Số điện thoại -->
+                                <div class="mini-info">
+                                    <i class="bi bi-telephone me-2"></i>
+                                    <span th:text="${o.phoneNumber}">0901234567</span>
+                                </div>
+
+                                <!-- 👤 Người nhận -->
+                                <div class="mini-info">
+                                    <i class="bi bi-person me-1"></i>
+                                    <span class="text-muted">Người nhận:</span>
+                                    <span class="fw-semibold" th:text="${o.recipientName}">Khách hàng</span>
+                                </div>
                             </div>
 
                             <!-- ✅ Thông tin GHN -->
+                            <div class="block mb-3"
+                                 th:with="fee=${o.shippingFee != null ? o.shippingFee : 0},
+                                            goods=${(o.totalPrice != null ? o.totalPrice : 0) - fee}">
+
+                                <div class="section-title">Tổng thanh toán</div>
+
+                                <div class="total-row">
+                                    <span class="text-muted">Tổng tiền hàng</span>
+                                    <span>
+                                        <span th:text="${#numbers.formatDecimal(goods,0,'POINT',0,'COMMA')}">0</span>đ
+                                    </span>
+                                </div>
+
+                                <div class="total-row">
+                                    <span class="text-muted">Phí vận chuyển</span>
+                                    <span>
+                                        <span th:text="${#numbers.formatDecimal(fee,0,'POINT',0,'COMMA')}">0</span>đ
+                                    </span>
+                                </div>
+
+                                <div class="divider"></div>
+
+                                <div class="total-row">
+                                    <span class="fw-semibold">Thành tiền</span>
+                                    <span class="grand">
+                                        <span th:text="${#numbers.formatDecimal(o.totalPrice,0,'POINT',0,'COMMA')}">0</span>đ
+                                    </span>
+                                </div>
+
+                                <!-- 🧾 Hành động -->
+                                <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
+
+                                    <!-- Huỷ đơn -->
+                                    <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
+                                                    or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
+                                                    or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"
+                                          th:action="@{|/orders/${o.id}/cancel|}" method="post"
+                                          class="m-0"
+                                          th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
+                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-x-circle"></i> Huỷ đơn
+                                        </button>
+                                    </form>
+
+                                    <!-- Chi tiết -->
+                                    <a class="btn btn-outline-success btn-sm" th:href="@{'/myOrders/' + ${o.id}}">
+                                        <i class="bi bi-receipt"></i> Chi tiết
+                                    </a>
+                                </div>
+                            </div>
+                            <!-- /block tổng thanh toán -->
+
+                            <!-- ✅ THÔNG TIN GHN & TRẠNG THÁI -->
                             <div class="mini-info mb-2" th:if="${o.ghnOrderCode != null}">
                                 <i class="bi bi-truck me-1 text-success"></i>
                                 <span>Đơn GHN:</span>
@@ -260,9 +416,8 @@
                                 <span>Trạng thái GHN:</span>
                                 <span th:text="${o.ghnStatus}">delivering</span>
                             </div>
-                            <!-- ✅ Kết thúc phần GHN -->
 
-                            <!-- ✅ THÊM MỚI: Thông tin hoàn tiền -->
+                            <!-- ✅ THÔNG TIN HOÀN TIỀN -->
                             <div class="refund-alert d-flex align-items-center"
                                  th:if="${o.orderStauts != null && o.orderStauts.name() == 'CANCELLED' && o.refundPayment != null}">
                                 <i class="bi bi-cash-coin me-2" style="font-size: 1.5rem;"></i>
@@ -283,102 +438,100 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- ✅ Kết thúc phần hoàn tiền -->
+                            <!-- ✅ KẾT THÚC HOÀN TIỀN -->
 
-                            <div class="ship-line">
-                                <div class="text-muted">Phí vận chuyển:</div>
-                                <div class="ship-amount text-success fw-semibold">
-                                    <span th:text="${#numbers.formatDecimal((o.shippingFee != null ? o.shippingFee : 0), 0, 'COMMA', 0, 'POINT')}">0</span>đ
-                                </div>
-                            </div>
-
-                            <div class="total-line">
-                                <div class="text-muted">Tổng thanh toán:</div>
-                                <div class="total-amount">
-                                    <span th:text="${#numbers.formatDecimal(o.totalPrice, 0, 'COMMA', 0, 'POINT')}">0</span>đ
-                                </div>
-                            </div>
-
-                            <!-- Hành động -->
-                            <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
-                                <!-- Huỷ đơn (đi trước) -->
-                                <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
-                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
-                                              or o.ghnStatus   == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"
-                                      th:action="@{|/orders/${o.id}/cancel|}" method="post"
-                                      class="m-0"
-                                      th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
-                                    <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x-circle"></i> Huỷ đơn hàng
-                                    </button>
-                                </form>
-
-                                <!-- Chi tiết (đi sau) -->
-                                <a class="btn btn-outline-success btn-sm" th:href="@{'/myOrders/' + ${o.id}}">
-                                    <i class="bi bi-receipt-cutoff"></i> Chi tiết
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
+                <!-- /order-body -->
             </div>
         </div>
     </div>
 
 </div>
 <div th:replace="~{fragments/footer :: footer}"></div>
+
+<!-- Notification (đặt dưới footer để thông báo hiển thị đúng z-index nếu cần) -->
+<div th:replace="~{fragments/notification :: notification}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    const buttons = document.querySelectorAll('.filter-btn');
-    const cards   = document.querySelectorAll('[data-status]');
+    (function () {
+        // Lấy toolbar, nút và thẻ card
+        const toolbar = document.querySelector('.toolbar');
+        const buttons = Array.from(document.querySelectorAll('.filter-btn'));
+        const cards   = Array.from(document.querySelectorAll('[data-status]'));
 
-    function norm(s) {
-        s = (s || '').toUpperCase().trim();
-        if (s === 'CANCELLED') s = 'CANCELED'; // đồng bộ 2 cách viết
-        return s;
-    }
-    const isEqual = (a, b) => norm(a) === norm(b);
-
-    function applyFilter(status){
-        const target = norm(status);
-        cards.forEach(c => {
-            const s = c.getAttribute('data-status');
-            const show = target === 'ALL' ? true : isEqual(s, target);
-            c.style.display = show ? '' : 'none';
-        });
-    }
-
-    // Gán click cho các nút filter
-    buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            applyFilter(btn.getAttribute('data-filter'));
-        });
-    });
-
-    // 👉 Nếu có đơn COMPLETED thì chọn luôn filter COMPLETED
-    let hasCompleted = false;
-    cards.forEach(c => {
-        if (isEqual(c.getAttribute('data-status'), 'COMPLETED')) {
-            hasCompleted = true;
+        // Chuẩn hoá giá trị status
+        function norm(s) {
+            s = (s || '').toUpperCase().trim();
+            if (s === 'CANCELLED') s = 'CANCELED'; // đồng bộ 2 cách viết
+            return s;
         }
-    });
+        const isEqual = (a, b) => norm(a) === norm(b);
 
-    if (hasCompleted) {
-        const btnCompleted = document.querySelector('[data-filter="COMPLETED"]');
-        if (btnCompleted) {
-            buttons.forEach(b => b.classList.remove('active'));
-            btnCompleted.classList.add('active');
-            applyFilter('COMPLETED');
+        // Áp filter
+        function applyFilter(status) {
+            const target = norm(status);
+            cards.forEach(c => {
+                const s = c.getAttribute('data-status');
+                const show = (target === 'ALL') || isEqual(s, target);
+                c.style.display = show ? '' : 'none';
+            });
         }
-    } else {
-        // Ngược lại: hiện tất cả như cũ
-        applyFilter('ALL');
-    }
+
+        // Set nút active
+        function setActive(btn) {
+            buttons.forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+        }
+
+        // Delegation: click trong .toolbar
+        if (toolbar) {
+            toolbar.addEventListener('click', (e) => {
+                const btn = e.target.closest('.filter-btn');
+                if (!btn) return;
+                e.preventDefault();
+                setActive(btn);
+                applyFilter(btn.getAttribute('data-filter'));
+            });
+        }
+
+        // Hỗ trợ bàn phím (Enter/Space)
+        buttons.forEach(btn => {
+            btn.setAttribute('role', 'button');
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    btn.click();
+                }
+            });
+        });
+
+        // Khởi tạo trạng thái: nếu có đơn COMPLETED thì chọn COMPLETED, ngược lại ALL
+        const hasCompleted = cards.some(c => isEqual(c.getAttribute('data-status'), 'COMPLETED'));
+        const initial = hasCompleted ? 'COMPLETED' : 'ALL';
+        const initBtn = document.querySelector(`.filter-btn[data-filter="${initial}"]`);
+        setActive(initBtn);
+        applyFilter(initial);
+
+        // small accessibility: allow filter via keyboard arrows (left/right)
+        let focusedIndex = buttons.findIndex(b => b.classList.contains('active'));
+        if (focusedIndex < 0) focusedIndex = 0;
+        buttons.forEach((btn, idx) => {
+            btn.addEventListener('focus', () => focusedIndex = idx);
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') {
+                    const next = (idx + 1) % buttons.length;
+                    buttons[next].focus();
+                } else if (e.key === 'ArrowLeft') {
+                    const prev = (idx - 1 + buttons.length) % buttons.length;
+                    buttons[prev].focus();
+                }
+            });
+        });
+    })();
 </script>
 </body>
-<div th:replace="~{fragments/notification :: notification}"></div>
 </html>

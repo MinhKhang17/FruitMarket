@@ -36,68 +36,105 @@ public class ShippingController {
     @Value("${ghn.default.width:15}")        private int defWid;
     @Value("${ghn.default.height:10}")       private int defHei;
 
-    /** Gọi khi user chọn/đổi addressId: tính phí & LƯU VÀO SESSION */
-    @GetMapping("/quote")
-    public ResponseEntity<?> quote(@RequestParam Long addressId, HttpSession session) {
+    public static record QuoteReq(
+            Long addressId,
+            Integer toDistrictId,
+            String toWardCode,
+            Integer qty,
+            Integer weight,
+            Integer length, Integer width, Integer height,
+            Integer insuranceValue
+    ) {}
+
+    @PostMapping("/quote")
+    public ResponseEntity<?> quoteByPayload(@RequestBody QuoteReq req, HttpSession session) {
         Users user = (Users) session.getAttribute("loggedUser");
         if (user == null) return ResponseEntity.status(401).build();
 
-        User_detail addr = userService.findUserDetalById(addressId);
-        if (addr == null || addr.getDistrict() == null || addr.getWard() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Địa chỉ thiếu district/ward"));
-        }
-        int toDistrictId = addr.getDistrict().getDistrictId();
-        String toWardCode = addr.getWard().getWardCode();
+        // 1) Xác định toDistrictId / toWardCode
+        Integer toDistrictId = req.toDistrictId();
+        String  toWardCode   = req.toWardCode();
 
-        // 1) Dịch vụ khả dụng
+        if (toDistrictId == null || toWardCode == null) {
+            // nếu client gửi addressId thì tra cứu
+            if (req.addressId() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Thiếu toDistrictId/toWardCode hoặc addressId"));
+            }
+            User_detail addr = userService.findUserDetalById(req.addressId());
+            if (addr == null || addr.getDistrict() == null || addr.getWard() == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Địa chỉ thiếu district/ward"));
+            }
+            toDistrictId = addr.getDistrict().getDistrictId();
+            toWardCode   = addr.getWard().getWardCode();
+        }
+
+        // 2) Lấy dịch vụ
         AvailableServicesRes svRes = ghn.availableServices(fromDistrictId, toDistrictId);
         List<AvailableServicesRes.ServiceItem> services =
                 (svRes != null && svRes.getData() != null) ? svRes.getData() : List.of();
         if (services.isEmpty()) {
-            // clear old quote if any
             session.removeAttribute("shippingQuote");
+            BigDecimal subtotal = cartService.getSubtotal(session);
             return ResponseEntity.ok(Map.of(
                     "services", services,
                     "fee", 0,
                     "serviceId", null,
-                    "subtotal", cartService.getSubtotal(session),
-                    "total", cartService.getSubtotal(session)
+                    "subtotal", subtotal,
+                    "total", subtotal
             ));
         }
+        int serviceId = services.get(0).getServiceId(); // hoặc chọn theo logic rẻ nhất
 
-        // Chọn serviceId đầu tiên (tuỳ bạn có thể lọc)
-        int serviceId = services.get(0).getServiceId();
+        // 3) Đồng bộ số liệu với UI nếu có
+        int qty = (req.qty() != null) ? Math.max(1, req.qty()) : Math.max(1, cartService.getTotalQuantity(session));
+        int weight = (req.weight() != null && req.weight() > 0)
+                ? req.weight()
+                : qty * defaultItemWeight;
 
-        // 2) Khối lượng/giá trị bảo hiểm theo giỏ hiện tại
-        int qty = Math.max(1, cartService.getTotalQuantity(session));
-        BigDecimal cartSubtotal = cartService.getSubtotal(session);
-        int weight = qty * defaultItemWeight;
+        int len = (req.length() != null) ? req.length() : defLen;
+        int wid = (req.width()  != null) ? req.width()  : defWid;
+        int hei = (req.height() != null) ? req.height() : defHei;
 
-        // 3) Tính phí
+        BigDecimal subtotal = (req.insuranceValue() != null)
+                ? BigDecimal.valueOf(req.insuranceValue())
+                : cartService.getSubtotal(session);
+
+        // 4) Tính phí
         FeeRes feeRes = ghn.calculateFee(
                 fromDistrictId, toDistrictId, toWardCode,
-                serviceId, weight, defLen, defWid, defHei,
-                cartSubtotal.intValue()
+                serviceId, weight, len, wid, hei,
+                subtotal.intValue()
         );
         int fee = (feeRes != null && feeRes.getData() != null && feeRes.getData().getTotal() != null)
                 ? feeRes.getData().getTotal() : 0;
 
-        // 4) LƯU VÀO SESSION để dùng khi submit
+        // 5) Lưu session để submit dùng đúng y số này
         Map<String, Object> quote = new HashMap<>();
         quote.put("serviceId", serviceId);
         quote.put("fee", fee);
         quote.put("toDistrictId", toDistrictId);
         quote.put("toWardCode", toWardCode);
-        quote.put("addressId", addressId);
         session.setAttribute("shippingQuote", quote);
 
-        // 5) Trả về cho UI
         return ResponseEntity.ok(Map.of(
                 "services", services,
                 "serviceId", serviceId,
                 "fee", fee,
-                "subtotal", cartSubtotal,
-                "total", cartSubtotal.add(BigDecimal.valueOf(fee))
+                "subtotal", subtotal,
+                "total", subtotal.add(BigDecimal.valueOf(fee))
         ));
+    }
+
+    @GetMapping("/quote")
+    public ResponseEntity<?> quoteGet(@RequestParam Long addressId, HttpSession session) {
+        // Dựng payload tối thiểu, có thể thêm qty/weight/dims nếu muốn
+        QuoteReq req = new QuoteReq(
+                addressId,
+                null, null,
+                null, null,  // qty, weight -> để handler POST tự suy
+                null, null, null, // length,width,height
+                null          // insuranceValue
+        );
+        return quoteByPayload(req, session); // gọi lại handler POST
     }
 }

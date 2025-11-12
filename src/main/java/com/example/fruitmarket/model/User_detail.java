@@ -29,6 +29,9 @@ public class User_detail {
     @JoinColumn(name = "ward_code")
     private Ward ward;          // ✅ FK -> ward.code
 
+    @Column(columnDefinition = "NVARCHAR(100)")
+    private String receiverName;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private Users user;

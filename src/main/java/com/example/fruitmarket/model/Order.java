@@ -32,10 +32,8 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private PricingMethod pricingMethod;
-
     @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
-
     @Column
     private String phoneNumber;
 
@@ -46,10 +44,11 @@ public class Order {
     private String ghnOrderCode;
 
     @Enumerated(EnumType.STRING)
-    private GhnStatus ghnStatus;
-
+    private GhnStatus ghnStatus = GhnStatus.READY_TO_PICK;
     @Column
     private BigDecimal shippingFee;
+    @Column(columnDefinition = "NVARCHAR(100)")
+    private String recipientName;
 
     // SỬA TỪ @OneToOne THÀNH @OneToMany
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

@@ -135,4 +135,23 @@ public class CartServiceImpl implements CartService {
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    @Override
+    public int getTotalWeight() {
+        Cart cart = getOrCreateCart();
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
+            return 0;
+        }
+
+        return cart.getItems().stream()
+                .mapToInt(i -> {
+                    if ("KILOGRAM".equalsIgnoreCase(i.getUnit())) {
+                        double w = (i.getWeight() > 0) ? i.getWeight() : 0.1;
+                        return (int) (w * 1000); // kg → gram
+                    } else {
+                        return 500; // mặc định 500g / sản phẩm
+                    }
+                })
+                .sum();
+    }
 }

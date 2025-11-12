@@ -39,7 +39,7 @@ public class Product {
     private List<ProductVariant> variants = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    private ProductStatus status;
+    private ProductStatus status = ProductStatus.ACTIVE;
     @Column
     private LocalDateTime createdAt = LocalDateTime.now();
 

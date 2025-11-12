@@ -23,6 +23,7 @@ public class OrderRequest {
     // Mở rộng để lưu phí & dịch vụ GHN nếu cần
     private BigDecimal shippingFee;
     private Integer serviceId;
+    private String receiverName;
 
     @Data
     public static class OrderItem {
