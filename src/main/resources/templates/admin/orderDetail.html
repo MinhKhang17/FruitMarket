@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chi tiết đơn hàng</title>
     <link th:href="@{/admin/orderDetailAdmin.css}" rel="stylesheet" />
-
 </head>
+
 <body>
 <div class="card">
     <div class="header">
@@ -32,11 +32,11 @@
             </div>
             <div class="info-item">
                 <div class="info-label">Số điện thoại</div>
-                <div class="info-value" th:text="${order.phoneNumber}"></div>
+                <div class="info-value" th:text="${order.phoneNumber ?: 'N/A'}"></div>
             </div>
             <div class="info-item">
                 <div class="info-label">Địa chỉ giao hàng</div>
-                <div class="info-value" th:text="${order.address}"></div>
+                <div class="info-value" th:text="${order.address ?: 'N/A'}"></div>
             </div>
         </div>
     </div>
@@ -47,7 +47,7 @@
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Phương thức thanh toán</div>
-                <div class="info-value" th:text="${order.pricingMethod}"></div>
+                <div class="info-value" th:text="${order.pricingMethod ?: 'N/A'}"></div>
             </div>
             <div class="info-item">
                 <div class="info-label">Trạng thái thanh toán</div>
@@ -55,12 +55,15 @@
             </div>
             <div class="info-item">
                 <div class="info-label">Trạng thái đơn hàng</div>
-                <div class="info-value" th:text="${order.orderStauts}"></div>
+                <div class="info-value" th:text="${order.orderStauts ?: 'N/A'}"></div>
             </div>
-            <div class="info-item">
-                <div class="info-label">Tổng số lượng</div>
-                <div class="info-value" th:text="${order.totalQuantity}"></div>
-            </div>
+                <div class="info-label">Tổng số</div>
+                <div class="info-item">
+                    <div class="info-label">Tổng số sản phẩm</div>
+                    <div class="info-value"
+                         th:text="${#lists.size(order.orderItemList)} + ' sản phẩm'">
+                    </div>
+                </div>
         </div>
 
         <!-- Form cập nhật trạng thái -->
@@ -93,6 +96,7 @@
             </thead>
             <tbody>
             <tr th:each="item : ${order.orderItemList}">
+                <!-- Thông tin sản phẩm -->
                 <td>
                     <div class="product-info">
                         <img th:if="${item.productVariant?.image != null}"
@@ -112,22 +116,41 @@
                         </div>
                     </div>
                 </td>
-                <td class="price" th:text="${item.price != null ? (#numbers.formatDecimal(item.price, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
-                <td th:text="${item.quantity}"></td>
-                <td class="price" th:text="${item.price != null ? (#numbers.formatDecimal(item.price * item.quantity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
-            </tr>
 
-            <tr class="shipping-row">
-                <td class="sum-label" colspan="3">Phí vận chuyển:</td>
-                <td class="sum-value"
-                    th:text="${#numbers.formatDecimal(order.shippingFee != null ? order.shippingFee : 0, 0, 'COMMA', 0, 'POINT')} + ' đ'">
-                    0 đ
+                <!-- Đơn giá -->
+                <td class="price"
+                    th:text="${#numbers.formatDecimal((item.price ?: 0), 0, 'POINT', 0, 'POINT')} + ' đ'">
+                </td>
+
+                <!-- Số lượng hoặc khối lượng -->
+                <td th:text="${item.unit?.name() == 'KILOGRAM'
+                    ? #numbers.formatDecimal((item.weight ?: 0), 1, 'POINT', 1, 'COMMA') + ' kg'
+                    : (item.quantity ?: 0)}">
+                </td>
+
+                <!-- Thành tiền -->
+                <td class="price"
+                    th:with="subTotal=${item.unit?.name() == 'KILOGRAM'
+                        ? (item.price ?: 0) * (item.weight ?: 0)
+                        : (item.price ?: 0) * (item.quantity ?: 0)}"
+                    th:text="${#numbers.formatDecimal(subTotal, 0, 'POINT', 0, 'POINT')} + ' đ'">
                 </td>
             </tr>
 
+            <!-- Phí vận chuyển -->
+            <tr class="shipping-row">
+                <td class="sum-label" colspan="3">Phí vận chuyển:</td>
+                <td class="sum-value"
+                    th:text="${#numbers.formatDecimal((order.shippingFee ?: 0), 0, 'POINT', 0, 'POINT')} + ' đ'">
+                </td>
+            </tr>
+
+            <!-- Tổng cộng -->
             <tr class="total-row">
                 <td colspan="3" style="text-align: right;">Tổng cộng:</td>
-                <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT')} + ' đ'"></td>
+                <td class="price"
+                    th:text="${#numbers.formatDecimal((order.totalPrice != null ? order.totalPrice : 0), 0, 'POINT', 0, 'POINT')} + ' đ'">
+                </td>
             </tr>
             </tbody>
         </table>
