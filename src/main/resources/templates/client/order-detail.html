@@ -51,7 +51,6 @@
             padding: 20px 10px;
             flex-wrap: wrap;
         }
-
         .ship-step {
             display: flex;
             flex-direction: column;
@@ -61,7 +60,6 @@
             min-width: 80px;
             text-align: center;
         }
-
         .ship-step .icon {
             width: 36px;
             height: 36px;
@@ -74,24 +72,20 @@
             font-size: 1.1rem;
             transition: all .3s ease;
         }
-
         .ship-step.active .icon {
             background: var(--brand);
             color: #fff;
             box-shadow: 0 0 8px rgba(25, 135, 84, .4);
         }
-
         .ship-step .label {
             margin-top: 6px;
             font-size: 0.9rem;
             color: var(--muted);
         }
-
         .ship-step.active .label {
             color: #1f5e43;
             font-weight: 600;
         }
-
         .line {
             flex: 1;
             height: 4px;
@@ -101,11 +95,39 @@
             border-radius: 2px;
             transition: background .3s ease;
         }
-
         .line.active {
             background: linear-gradient(90deg, #27ae60, #2ecc71);
         }
 
+        /* Thêm style cho form ẩn/hiện */
+        .bank-form-section {
+            transition: all 0.3s ease-in-out;
+            border: 2px solid transparent;
+        }
+
+        .bank-form-section.show {
+            border-color: var(--brand);
+            box-shadow: 0 0 15px rgba(25, 135, 84, 0.1);
+        }
+
+        /* ✅ CSS cho thông báo hoàn tiền */
+        .refund-alert {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #90caf9;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 1rem;
+        }
+        .refund-alert i {
+            color: #1976d2;
+            font-size: 1.5rem;
+        }
+        .refund-alert strong {
+            color: #0d47a1;
+        }
+        .refund-alert .small {
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -124,6 +146,8 @@
         </div>
     </div>
 
+    <!-- THÊM THÔNG BÁO SUCCESS -->
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
     <div th:if="${o != null}" class="cardx">
@@ -145,49 +169,40 @@
                 <div class="col-lg-8">
                     <div class="progress-wrap" th:if="${o.ghnStatus != null}">
                         <div class="section-title m-0 mb-3">Tiến độ giao hàng</div>
-
                         <div class="shipping-progress"
                              th:with="
-             s=${o.ghnStatus?.name()},
-             step1=${s == 'READY_TO_PICK' or s == 'PICKING' or s == 'PICKED'},
-             step2=${s == 'STORING' or s == 'TRANSPORTING'},
-             step3=${s == 'DELIVERING'},
-             step4=${s == 'DELIVERED'},
-             stepReturn=${s == 'RETURN' or s == 'RETURNED'},
-             stepError=${s == 'CANCEL' or s == 'LOST' or s == 'DELAY' or s == 'EXCEPTION'}
-         ">
+                             s=${o.ghnStatus?.name()},
+                             step1=${s == 'READY_TO_PICK' or s == 'PICKING' or s == 'PICKED'},
+                             step2=${s == 'STORING' or s == 'TRANSPORTING'},
+                             step3=${s == 'DELIVERING'},
+                             step4=${s == 'DELIVERED'},
+                             stepReturn=${s == 'RETURN' or s == 'RETURNED'},
+                             stepError=${s == 'CANCEL' or s == 'LOST' or s == 'DELAY' or s == 'EXCEPTION'}
+                         ">
                             <div class="shipping-timeline">
                                 <div class="ship-step" th:classappend="${step1 or step2 or step3 or step4} ? ' active'">
                                     <div class="icon"><i class="bi bi-receipt"></i></div>
                                     <div class="label">Đã tạo đơn</div>
                                 </div>
-
                                 <div class="line" th:classappend="${step2 or step3 or step4} ? ' active'"></div>
-
                                 <div class="ship-step" th:classappend="${step2 or step3 or step4} ? ' active'">
                                     <div class="icon"><i class="bi bi-box-seam"></i></div>
                                     <div class="label">Đang lấy hàng</div>
                                 </div>
-
                                 <div class="line" th:classappend="${step3 or step4} ? ' active'"></div>
-
                                 <div class="ship-step" th:classappend="${step3 or step4} ? ' active'">
                                     <div class="icon"><i class="bi bi-truck"></i></div>
                                     <div class="label">Đang giao hàng</div>
                                 </div>
-
                                 <div class="line" th:classappend="${step4} ? ' active'"></div>
-
                                 <div class="ship-step" th:classappend="${step4} ? ' active'">
                                     <div class="icon"><i class="bi bi-check-circle"></i></div>
                                     <div class="label">Giao thành công</div>
                                 </div>
-
                                 <div class="ship-step" th:if="${stepReturn}">
                                     <div class="icon bg-warning text-white"><i class="bi bi-arrow-repeat"></i></div>
                                     <div class="label text-warning">Trả hàng</div>
                                 </div>
-
                                 <div class="ship-step" th:if="${stepError}">
                                     <div class="icon bg-danger text-white"><i class="bi bi-exclamation-triangle"></i></div>
                                     <div class="label text-danger">Sự cố / Hủy đơn</div>
@@ -242,7 +257,6 @@
                                              th:text="${(item.productVariant != null and item.productVariant.product != null) ? item.productVariant.product.productName : 'Sản phẩm'}">
                                             Tên SP
                                         </div>
-
                                         <div class="text-muted small"
                                              th:if="${item.productVariant != null and item.productVariant.variant_name != null}"
                                              th:text="${item.productVariant.variant_name}">Biến thể</div>
@@ -250,14 +264,12 @@
                                     <td class="text-center"
                                         th:text="${item != null && item.unit != null && item.unit.toString() == 'KILOGRAM' ? 'Kg' : 'Cái'}">
                                         PIECE
-                                    </td>                                    <td class="text-center"
-                                                                                 th:text="${item.unit != null and item.unit.name() == 'KILOGRAM'
-        ? #numbers.formatDecimal((item.weight != null ? item.weight : 0), 1, 'POINT', 1, 'COMMA') + ' kg'
-        : (item.quantity != null ? item.quantity : 0)}">
-                                </td>
-
-
-
+                                    </td>
+                                    <td class="text-center"
+                                        th:text="${item.unit != null and item.unit.name() == 'KILOGRAM'
+                                        ? #numbers.formatDecimal((item.weight != null ? item.weight : 0), 1, 'POINT', 1, 'COMMA') + ' kg'
+                                        : (item.quantity != null ? item.quantity : 0)}">
+                                    </td>
                                     <td class="text-end"
                                         th:text="${#numbers.formatDecimal(unitPrice,0,'POINT',0,'COMMA')}">0</td>
                                     <td class="text-end"
@@ -268,7 +280,7 @@
                         </div>
                         <div class="hint"><i class="bi bi-info-circle"></i> Giá tại thời điểm đặt có thể khác hiện tại.</div>
                     </div>
-                </div> <!-- ✅ đóng col-lg-7 -->
+                </div>
 
                 <!-- Cột phải: Giao hàng + Tổng tiền -->
                 <div class="col-lg-5">
@@ -293,6 +305,121 @@
                                 <span th:text="${ghn.expectedDeliveryTime}">2025-11-05 18:00</span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- ✅ THÊM MỚI: Thông báo đã hoàn tiền -->
+                    <div class="refund-alert d-flex align-items-start"
+                         th:if="${o.orderStauts != null && o.orderStauts.name() == 'CANCELLED' && o.refundPayment != null}">
+                        <i class="bi bi-cash-coin me-3"></i>
+                        <div class="flex-grow-1">
+                            <strong class="d-block mb-2">Đã được hoàn tiền</strong>
+                            <div class="small text-muted mb-1">
+                                <i class="bi bi-currency-dollar me-1"></i>
+                                Số tiền:
+                                <span class="fw-semibold text-primary"
+                                      th:text="${#numbers.formatDecimal(o.refundPayment.amount, 0, 'POINT', 0, 'COMMA')}">0</span>đ
+                            </div>
+                            <div class="small text-muted mb-1" th:if="${o.refundPayment.paymentDate != null}">
+                                <i class="bi bi-calendar-check me-1"></i>
+                                Ngày hoàn:
+                                <span th:text="${#temporals.format(o.refundPayment.paymentDate, 'dd/MM/yyyy HH:mm')}">01/01/2024 10:00</span>
+                            </div>
+                            <div class="small text-muted mb-1" th:if="${o.refundPayment.transactionId != null}">
+                                <i class="bi bi-hash me-1"></i>
+                                Mã giao dịch:
+                                <span class="fw-semibold" th:text="${o.refundPayment.transactionId}">REF123456</span>
+                            </div>
+                            <div class="small text-muted" th:if="${o.refundPayment.paymentMethod != null}">
+                                <i class="bi bi-credit-card me-1"></i>
+                                Phương thức:
+                                <span th:text="${o.refundPayment.paymentMethod}">BANKING</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- ✅ Kết thúc phần hoàn tiền -->
+
+                    <!-- Hiển thị thông tin đã có (nếu đã nhập) -->
+                    <div class="block mb-3" th:if="${o.originalPayment != null and o.bankName != null and o.bankName != ''}">
+                        <div class="section-title">Thông tin hoàn tiền</div>
+                        <div class="mb-2">
+                            <i class="bi bi-bank text-success me-1"></i>
+                            <span class="fw-semibold">Ngân hàng:</span>
+                            <span th:text="${o.bankName}">Vietcombank</span>
+                        </div>
+                        <div class="mb-2">
+                            <i class="bi bi-credit-card text-success me-1"></i>
+                            <span class="fw-semibold">Số tài khoản:</span>
+                            <span th:text="${o.bankReferenceCode}">REF123456</span>
+                        </div>
+                        <div class="alert alert-success py-2 small mb-0">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Thông tin nhận hoàn tiền đã được cập nhật
+                        </div>
+                    </div>
+
+                    <!-- Form thông tin ngân hàng - ẨN BAN ĐẦU, CHỈ HIỆN KHI BẤM NÚT -->
+                    <div class="block mb-3 bank-form-section"
+                         th:if="${o.originalPayment != null and (o.bankName == null or o.bankName == '')}"
+                         id="bankInfoSection" style="display: none;">
+                        <div class="section-title">Thông tin hoàn tiền ngân hàng</div>
+
+                        <div class="alert alert-info py-2 small mb-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Vui lòng cung cấp thông tin ngân hàng để nhận hoàn tiền
+                        </div>
+
+                        <form th:action="@{|/orders/${o.id}/update-bank-info|}"
+                              method="post"
+                              id="bankInfoForm">
+                            <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Tên ngân hàng <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm" name="bankName" required>
+                                    <option value="">Chọn ngân hàng</option>
+                                    <option value="Vietcombank">Vietcombank</option>
+                                    <option value="BIDV">BIDV</option>
+                                    <option value="Agribank">Agribank</option>
+                                    <option value="Techcombank">Techcombank</option>
+                                    <option value="MB Bank">MB Bank</option>
+                                    <option value="ACB">ACB</option>
+                                    <option value="VPBank">VPBank</option>
+                                    <option value="TPBank">TPBank</option>
+                                    <option value="Sacombank">Sacombank</option>
+                                    <option value="SCB">SCB</option>
+                                    <option value="HDBank">HDBank</option>
+                                    <option value="OCB">OCB</option>
+                                    <option value="MSB">MSB</option>
+                                    <option value="VIB">VIB</option>
+                                    <option value="SHB">SHB</option>
+                                    <option value="SeABank">SeABank</option>
+                                    <option value="VietinBank">VietinBank</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small fw-semibold">Số tài khoản <span class="text-danger">*</span></label>
+                                <input type="text"
+                                       class="form-control form-control-sm"
+                                       name="bankReferenceCode"
+                                       placeholder="Nhập số tài khoản nhận hoàn tiền"
+                                       required
+                                       maxlength="50">
+                                <div class="form-text small">
+                                    <i class="bi bi-info-circle"></i> Số tài khoản ngân hàng của bạn
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success btn-sm flex-fill">
+                                    <i class="bi bi-check-circle"></i> Xác nhận thông tin
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="hideBankForm()">
+                                    <i class="bi bi-x-circle"></i> Hủy
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
                     <div class="block"
@@ -322,6 +449,34 @@
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-3">
+                            <!-- Nút Hủy thanh toán - chỉ hiện khi ĐÃ thanh toán online và chưa có thông tin ngân hàng -->
+                            <button th:if="${o.originalPayment != null and o.pricingMethod.name() != 'COD' and
+                                          (o.bankName == null or o.bankName == '') and
+                                          o.orderStauts.name() != 'CANCELED' and
+                                          (o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
+                                           or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
+                                           or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).PICKING)}"
+                                    type="button"
+                                    class="btn btn-outline-danger btn-sm"
+                                    onclick="showBankForm()">
+                                <i class="bi bi-x-circle"></i> Hủy thanh toán
+                            </button>
+
+                            <!-- Nút Hủy đơn hàng - chỉ hiện khi CHƯA thanh toán (COD) và có thể hủy -->
+                            <form th:if="${(o.originalPayment == null or o.pricingMethod.name() == 'COD') and
+                                          o.orderStauts.name() != 'CANCELED' and
+                                          (o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
+                                           or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
+                                           or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).PICKING)}"
+                                  th:action="@{|/orders/${o.id}/cancel|}" method="post"
+                                  class="m-0"
+                                  th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
+                                <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="bi bi-x-circle"></i> Huỷ đơn hàng
+                                </button>
+                            </form>
+
                             <a class="btn btn-outline-success btn-sm" th:if="${o.orderStauts?.name()=='PENDING'}">
                                 <i class="bi bi-cash-coin"></i> Thanh toán lại
                             </a>
@@ -338,5 +493,57 @@
 
 <div th:replace="~{fragments/footer :: footer}"></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Hiển thị form thông tin ngân hàng
+    function showBankForm() {
+        const bankSection = document.getElementById('bankInfoSection');
+        if (bankSection) {
+            bankSection.style.display = 'block';
+            bankSection.classList.add('show');
+
+            // Cuộn đến form để người dùng dễ nhìn thấy
+            bankSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // Ẩn form thông tin ngân hàng
+    function hideBankForm() {
+        const bankSection = document.getElementById('bankInfoSection');
+        if (bankSection) {
+            bankSection.style.display = 'none';
+            bankSection.classList.remove('show');
+        }
+    }
+
+    // Reset form thông tin ngân hàng
+    function resetBankForm() {
+        const form = document.getElementById('bankInfoForm');
+        if (form) {
+            form.reset();
+        }
+    }
+
+    // Xác nhận trước khi gửi form
+    document.addEventListener('DOMContentLoaded', function() {
+        const bankForm = document.getElementById('bankInfoForm');
+        if (bankForm) {
+            bankForm.addEventListener('submit', function(e) {
+                const bankName = this.querySelector('[name="bankName"]').value;
+                const referenceCode = this.querySelector('[name="bankReferenceCode"]').value;
+
+                if (!bankName || !referenceCode) {
+                    e.preventDefault();
+                    alert('Vui lòng nhập đầy đủ thông tin ngân hàng.');
+                    return;
+                }
+
+                if (!confirm('Bạn có chắc chắn muốn gửi thông tin nhận hoàn tiền? Thông tin này sẽ được sử dụng để hoàn tiền cho bạn.')) {
+                    e.preventDefault();
+                }
+            });
+        }
+    });
+</script>
 </body>
+<div th:replace="~{fragments/notification :: notification}"></div>
 </html>

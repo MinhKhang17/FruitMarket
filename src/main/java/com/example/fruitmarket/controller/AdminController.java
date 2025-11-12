@@ -1,9 +1,8 @@
 package com.example.fruitmarket.controller;
 
-import com.example.fruitmarket.enums.ImageType;
-import com.example.fruitmarket.enums.OrderStauts;
+import com.example.fruitmarket.dto.RefundRequest;
+import com.example.fruitmarket.enums.*;
 import com.example.fruitmarket.model.*;
-import com.example.fruitmarket.enums.UserStatus;
 import com.example.fruitmarket.model.Brands;
 import com.example.fruitmarket.model.Categorys;
 import com.example.fruitmarket.model.Product;
@@ -22,7 +21,12 @@ import com.example.fruitmarket.enums.OrderStauts;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -34,7 +38,7 @@ public class AdminController {
     @Autowired private VariantService variantService;
     @Autowired private ImageService imageService;
     @Autowired private OrderService orderService;
-
+    @Autowired private PaymentService paymentService;
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AdminController.class);
     @Autowired
     private UserService userService;
@@ -449,5 +453,135 @@ public class AdminController {
     public String getUser(@PathVariable int id, Model model) {
         model.addAttribute("user", userService.findUserById(id));
         return "admin/userDetail";
+    }
+
+    @GetMapping("/orders/cancelled-payments")
+    public String cancelledPaymentOrders(Model model, HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        List<Order> cancelledOrders = orderService.getCancelledOrdersWithPayment();
+        List<Order> needsRefund = cancelledOrders.stream()
+                .filter(order -> {
+                    boolean hasPay = order.getPayments().stream()
+                            .anyMatch(p -> "PAY".equals(p.getType()));
+                    boolean hasRefund = order.getPayments().stream()
+                            .anyMatch(p -> "REFUND".equals(p.getType()));
+                    return hasPay && !hasRefund;
+                })
+                .collect(Collectors.toList());
+
+        model.addAttribute("orders", needsRefund);
+        return "admin/cancelledPaymentOrders";
+    }
+
+    @GetMapping("/orders/cancelled/{id}")
+    public String viewCancelledOrderDetail(@PathVariable Long id,
+                                           Model model,
+                                           HttpSession session,
+                                           RedirectAttributes ra) { // Thêm RedirectAttributes
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        try {
+            Order order = orderService.getOrderById(id);
+            if (order == null) {
+                ra.addFlashAttribute("error", "Không tìm thấy đơn hàng");
+                return "redirect:/admin/orders/cancelled-payments";
+            }
+
+            if (order.getOrderStauts() != OrderStauts.CANCELLED ||
+                    order.getPricingMethod() != PricingMethod.VNPAY) {
+                ra.addFlashAttribute("error", "Order không hợp lệ để xem hoàn tiền");
+                return "redirect:/admin/orders/cancelled-payments";
+            }
+
+            if (paymentService.getPaymentByOrderIdAndTypePay(order.getId(), "REFUND").isPresent()) {
+                ra.addFlashAttribute("error", "Order đã hoàn tiền");
+                return "redirect:/admin/orders/cancelled-payments";
+            }
+
+            Payment payment = paymentService.getPaymentByOrderIdAndTypePay(order.getId(), "PAY").get();
+            BigDecimal refundAmount = BigDecimal.ZERO;
+            if (payment != null && payment.getAmount() != null) {
+                refundAmount = payment.getAmount()
+                        .multiply(new BigDecimal("0.70"))
+                        .setScale(0, RoundingMode.HALF_UP);
+            }
+
+            model.addAttribute("order", order);
+            model.addAttribute("refundAmount", refundAmount);
+            return "admin/cancelledOrderDetail";
+
+        } catch (Exception e) {
+            log.error("Error loading cancelled order detail: ", e);
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            return "redirect:/admin/orders/cancelled-payments";
+        }
+    }
+
+    @PostMapping("/orders/refund")
+    public String processRefund(@ModelAttribute RefundRequest refundRequest,
+                                RedirectAttributes ra,
+                                HttpSession session) {
+        String redirect = checkAdminAccess(session);
+        if (redirect != null) return redirect;
+
+        try {
+            if (refundRequest.getOrderId() == null) {
+                ra.addFlashAttribute("error", "Thiếu thông tin đơn hàng");
+                return "redirect:/admin/orders/cancelled-payments";
+            }
+
+            if (refundRequest.getReferenceCode() == null || refundRequest.getReferenceCode().trim().isEmpty()) {
+                ra.addFlashAttribute("error", "Vui lòng nhập mã tham chiếu");
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+            }
+
+            if (!paymentService.isTransactionIdExist(refundRequest.getReferenceCode())) {
+                ra.addFlashAttribute("error", "Mã tham chiếu đã tồn tại");
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+            }
+
+            if (refundRequest.getTransactionDate() == null || refundRequest.getTransactionTime() == null) {
+                ra.addFlashAttribute("error", "Vui lòng nhập đầy đủ thời gian giao dịch");
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+            }
+
+            Order order = orderService.getOrderById(refundRequest.getOrderId());
+
+            if (order == null) {
+                ra.addFlashAttribute("error", "Không tìm thấy đơn hàng");
+                return "redirect:/admin/orders/cancelled-payments";
+            }
+
+            if (order.getOrderStauts() != OrderStauts.CANCELLED) {
+                ra.addFlashAttribute("error", "Đơn hàng này không ở trạng thái đã hủy");
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+            }
+
+            String dateTimeStr = refundRequest.getTransactionDate() + " " + refundRequest.getTransactionTime();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime transactionDateTime = LocalDateTime.parse(dateTimeStr, formatter);
+
+            Payment payment = Payment.builder()
+                    .type("REFUND")
+                    .paymentMethod("BANKING")
+                    .paymentDate(transactionDateTime)
+                    .order(order)
+                    .transactionId(refundRequest.getReferenceCode())
+                    .amount(paymentService.getPaymentByOrderIdAndTypePay(order.getId(), "PAY").get().getAmount().multiply(new BigDecimal("0.7")))
+                    .build();
+            paymentService.createPayment(payment);
+
+            ra.addFlashAttribute("success", "Đã xác nhận hoàn tiền cho đơn hàng #" + order.getId());
+            return "redirect:/admin/orders/cancelled-payments";
+
+        } catch (Exception e) {
+            log.error("Error processing refund", e);
+            ra.addFlashAttribute("error", "Lỗi khi xử lý hoàn tiền: " + e.getMessage());
+            return "redirect:/admin/orders/cancelled/" + // ✅ Thêm /
+                    (refundRequest.getOrderId() != null ? refundRequest.getOrderId() : "");
+        }
     }
 }

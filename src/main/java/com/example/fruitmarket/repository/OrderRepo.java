@@ -30,4 +30,9 @@ public interface OrderRepo extends JpaRepository<Order, Long> {
             "where o.id = :orderId")
     void addShippingToTotal(@Param("orderId") Long orderId,
                             @Param("fee") BigDecimal fee);
+
+    @Query("SELECT o FROM Order o WHERE o.orderStauts = 'CANCELLED' " +
+            "AND EXISTS (SELECT p FROM o.payments p WHERE p.type = 'PAY') " +
+            "AND NOT EXISTS (SELECT p FROM o.payments p WHERE p.type = 'REFUND')")
+    List<Order> findCancelledOrdersWithPayButNoRefund();
 }

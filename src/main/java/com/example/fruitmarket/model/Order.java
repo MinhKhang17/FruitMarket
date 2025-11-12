@@ -32,21 +32,28 @@ public class Order {
 
     @Enumerated(EnumType.STRING)
     private PricingMethod pricingMethod;
+
     @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
+
     @Column
     private String phoneNumber;
+
     @Column
     private BigDecimal totalPrice;
+
     @Column
     private String ghnOrderCode;
+
     @Enumerated(EnumType.STRING)
     private GhnStatus ghnStatus;
+
     @Column
     private BigDecimal shippingFee;
-    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
-    private Payment payment;
 
+    // SỬA TỪ @OneToOne THÀNH @OneToMany
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Payment> payments = new ArrayList<>();
 
     @Column
     private long totalQuantity;
@@ -54,4 +61,31 @@ public class Order {
     @Column
     private double totalWeight;
 
+    @Column
+    private String bankName;
+
+    @Column
+    private String bankReferenceCode;
+
+    // Helper method để thêm payment
+    public void addPayment(Payment payment) {
+        payments.add(payment);
+        payment.setOrder(this);
+    }
+
+    // Helper method để lấy payment gốc (PAY)
+    public Payment getOriginalPayment() {
+        return payments.stream()
+                .filter(p -> "PAY".equals(p.getType()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Helper method để lấy payment refund (REFUND)
+    public Payment getRefundPayment() {
+        return payments.stream()
+                .filter(p -> "REFUND".equals(p.getType()))
+                .findFirst()
+                .orElse(null);
+    }
 }

@@ -17,8 +17,9 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "order_id", referencedColumnName = "id")
+    // SỬA TỪ @OneToOne THÀNH @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
     @Column(nullable = false)
@@ -32,4 +33,7 @@ public class Payment {
 
     @Column
     private LocalDateTime paymentDate;
+
+    @Column
+    private String type;
 }
