@@ -17,6 +17,12 @@ public class OrderItem {
     @ManyToOne
     private ProductVariant productVariant;
 
+    @Column(nullable = false)
+    private String productName;
+
+    @Column
+    private String variantName;
+
     @Column
     private Integer quantity; // chỉ dùng nếu unit != KILOGRAM
 

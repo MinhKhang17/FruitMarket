@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -26,16 +27,37 @@ public class VariantServiceImpl implements VariantService {
                                         ProductVariant variant,
                                         List<MultipartFile> files,
                                         ImageType imageType) throws IOException {
+        // Tìm sản phẩm theo ID
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm có ID: " + productId));
 
+        // Kiểm tra null cho variant
+        if (variant == null) {
+            throw new IllegalArgumentException("Biến thể sản phẩm không được để trống");
+        }
+
+        // Kiểm tra giá
+        if (variant.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Giá sản phẩm phải lớn hơn 0");
+        }
+
+        // Kiểm tra tồn kho
+        if (variant.getStock() <= 0) {
+            throw new IllegalArgumentException("Số lượng tồn kho phải lớn hơn 0");
+        }
+
+        // Gắn product cho variant
         variant.setProduct(product);
 
+        // Lưu variant
         ProductVariant savedVariant = productVariantRepository.save(variant);
 
+        // Upload ảnh đầu tiên nếu có
         if (files != null && !files.isEmpty()) {
             MultipartFile firstFile = files.get(0);
-            imageService.uploadImageForVariant(savedVariant.getId(), firstFile, imageType);
+            if (!firstFile.isEmpty()) {
+                imageService.uploadImageForVariant(savedVariant.getId(), firstFile, imageType);
+            }
         }
 
         return savedVariant;

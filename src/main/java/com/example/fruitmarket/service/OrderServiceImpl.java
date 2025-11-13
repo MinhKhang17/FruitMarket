@@ -92,7 +92,8 @@ public class OrderServiceImpl implements OrderService {
         oi.setQuantity(q);
         oi.setProductVariant(variant);
         oi.setPrice(variant.getPrice() != null ? variant.getPrice() : BigDecimal.ZERO);
-
+        oi.setProductName(variant.getProduct().getProductName());
+        oi.setVariantName(variant.getVariant_name());
         order.setOrderItemList(new ArrayList<>());
         order.getOrderItemList().add(oi);
 
@@ -276,6 +277,8 @@ public class OrderServiceImpl implements OrderService {
 
             OrderItem oi = new OrderItem();
             oi.setProductVariant(pv);
+            oi.setProductName(pv.getProduct().getProductName());
+            oi.setVariantName(pv.getVariant_name());
             oi.setPrice(unitPrice);
 
             if (weightKg != null && weightKg > 0) {

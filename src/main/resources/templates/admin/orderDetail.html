@@ -57,13 +57,11 @@
                 <div class="info-label">Trạng thái đơn hàng</div>
                 <div class="info-value" th:text="${order.orderStauts ?: 'N/A'}"></div>
             </div>
-                <div class="info-label">Tổng số</div>
-                <div class="info-item">
-                    <div class="info-label">Tổng số sản phẩm</div>
-                    <div class="info-value"
-                         th:text="${#lists.size(order.orderItemList)} + ' sản phẩm'">
-                    </div>
-                </div>
+            <div class="info-item">
+                <div class="info-label">Tổng số sản phẩm</div>
+                <div class="info-value" th:text="${#lists.size(order.orderItemList)} + ' sản phẩm'"></div>
+            </div>
+
         </div>
 
         <!-- Form cập nhật trạng thái -->
@@ -109,11 +107,15 @@
                              alt="No image"
                              class="product-img"/>
                         <div>
-                            <div th:text="${item.productVariant?.product?.productName ?: 'N/A'}"></div>
+                            <!-- ✅ Lấy tên từ item.productName thay vì productVariant.product.productName -->
+                            <div th:text="${item.productName != null ? item.productName :
+                               (item.productVariant?.product?.productName ?: 'N/A')}"></div>
+
+                            <!-- ✅ Lấy tên biến thể từ item.variantName -->
                             <div style="font-size: 12px; color: var(--muted);"
-                                 th:if="${item.productVariant?.variant_name != null}"
-                                 th:text="'Phân loại: ' + ${item.productVariant.variant_name}"></div>
-                        </div>
+                                 th:if="${item.variantName != null and item.variantName != ''}"
+                                 th:text="'Phân loại: ' + ${item.variantName}">
+                            </div>
                     </div>
                 </td>
 

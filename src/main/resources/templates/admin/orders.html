@@ -5,104 +5,447 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Quản lý Đơn hàng</title>
     <style>
-        /* ===== Modern Green Theme - Orders (giữ y nguyên style bạn có) ===== */
+        /* ===== Combined Modern Green Theme - Orders ===== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --green-50:#f0fdf4; --green-100:#d1fae5; --green-500:#10b981; --green-600:#059669; --green-700:#047857; --shadow-sm:0 1px 3px rgba(0,0,0,0.05); --shadow-md:0 4px 12px rgba(0,0,0,0.08); --shadow-lg:0 10px 30px rgba(0,0,0,0.12); --transition:all .3s cubic-bezier(.4,0,.2,1); }
-        html,body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:linear-gradient(135deg,var(--green-50)0%,#ecfdf5 100%);min-height:100vh;color:#1f2937;}
-        body{padding:24px;}
-        .card{background:white;padding:28px 32px;border-radius:16px;box-shadow:var(--shadow-lg);max-width:1400px;margin:0 auto;border:1px solid rgba(16,185,129,0.1);animation:fadeIn .5s ease;}
-        h2{color:#1f2937;font-weight:800;margin-bottom:24px;font-size:1.75rem;}
-        .top-row{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:20px;}
-        table{width:100%;border-collapse:separate;border-spacing:0;border-radius:12px;box-shadow:var(--shadow-md);overflow:hidden;background:white;}
-        thead th{background:linear-gradient(135deg,var(--green-100)0%,#a7f3d0 100%);color:var(--green-700);font-weight:700;text-align:left;padding:14px 16px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
-        tbody td{padding:14px 16px;font-size:14px;border-bottom:1px solid #f3f4f6;}
-        tbody tr:hover{background:#f9fafb;transition:background .2s ease;}
-        .price{font-weight:700;color:var(--green-700);}
-        .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;}
-        .status-pending{background:#fef3c7;color:#92400e}
-        .status-shipping{background:#d1fae5;color:#065f46}
-        .status-delivered{background:#d1fae5;color:#047857}
-        .status-cancelled{background:#fee2e2;color:#991b1b}
-        .paid-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;}
-        .paid-yes{background:#d1fae5;color:#047857}
-        .paid-no{background:#fee2e2;color:#991b1b}
-        .product-info{display:flex;align-items:center;gap:12px}
-        .product-img{width:60px;height:60px;object-fit:cover;border-radius:8px;border:2px solid #e5e7eb}
-        .btn-view{display:inline-block;background:linear-gradient(135deg,var(--green-500)0%,var(--green-600)100%);color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-weight:600;border:none;cursor:pointer}
-        .no-data{text-align:center;padding:60px 20px;color:#6b7280;font-size:15px}
-        @media(max-width:720px){body{padding:16px}.card{padding:20px}th,td{padding:10px 12px;font-size:13px}h2{font-size:1.5rem}.btn-view{width:100%}}
-        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+        :root {
+            --green-50: #f0fdf4;
+            --green-100: #d1fae5;
+            --green-500: #10b981;
+            --green-600: #059669;
+            --green-700: #047857;
+            --danger-500: #ef4444;
+            --danger-600: #dc2626;
+            --blue-500: #3b82f6;
+            --blue-600: #2563eb;
+            --purple-500: #8b5cf6;
+            --purple-600: #7c3aed;
+            --orange-500: #f59e0b;
+            --yellow-500: #eab308;
+
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+            min-height: 100vh;
+            color: #1f2937;
+        }
+        body { padding: 24px; }
+
+        .card {
+            background: white;
+            padding: 28px 32px;
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            max-width: 1400px;
+            margin: 0 auto;
+            border: 1px solid rgba(16, 185, 129, 0.1);
+            animation: fadeIn .5s ease;
+        }
+
+        h2 {
+            color: #1f2937;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-align: left;
+            margin-bottom: 24px;
+            font-size: 1.75rem;
+        }
+
+        .top-row, .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .btn-view, .btn-back, .btn-update {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--green-500) 0%, var(--green-600) 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .btn-view:hover, .btn-back:hover, .btn-update:hover {
+            background: linear-gradient(135deg, var(--green-600) 0%, var(--green-700) 100%);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .btn-back {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        }
+        .btn-back:hover {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+        }
+        .btn-update {
+            width: 100%;
+            padding: 11px 20px;
+            font-size: 14px;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: 500;
+            animation: slideDown .4s ease;
+        }
+        .alert-success {
+            background: #d1fae5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        /* Info sections (from detail view) */
+        .info-section { margin-bottom: 32px; }
+        .info-section h3 {
+            font-size: 14px;
+            color: var(--green-700);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        .info-item {
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            border-radius: 12px;
+            padding: 14px 16px;
+            transition: var(--transition);
+        }
+        .info-item:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+        .info-label { font-size: 12px; color: #6b7280; margin-bottom: 6px; font-weight: 600; }
+        .info-value { font-size: 15px; font-weight: 700; color: #1f2937; }
+
+        /* Table styles (shared) */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            background: white;
+        }
+        thead th {
+            background: linear-gradient(135deg, var(--green-100) 0%, #a7f3d0 100%);
+            color: var(--green-700);
+            font-weight: 700;
+            text-align: left;
+            padding: 14px 16px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tbody td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        tbody tr:hover { background: #f9fafb; transition: background 0.2s ease; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .status-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; }
+
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-pending::before { background: var(--yellow-500); }
+
+        .status-confirmed { background: #dbeafe; color: #1e40af; }
+        .status-confirmed::before { background: var(--blue-500); }
+
+        .status-shipping { background: #d1fae5; color: #065f46; }
+        .status-shipping::before { background: var(--green-500); }
+
+        .status-delivered { background: #d1fae5; color: #047857; }
+        .status-delivered::before { background: var(--green-600); box-shadow: 0 0 6px rgba(16, 185, 129, 0.5); }
+
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        .status-cancelled::before { background: var(--danger-500); }
+
+        .paid-badge {
+            display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap;
+        }
+        .paid-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; }
+        .paid-yes { background: #d1fae5; color: #047857; }
+        .paid-yes::before { background: var(--green-600); box-shadow: 0 0 6px rgba(16, 185, 129, 0.5); }
+        .paid-no { background: #fee2e2; color: #991b1b; }
+        .paid-no::before { background: var(--danger-500); }
+
+        /* Product info */
+        .product-info { display: flex; align-items: center; gap: 12px; }
+        .product-img {
+            width: 60px; height: 60px; object-fit: cover; border-radius: 8px;
+            border: 2px solid #e5e7eb; transition: transform 0.2s ease;
+        }
+        .product-img:hover { transform: scale(1.1); border-color: var(--green-500); }
+        .price { font-weight: 700; color: var(--green-700); }
+        .total-row { font-weight: 700; background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%); }
+
+        /* Status form */
+        .status-form {
+            background: linear-gradient(135deg, var(--green-50) 0%, #ecfdf5 100%);
+            padding: 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.15);
+            margin-top: 20px;
+        }
+        .status-form select {
+            width: 100%; padding: 11px 14px; border: 2px solid #e5e7eb; border-radius: 8px;
+            font-size: 14px; margin-bottom: 14px; transition: var(--transition); background: white;
+            font-weight: 500;
+        }
+        .status-form select:focus {
+            outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .no-data { text-align: center; padding: 60px 20px; color: #6b7280; font-size: 15px; }
+
+        @media (max-width: 720px) {
+            body { padding: 16px; }
+            .card { padding: 20px; }
+            .info-grid { grid-template-columns: 1fr; }
+            th, td { padding: 10px 12px; font-size: 13px; }
+            h2 { font-size: 1.5rem; }
+            .btn-view, .btn-back { width: 100%; text-align: center; }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px) } to { opacity: 1; transform: translateY(0) } }
     </style>
 </head>
 <body>
 <div class="card">
     <div class="top-row">
         <h2>📦 Quản lý Đơn hàng</h2>
+        <!-- when on list view, you might want action buttons here in future -->
     </div>
 
-    <div th:if="${message}" th:class="'alert alert-' + ${type}" style="padding: 12px; margin-bottom: 16px; border-radius: 6px;">
+    <!-- Alerts (keeps your original usage) -->
+    <div th:if="${message}" th:class="'alert alert-' + ${type}">
         <span th:text="${message}"></span>
     </div>
 
-    <!-- Table -->
-    <table th:if="${orders != null and !orders.isEmpty()}">
-        <thead>
-        <tr>
-            <th>ID</th>
-            <th>Khách hàng</th>
-            <th>Số điện thoại</th>
-            <th>Địa chỉ</th>
-            <th>Tổng tiền</th>
-            <th>Số sản phẩm</th>
-            <th>Thanh toán</th>
-            <th>Trạng thái</th>
-            <th>Hành động</th>
-        </tr>
-        </thead>
+    <!-- ============================
+         A) ORDERS LIST (if orders present)
+         ============================ -->
+    <div th:if="${orders != null and !orders.isEmpty()}">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Khách hàng</th>
+                <th>Số điện thoại</th>
+                <th>Địa chỉ</th>
+                <th>Tổng tiền</th>
+                <th>Số sản phẩm</th>
+                <th>Thanh toán</th>
+                <th>Trạng thái</th>
+                <th>Hành động</th>
+            </tr>
+            </thead>
 
-        <tbody>
-        <tr th:each="order : ${orders}">
-            <td th:text="${order.id}">1</td>
+            <tbody>
+            <tr th:each="o : ${orders}">
+                <td th:text="${o.id}">1</td>
 
-            <!-- Safe username -->
-            <td th:text="${order.users != null ? order.users.username : 'N/A'}">user</td>
+                <!-- Safe username -->
+                <td th:text="${o.users != null ? o.users.username : 'N/A'}">user</td>
 
-            <td th:text="${order.phoneNumber}">0933...</td>
+                <td th:text="${o.phoneNumber}">0933...</td>
 
-            <!-- abbreviate address safely -->
-            <td th:text="${#strings.abbreviate(order.address,30)}">1 Mạc Thiên...</td>
+                <!-- abbreviate address safely -->
+                <td th:text="${#strings.abbreviate(o.address,30)}">1 Mạc Thiên...</td>
 
-            <!-- format totalPrice as VND (use COMMA as thousands separator) -->
-            <td class="price"
-                th:text="${order.totalPrice != null ? #numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT') + ' ₫' : '—'}">
-                0 ₫
-            </td>
+                <!-- format totalPrice as VND with COMMA thousands separator -->
+                <td class="price"
+                    th:text="${o.totalPrice != null ? #numbers.formatDecimal(o.totalPrice, 0, 'COMMA', 0, 'POINT') + ' ₫' : '—'}">
+                    0 ₫
+                </td>
 
-            <!-- use totalQuantity (you already have this field on Order) -->
-            <td th:text="${order.totalQuantity}">0</td>
+                <!-- prefer totalQuantity if available, else fallback to size of order items -->
+                <td th:text="${o.totalQuantity != null ? o.totalQuantity : #lists.size(o.orderItemList)} + ' sản phẩm'">0 sản phẩm</td>
 
-            <!-- paid badge -->
-            <td>
-                <span th:class="${order.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
-                      th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}">Chưa thanh toán</span>
-            </td>
+                <!-- paid badge -->
+                <td>
+                    <span th:class="${o.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
+                          th:text="${o.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}">Chưa thanh toán</span>
+                </td>
 
-            <!-- status badge: build class from enum name (lowercase) if present -->
-            <td>
-                <span th:class="'status-badge ' + (order.orderStauts != null ? 'status-' + ${order.orderStauts.name().toLowerCase()} : '')"
-                      th:text="${order.orderStauts != null ? order.orderStauts : '—'}">PENDING</span>
-            </td>
+                <!-- status badge: build class from enum name (lowercase) if present -->
+                <td>
+                    <span th:with="st=${o.orderStauts != null ? o.orderStauts.name() : ''}"
+                          th:class="${'status-badge ' + (st != '' ? 'status-' + #strings.toLowerCase(st) : '')}"
+                          th:text="${o.orderStauts != null ? o.orderStauts : '—'}">PENDING</span>
+                </td>
 
-            <td>
-                <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn-view">Xem chi tiết</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+                <td>
+                    <!-- view detail link (keeps your existing route) -->
+                    <a th:href="@{/admin/orders/{id}(id=${o.id})}" class="btn-view">Xem chi tiết</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 
     <div th:if="${orders == null or orders.isEmpty()}" class="no-data">
         <p>📭 Chưa có đơn hàng nào</p>
     </div>
+
+    <!-- ============================
+         B) ORDER DETAIL VIEW (if single 'order' provided)
+         ============================ -->
+    <div th:if="${order != null}" style="margin-top:28px;">
+        <div class="header">
+            <h2 th:text="'Chi tiết Đơn #' + (${order.id} != null ? ${order.id} : '')">Chi tiết Đơn</h2>
+            <div>
+                <a th:href="@{/admin/orders}" class="btn-back" style="margin-right:8px;">← Quay về danh sách</a>
+            </div>
+        </div>
+
+        <!-- basic info -->
+        <div class="info-section">
+            <h3>Thông tin đơn hàng</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Khách hàng</div>
+                    <div class="info-value" th:text="${order.users != null ? order.users.username : 'N/A'}">Tên khách</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Số điện thoại</div>
+                    <div class="info-value" th:text="${order.phoneNumber}">0933...</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Địa chỉ</div>
+                    <div class="info-value" th:text="${order.address}">Địa chỉ</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Tổng tiền</div>
+                    <div class="info-value price"
+                         th:text="${order.totalPrice != null ? #numbers.formatDecimal(order.totalPrice, 0, 'COMMA', 0, 'POINT') + ' ₫' : '—'}">
+                        0 ₫
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Số sản phẩm</div>
+                    <div class="info-value" th:text="${order.totalQuantity != null ? order.totalQuantity : #lists.size(order.orderItemList)}">0</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Thanh toán</div>
+                    <div>
+                        <span th:class="${order.paid ? 'paid-badge paid-yes' : 'paid-badge paid-no'}"
+                              th:text="${order.paid ? 'Đã thanh toán' : 'Chưa thanh toán'}">Chưa thanh toán</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Trạng thái</div>
+                    <div>
+                        <span th:with="st=${order.orderStauts != null ? order.orderStauts.name() : ''}"
+                              th:class="${'status-badge ' + (st != '' ? 'status-' + #strings.toLowerCase(st) : '')}"
+                              th:text="${order.orderStauts != null ? order.orderStauts : '—'}">PENDING</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- order items table (if exists) -->
+        <div class="info-section" th:if="${order.orderItemList != null and !order.orderItemList.isEmpty()}">
+            <h3>Danh sách sản phẩm</h3>
+            <table>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Sản phẩm</th>
+                    <th>Số lượng</th>
+                    <th>Giá</th>
+                    <th>Thành tiền</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="item,iterStat : ${order.orderItemList}">
+                    <td th:text="${iterStat.index + 1}">1</td>
+                    <td>
+                        <div class="product-info">
+                            <img th:if="${item.product != null and item.product.imageUrl != null}"
+                                 th:src="${item.product.imageUrl}" alt="img" class="product-img"/>
+                            <div>
+                                <div th:text="${item.product != null ? item.product.name : item.name}">Tên SP</div>
+                                <div style="font-size:12px;color:#6b7280;" th:text="${item.product != null ? item.product.description : ''}"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td th:text="${item.quantity}">1</td>
+                    <td th:text="${item.price != null ? #numbers.formatDecimal(item.price,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫</td>
+                    <td th:text="${(item.price != null and item.quantity != null) ? #numbers.formatDecimal(item.price * item.quantity,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫</td>
+                </tr>
+
+                <!-- total row -->
+                <tr class="total-row">
+                    <td colspan="4">Tổng</td>
+                    <td class="price" th:text="${order.totalPrice != null ? #numbers.formatDecimal(order.totalPrice,0,'COMMA',0,'POINT') + ' ₫' : '—'}">0 ₫</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- status update form (keeps functionality from second file) -->
+        <div class="status-form">
+            <form th:action="@{/admin/orders/updateStatus}" method="post" th:object="${order}">
+                <!-- hidden id -->
+                <input type="hidden" name="id" th:value="${order.id}"/>
+
+                <label class="info-label" for="statusSelect">Cập nhật trạng thái</label>
+                <select id="statusSelect" name="orderStauts" required>
+                    <!-- Put options matching your OrderStatus enum names -->
+                    <option th:selected="${order.orderStauts == T(your.package.OrderStauts).PENDING}" th:value="${T(your.package.OrderStauts).PENDING}">PENDING</option>
+                    <option th:selected="${order.orderStauts == T(your.package.OrderStauts).CONFIRMED}" th:value="${T(your.package.OrderStauts).CONFIRMED}">CONFIRMED</option>
+                    <option th:selected="${order.orderStauts == T(your.package.OrderStauts).SHIPPING}" th:value="${T(your.package.OrderStauts).SHIPPING}">SHIPPING</option>
+                    <option th:selected="${order.orderStauts == T(your.package.OrderStauts).DELIVERED}" th:value="${T(your.package.OrderStauts).DELIVERED}">DELIVERED</option>
+                    <option th:selected="${order.orderStauts == T(your.package.OrderStauts).CANCELLED}" th:value="${T(your.package.OrderStauts).CANCELLED}">CANCELLED</option>
+                </select>
+
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button type="submit" class="btn-update">Cập nhật trạng thái</button>
+                    <a th:href="@{/admin/orders}" class="btn-back" style="align-self:center;">Hủy / Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </div>
 </body>
 </html>

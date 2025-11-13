@@ -282,11 +282,19 @@
                                     <tbody>
                                     <tr th:each="item : ${o.orderItemList}">
                                         <td>
+                                            <!-- ✅ Hiển thị tên sản phẩm từ order item -->
                                             <div class="fw-semibold"
-                                                 th:text="${item.productVariant.product.productName}">Tên sản phẩm</div>
+                                                 th:text="${item.productName != null ? item.productName :
+                       (item.productVariant?.product?.productName ?: 'Sản phẩm')}">
+                                                Tên sản phẩm
+                                            </div>
+
+                                            <!-- ✅ Hiển thị tên biến thể -->
                                             <div class="text-muted small"
-                                                 th:if="${item.productVariant.variant_name != null}"
-                                                 th:text="${item.productVariant.variant_name}">Phân loại</div>
+                                                 th:if="${item.variantName != null and item.variantName != ''}"
+                                                 th:text="'Phân loại: ' + ${item.variantName}">
+                                                Phân loại
+                                            </div>
                                         </td>
 
                                         <td class="text-center"
@@ -337,18 +345,6 @@
                                     <span th:text="${o.address}">123 Lê Lợi, Q.1</span>
                                 </div>
 
-                                <!-- ☎️ Số điện thoại -->
-                                <div class="mini-info">
-                                    <i class="bi bi-telephone me-2"></i>
-                                    <span th:text="${o.phoneNumber}">0901234567</span>
-                                </div>
-
-                                <!-- 👤 Người nhận -->
-                                <div class="mini-info">
-                                    <i class="bi bi-person me-1"></i>
-                                    <span class="text-muted">Người nhận:</span>
-                                    <span class="fw-semibold" th:text="${o.recipientName}">Khách hàng</span>
-                                </div>
                             </div>
 
                             <!-- ✅ Thông tin GHN -->

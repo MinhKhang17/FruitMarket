@@ -314,15 +314,27 @@ public class AdminController {
     public String saveVariant(@PathVariable Long productId,
                               @ModelAttribute ProductVariant variant,
                               @RequestParam(value = "files", required = false) List<MultipartFile> files,
-                              HttpSession session)
-            throws IOException {
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes) {
         String redirect = checkAdminAccess(session);
         if (redirect != null) return redirect;
 
-        // Chỉ upload ảnh đầu tiên (One-to-One)
-        variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
+        try {
+            variantService.createVariant(productId, variant, files, ImageType.PRODUCT_VARIANT);
+            redirectAttributes.addFlashAttribute("success", "Thêm biến thể thành công!");
+        } catch (IllegalArgumentException e) {
+            // Lỗi validate từ service (price hoặc stock <= 0)
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            // Các lỗi khác (ví dụ lỗi upload file)
+            redirectAttributes.addFlashAttribute("error", "Đã xảy ra lỗi không mong muốn, vui lòng thử lại!");
+            e.printStackTrace();
+        }
+
+        // ✅ Quay lại đúng trang thêm variant
         return "redirect:/admin/products/" + productId + "/variants";
     }
+
 
     @GetMapping("/productVariant/delete/{id}")
     public String deleteProductVariant(@PathVariable Long id) {
