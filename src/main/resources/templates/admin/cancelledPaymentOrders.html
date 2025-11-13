@@ -289,9 +289,7 @@
                 <th>Mã đơn</th>
                 <th>Khách hàng</th>
                 <th>Số điện thoại</th>
-                <th>Tổng tiền</th>
                 <th>Đã thanh toán</th>
-                <th>Hoàn 70%</th>
                 <th>Phương thức</th>
                 <th>Trạng thái</th>
                 <th>Hành động</th>
@@ -302,11 +300,8 @@
                 <td th:text="'#' + ${order.id}"></td>
                 <td th:text="${order.users?.username ?: 'N/A'}"></td>
                 <td th:text="${order.phoneNumber}"></td>
-                <td class="price" th:text="${#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'COMMA')} + ' đ'"></td>
                 <td class="price" th:text="${order.originalPayment != null ? (#numbers.formatDecimal(order.originalPayment.amount, 0, 'POINT', 0, 'COMMA') + ' đ') : '—'}"></td>
-                <td class="refund-amount"
-                    th:text="${order.originalPayment != null ? (#numbers.formatDecimal(order.originalPayment.amount * 0.70, 0, 'POINT', 0, 'COMMA') + ' đ') : '—'}">
-                </td>
+
                 <td>
                     <span class="payment-badge" th:text="${order.pricingMethod}"></span>
                 </td>
