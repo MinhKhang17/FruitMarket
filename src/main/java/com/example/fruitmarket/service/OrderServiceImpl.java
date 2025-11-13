@@ -33,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     @Value("${ghn.from-ward-code}")
     private String fromWardCode;
 
+
     /* ============================
      * createOrder (OVERLOAD 1) — tương thích code cũ
      * ============================ */
@@ -523,7 +524,12 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // Cho return khi đang DELIVERING hoặc các trạng thái trước đó
+            if(order.isPaid()&&ghnStatus.equals(GhnStatus.RETURN)){
+                cancelOrderByShipper(order);
+            }
+            else{
             order.setGhnStatus(ghnStatus);
+            }
             // Chuyển đơn về CANCEL nếu chưa completed
             if (order.getOrderStauts() == null ||
                     order.getOrderStauts().rank() < OrderStauts.COMPLETED.rank()) {
@@ -688,6 +694,41 @@ public class OrderServiceImpl implements OrderService {
         order.setBankReferenceCode(bankReferenceCode);
         orderRepo.save(order);
     }
+
+
+    @Transactional
+    @Override
+    public void cancelOrderByShipper(Order order) {
+
+        if (order == null) {
+            throw new IllegalArgumentException("Order không hợp lệ (null).");
+        }
+
+        // Kiểm tra trạng thái có thể huỷ hay không (nếu bạn muốn skip luôn thì xoá đoạn này)
+        if (!canCancel(order)) {
+            throw new IllegalStateException("Đơn hiện tại không thể huỷ (trạng thái: " + order.getOrderStauts() + ").");
+        }
+
+        String ghnCode = order.getGhnOrderCode();
+        if (ghnCode != null && !ghnCode.isBlank()) {
+            try {
+                ghnClientService.cancelOrder(ghnCode);
+                log.info("GHN cancel OK for order {}, code {}", order.getId(), ghnCode);
+            } catch (WebClientResponseException wcre) {
+                log.warn("Huỷ GHN thất bại: status={} body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
+            } catch (Exception ex) {
+                log.warn("Huỷ GHN thất bại: {}", ex.getMessage(), ex);
+            }
+        }
+
+        // Cập nhật trạng thái nội bộ
+        order.setOrderStauts(OrderStauts.CANCELLED);
+        order.setGhnStatus(GhnStatus.CANCEL);
+
+        orderRepo.save(order);
+    }
+
+
 
     @Override
     public List<Order> getCancelledOrdersWithPayment() {

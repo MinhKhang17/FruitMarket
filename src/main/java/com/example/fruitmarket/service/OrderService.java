@@ -45,5 +45,9 @@ public interface OrderService {
 
     void cancelOrderHasPayment(HttpSession session, Long orderId, String bankName, String bankReferenceCode);
 
+
+    @Transactional
+    void cancelOrderByShipper(Order order);
+
     List<Order> getCancelledOrdersWithPayment();
 }
