@@ -125,6 +125,13 @@
             margin-bottom: 32px;
             text-align: center;
         }
+
+        /* ✅ THÊM: Style cho badge 100% */
+        .refund-highlight.full-refund {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: var(--green-500);
+        }
+
         .refund-highlight h3 {
             color: #92400e;
             font-size: 16px;
@@ -132,15 +139,29 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        .refund-highlight.full-refund h3 {
+            color: var(--green-700);
+        }
+
         .refund-amount {
             font-size: 2.5rem;
             font-weight: 800;
             color: var(--danger-600);
             margin-bottom: 8px;
         }
+
+        .refund-highlight.full-refund .refund-amount {
+            color: var(--green-600);
+        }
+
         .refund-note {
             font-size: 13px;
             color: #78350f;
+        }
+
+        .refund-highlight.full-refund .refund-note {
+            color: var(--green-700);
         }
 
         .info-section {
@@ -471,6 +492,25 @@
             border-color: #d1d5db;
         }
 
+        /* ✅ THÊM: Style cho section ngân hàng trong modal */
+        .bank-info-section {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            border: 2px solid var(--blue-500);
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+
+        .bank-info-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #0c4a6e;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
         @media (max-width: 720px) {
             body { padding: 16px; }
             .card { padding: 20px; }
@@ -532,11 +572,17 @@
         <span th:text="${success}"></span>
     </div>
 
-    <!-- Highlighted Refund Amount -->
-    <div class="refund-highlight">
-        <h3>🔄 Số tiền cần hoàn trả (70%)</h3>
+    <!-- ✅ SỬA: Highlighted Refund Amount - Động với class conditional -->
+    <div class="refund-highlight" th:classappend="${refundPercent == 100} ? 'full-refund' : ''">
+        <h3>
+            <span th:if="${refundPercent == 100}">✅ Số tiền hoàn trả toàn bộ (100%)</span>
+            <span th:unless="${refundPercent == 100}">🔄 Số tiền cần hoàn trả (70%)</span>
+        </h3>
         <div class="refund-amount" th:text="${#numbers.formatDecimal(refundAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></div>
-        <div class="refund-note">Hoàn 70% từ số tiền khách đã thanh toán qua VNPAY</div>
+        <div class="refund-note">
+            <span th:if="${refundPercent == 100}">Hoàn 100% vì chưa có thông tin ngân hàng khách thanh toán</span>
+            <span th:unless="${refundPercent == 100}">Hoàn 70% từ số tiền khách đã thanh toán qua VNPAY</span>
+        </div>
     </div>
 
     <!-- Thông tin khách hàng -->
@@ -586,7 +632,7 @@
             </div>
         </div>
 
-        <!-- Payment Details - ĐÃ SỬA -->
+        <!-- Payment Details -->
         <div class="payment-details" th:if="${order.originalPayment != null}">
             <h4>💳 Chi tiết thanh toán VNPAY</h4>
             <div class="detail-row">
@@ -604,7 +650,7 @@
             </div>
 
             <!-- Bank Information Section -->
-            <div th:if="${order.bankName != null or order.bankReferenceCode != null}"
+            <div th:if="${order.bankName != null and order.bankName != ''}"
                  style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
                         padding: 12px; border-radius: 8px; margin: 12px 0;
                         border: 1px solid #0ea5e9;">
@@ -612,7 +658,7 @@
                     <span style="font-size: 18px;">🏦</span>
                     <span style="font-weight: 700; color: #0c4a6e; font-size: 13px;">THÔNG TIN NGÂN HÀNG</span>
                 </div>
-                <div class="detail-row" th:if="${order.bankName != null}" style="border: none; padding: 4px 0;">
+                <div class="detail-row" style="border: none; padding: 4px 0;">
                     <span class="detail-label" style="color: #075985;">Ngân hàng:</span>
                     <span class="detail-value" style="color: #0369a1; font-weight: 800;"
                           th:text="${order.bankName}"></span>
@@ -625,12 +671,12 @@
             </div>
 
             <!-- Notification when no bank info -->
-            <div th:unless="${order.bankName != null or order.bankReferenceCode != null}"
+            <div th:unless="${order.bankName != null and order.bankName != ''}"
                  style="background: #fef3c7; padding: 10px 12px; border-radius: 8px; margin: 12px 0;
                         border: 1px solid #fbbf24; display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 16px;">ℹ️</span>
                 <span style="color: #78350f; font-size: 13px; font-weight: 500;">
-                    Chưa có thông tin ngân hàng cho giao dịch này
+                    Chưa có thông tin ngân hàng - Cần nhập khi hoàn tiền (hoàn 100%)
                 </span>
             </div>
 
@@ -643,8 +689,11 @@
                 <span class="detail-value" th:text="${#temporals.format(order.originalPayment.paymentDate, 'dd/MM/yyyy HH:mm:ss')}"></span>
             </div>
             <div class="detail-row" style="border-top: 2px solid var(--blue-500); padding-top: 12px; margin-top: 8px;">
-                <span class="detail-label" style="font-size: 15px;">Số tiền hoàn trả (70%):</span>
-                <span class="detail-value" style="font-size: 16px; color: var(--danger-600);"
+                <span class="detail-label" style="font-size: 15px;">
+                    Số tiền hoàn trả (<span th:text="${refundPercent}"></span>%):
+                </span>
+                <span class="detail-value"
+                      th:style="${refundPercent == 100 ? 'font-size: 16px; color: var(--green-600);' : 'font-size: 16px; color: var(--danger-600);'}"
                       th:text="${#numbers.formatDecimal(refundAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></span>
             </div>
         </div>
@@ -687,7 +736,6 @@
                 <td th:text="${item.quantity}"></td>
                 <td class="price" th:text="${item.productVariant?.price != null ? (#numbers.formatDecimal(item.productVariant.price * item.quantity, 0, 'POINT', 0, 'POINT') + ' đ') : 'N/A'}"></td>
             </tr>
-            <!-- ✅ THÊM MỚI: Tạm tính -->
             <tr style="background: #f9fafb;">
                 <td colspan="3" style="text-align: right; font-weight: 600;">Tạm tính (sản phẩm):</td>
                 <td class="price"
@@ -695,8 +743,6 @@
                   (#numbers.formatDecimal(order.totalPrice - order.shippingFee, 0, 'POINT', 0, 'POINT') + ' đ') :
                   (#numbers.formatDecimal(order.totalPrice, 0, 'POINT', 0, 'POINT') + ' đ')}"></td>
             </tr>
-
-            <!-- ✅ THÊM MỚI: Phí vận chuyển -->
             <tr style="background: #f9fafb;">
                 <td colspan="3" style="text-align: right; font-weight: 600;">Phí vận chuyển:</td>
                 <td class="price"
@@ -713,7 +759,7 @@
     </div>
 </div>
 
-<!-- Modal Form Hoàn Tiền -->
+<!-- ✅ SỬA: Modal Form Hoàn Tiền - Có điều kiện hiển thị bank info -->
 <div id="refundModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -734,8 +780,15 @@
                         <span class="info-row-value" th:text="${order.users?.username ?: 'N/A'}"></span>
                     </div>
                     <div class="info-row">
+                        <span class="info-row-label">Tỷ lệ hoàn tiền:</span>
+                        <span class="info-row-value">
+                            <span th:text="${refundPercent} + '%'"></span>
+                        </span>
+                    </div>
+                    <div class="info-row">
                         <span class="info-row-label">Số tiền hoàn trả:</span>
-                        <span class="info-row-value" style="color: var(--danger-600); font-size: 18px;">
+                        <span class="info-row-value"
+                              th:style="${refundPercent == 100 ? 'color: var(--green-600); font-size: 18px;' : 'color: var(--danger-600); font-size: 18px;'}">
                             <span th:text="${#numbers.formatDecimal(refundAmount, 0, 'POINT', 0, 'POINT')} + ' đ'"></span>
                         </span>
                     </div>
@@ -746,9 +799,45 @@
             <form th:action="@{/admin/orders/refund}" method="post" id="refundForm">
                 <input type="hidden" name="orderId" th:value="${order.id}" />
 
+                <!-- ✅ THÊM: Section nhập bank info nếu chưa có -->
+                <div class="bank-info-section" th:if="${order.bankName == null or order.bankName == ''}">
+                    <div class="bank-info-section-title">
+                        <span>🏦</span>
+                        <span>Thông tin ngân hàng khách hàng</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bankName">
+                            Tên ngân hàng <span class="required">*</span>
+                        </label>
+                        <input
+                                type="text"
+                                id="bankName"
+                                name="bankName"
+                                placeholder="VD: Vietcombank, BIDV, Techcombank..."
+                                required
+                                maxlength="100"
+                        />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bankReferenceCode">
+                            Mã tham chiếu ngân hàng <span class="required">*</span>
+                        </label>
+                        <input
+                                type="text"
+                                id="bankReferenceCode"
+                                name="bankReferenceCode"
+                                placeholder="Nhập mã tham chiếu từ ngân hàng khách"
+                                required
+                                maxlength="100"
+                        />
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="referenceCode">
-                        Mã tham chiếu (Reference Code) <span class="required">*</span>
+                        Mã tham chiếu hoàn tiền <span class="required">*</span>
                     </label>
                     <input
                             type="text"
@@ -799,7 +888,12 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const refundPercent = /*[[${refundPercent}]]*/ 70;
+    const needsBankInfo = /*[[${order.bankName == null or order.bankName == ''}]]*/ false;
+    /*]]>*/
+
     // Mở modal
     function openRefundModal() {
         document.getElementById('refundModal').style.display = 'block';
@@ -837,9 +931,27 @@
         const transactionDate = document.getElementById('transactionDate').value;
         const transactionTime = document.getElementById('transactionTime').value;
 
+        // ✅ Validate bank info nếu cần
+        if (needsBankInfo) {
+            const bankName = document.getElementById('bankName').value.trim();
+            const bankReferenceCode = document.getElementById('bankReferenceCode').value.trim();
+
+            if (!bankName) {
+                e.preventDefault();
+                alert('Vui lòng nhập tên ngân hàng!');
+                return false;
+            }
+
+            if (!bankReferenceCode) {
+                e.preventDefault();
+                alert('Vui lòng nhập mã tham chiếu ngân hàng!');
+                return false;
+            }
+        }
+
         if (!referenceCode) {
             e.preventDefault();
-            alert('Vui lòng nhập mã tham chiếu!');
+            alert('Vui lòng nhập mã tham chiếu hoàn tiền!');
             return false;
         }
 
@@ -856,11 +968,19 @@
         }
 
         // Xác nhận trước khi submit
-        const confirmed = confirm(
-            'Bạn có chắc chắn muốn xác nhận hoàn tiền cho đơn hàng này?\n' +
-            'Mã tham chiếu: ' + referenceCode + '\n' +
-            'Thời gian: ' + transactionDate + ' ' + transactionTime
-        );
+        let confirmMessage = 'Bạn có chắc chắn muốn xác nhận hoàn tiền ' + refundPercent + '% cho đơn hàng này?\n' +
+            'Mã tham chiếu hoàn tiền: ' + referenceCode + '\n' +
+            'Thời gian: ' + transactionDate + ' ' + transactionTime;
+
+        if (needsBankInfo) {
+            const bankName = document.getElementById('bankName').value.trim();
+            const bankReferenceCode = document.getElementById('bankReferenceCode').value.trim();
+            confirmMessage += '\n\nThông tin ngân hàng khách:\n' +
+                'Ngân hàng: ' + bankName + '\n' +
+                'Mã tham chiếu: ' + bankReferenceCode;
+        }
+
+        const confirmed = confirm(confirmMessage);
 
         if (!confirmed) {
             e.preventDefault();

@@ -8,4 +8,6 @@ public class RefundRequest {
     private String referenceCode;
     private String transactionDate;
     private String transactionTime;
+    private String bankName;
+    private String bankReferenceCode;
 }

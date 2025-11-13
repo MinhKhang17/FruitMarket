@@ -515,14 +515,21 @@ public class AdminController {
 
             Payment payment = paymentService.getPaymentByOrderIdAndTypePay(order.getId(), "PAY").get();
             BigDecimal refundAmount = BigDecimal.ZERO;
+            BigDecimal refundPercent = new BigDecimal("0.70");
+
+            if (order.getBankName() == null || order.getBankName().trim().isEmpty()) {
+                refundPercent = BigDecimal.ONE; // 100%
+            }
+
             if (payment != null && payment.getAmount() != null) {
                 refundAmount = payment.getAmount()
-                        .multiply(new BigDecimal("0.70"))
+                        .multiply(refundPercent)
                         .setScale(0, RoundingMode.HALF_UP);
             }
 
             model.addAttribute("order", order);
             model.addAttribute("refundAmount", refundAmount);
+            model.addAttribute("refundPercent", refundPercent.multiply(new BigDecimal("100")).intValue());
             return "admin/cancelledOrderDetail";
 
         } catch (Exception e) {
@@ -569,12 +576,36 @@ public class AdminController {
 
             if (order.getOrderStauts() != OrderStauts.CANCELLED) {
                 ra.addFlashAttribute("error", "Đơn hàng này không ở trạng thái đã hủy");
-                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId(); // ✅ Thêm /
+                return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId();
+            }
+            BigDecimal refundPercent = new BigDecimal("0.70");
+            boolean needsBankInfo = false;
+
+            if (order.getBankName() == null || order.getBankName().trim().isEmpty()) {
+                refundPercent = BigDecimal.ONE;
+                needsBankInfo = true;
+                if (refundRequest.getBankName() == null || refundRequest.getBankName().trim().isEmpty()) {
+                    ra.addFlashAttribute("error", "Vui lòng nhập tên ngân hàng");
+                    return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId();
+                }
+
+                if (refundRequest.getBankReferenceCode() == null || refundRequest.getBankReferenceCode().trim().isEmpty()) {
+                    ra.addFlashAttribute("error", "Vui lòng nhập mã tham chiếu ngân hàng");
+                    return "redirect:/admin/orders/cancelled/" + refundRequest.getOrderId();
+                }
+                order.setBankName(refundRequest.getBankName().trim());
+                order.setBankReferenceCode(refundRequest.getBankReferenceCode().trim());
+                orderService.updateOrder(order);
             }
 
             String dateTimeStr = refundRequest.getTransactionDate() + " " + refundRequest.getTransactionTime();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             LocalDateTime transactionDateTime = LocalDateTime.parse(dateTimeStr, formatter);
+
+            Payment originalPayment = paymentService.getPaymentByOrderIdAndTypePay(order.getId(), "PAY").get();
+            BigDecimal refundAmount = originalPayment.getAmount()
+                    .multiply(refundPercent)
+                    .setScale(0, RoundingMode.HALF_UP);
 
             Payment payment = Payment.builder()
                     .type("REFUND")
@@ -582,11 +613,13 @@ public class AdminController {
                     .paymentDate(transactionDateTime)
                     .order(order)
                     .transactionId(refundRequest.getReferenceCode())
-                    .amount(paymentService.getPaymentByOrderIdAndTypePay(order.getId(), "PAY").get().getAmount().multiply(new BigDecimal("0.7")))
+                    .amount(refundAmount)
                     .build();
             paymentService.createPayment(payment);
 
-            ra.addFlashAttribute("success", "Đã xác nhận hoàn tiền cho đơn hàng #" + order.getId());
+            ra.addFlashAttribute("success", "Đã xác nhận hoàn tiền " +
+                    refundPercent.multiply(new BigDecimal("100")).intValue() +
+                    "% cho đơn hàng #" + order.getId());
             return "redirect:/admin/orders/cancelled-payments";
 
         } catch (Exception e) {
