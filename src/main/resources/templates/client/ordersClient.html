@@ -380,18 +380,18 @@
                                 <!-- 🧾 Hành động -->
                                 <div class="d-flex justify-content-end align-items-center gap-2 mt-3">
 
-                                    <!-- Huỷ đơn -->
-                                    <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING
-                                                    or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK
-                                                    or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"
-                                          th:action="@{|/orders/${o.id}/cancel|}" method="post"
-                                          class="m-0"
-                                          th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">
-                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>
-                                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                                            <i class="bi bi-x-circle"></i> Huỷ đơn
-                                        </button>
-                                    </form>
+<!--                                    &lt;!&ndash; Huỷ đơn &ndash;&gt;-->
+<!--                                    <form th:if="${o.orderStauts == T(com.example.fruitmarket.enums.OrderStauts).PENDING-->
+<!--                                                    or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).READY_TO_PICK-->
+<!--                                                    or o.ghnStatus == T(com.example.fruitmarket.enums.GhnStatus).PICKING}"-->
+<!--                                          th:action="@{|/orders/${o.id}/cancel|}" method="post"-->
+<!--                                          class="m-0"-->
+<!--                                          th:attr="onsubmit=|return confirm('Bạn có chắc muốn huỷ đơn #${o.id}?');|">-->
+<!--                                        <input type="hidden" name="_csrf" th:if="${_csrf != null}" th:value="${_csrf.token}"/>-->
+<!--                                        <button type="submit" class="btn btn-outline-danger btn-sm">-->
+<!--                                            <i class="bi bi-x-circle"></i> Huỷ đơn-->
+<!--                                        </button>-->
+<!--                                    </form>-->
 
                                     <!-- Chi tiết -->
                                     <a class="btn btn-outline-success btn-sm" th:href="@{'/myOrders/' + ${o.id}}">
